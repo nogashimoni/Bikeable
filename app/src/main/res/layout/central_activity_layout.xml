@@ -4,14 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:fitsSystemWindows="true"
-    tools:context=".CentralActivity">
+    tools:context=".CentralActivity"
+    android:background="#d9d9d9">
 
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/centralLayout">
+        android:id="@+id/centralLayout"
+        android:background="#b8e7fd">
 
 
         <TextView
