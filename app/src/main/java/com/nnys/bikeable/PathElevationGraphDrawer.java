@@ -28,6 +28,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
 
     public void addSeries( ElevationResult[] elevationResults ) {
+        assert (elevationResults != null);
         DataPoint[] points = new DataPoint[elevationResults.length];
         for ( int i=0; i < elevationResults.length; i++) {
             points[i] = new DataPoint(i, elevationResults[i].elevation);
