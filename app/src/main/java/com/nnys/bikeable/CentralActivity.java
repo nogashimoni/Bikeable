@@ -61,7 +61,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private LayoutInflater layoutInflater;
 
     private int GRAPH_X_INTERVAL = 20;
-    private int MAX_GRAPH_SAMPLES = 500;
+    private int MAX_GRAPH_SAMPLES = 400;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
