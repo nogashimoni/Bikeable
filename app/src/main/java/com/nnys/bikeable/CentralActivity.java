@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,6 +37,7 @@ import com.google.maps.model.ElevationResult;
 import com.google.maps.model.EncodedPolyline;
 import com.jjoe64.graphview.GraphView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -253,13 +255,29 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         ));
 
-        mMap.setOnMarkerClickListener( new GoogleMap.OnMarkerClickListener() {
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 marker.showInfoWindow();
                 return true;
             }
         });
+
+        /*double[][] arr =  {{34.800872, 32.141237}, {34.800135, 32.141489}, {34.799725, 32.141641}, {34.798795, 32.141962},
+                {34.798485, 32.142071}, {34.798263, 32.142149}, {34.797588, 32.142359}, {34.797285, 32.142451}};
+        double[][] arr2 =  {{32.141237, 34.800872}, {32.141489, 34.800135}, {32.141641, 34.799725}, {32.141962, 34.798795},
+                {32.142071, 34.798485}, {32.142149, 34.798263}, {32.142359, 34.797588}, {32.142451, 34.797285}};
+        ArrayList<com.google.android.gms.maps.model.LatLng> points = new ArrayList<>();
+        for (int i = 0; i < 8; i++){
+            points.add(new LatLng(arr2[i][0], arr2[i][1]));
+        }
+        PolylineOptions line = new PolylineOptions();
+        com.google.android.gms.maps.model.LatLng currPoint;
+        for (com.google.android.gms.maps.model.LatLng point : points) {
+            currPoint = new com.google.android.gms.maps.model.LatLng(point.latitude, point.longitude);
+            line.add(currPoint);
+        }
+        mMap.addPolyline(line);*/
 
 
 
