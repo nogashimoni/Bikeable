@@ -83,7 +83,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to = (AutoCompleteTextView) findViewById(R.id.to);
         from.setText("");
         to.setText("");
-        final TextView resultText = (TextView) findViewById(R.id.to_result);
 
         from_adapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
                 null);
@@ -232,14 +231,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng sharonHome = new LatLng(32.110277, 34.794866);
-        LatLng nearsharonHome = new LatLng(32.110277, 34.994866);
+        LatLng tau = new LatLng(32.113523, 34.804399);
         mMap.addMarker(new MarkerOptions()
-                        .title("Sharon's Home")
-                        .snippet("The coolest place in Tel Aviv!")
-                        .position(sharonHome)
+                        .title("Tel-Aviv University")
+                        .position(tau)
         );
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sharonHome));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
