@@ -124,9 +124,21 @@ public class DirectionsManager {
         return getCurrentRout().overviewPolyline;
     }
 
+    public EncodedPolyline getEnodedPoylineByIndex(int i) {
+        return routes[i].overviewPolyline;
+    }
+
     public long getCurrRouteDistance () {
         long distance = 0;
         for (DirectionsLeg leg : getCurrentRout().legs) {
+            distance += leg.distance.inMeters;
+        }
+        return distance;
+    }
+
+    public long getRouteDistanceByIndex (int i) {
+        long distance = 0;
+        for (DirectionsLeg leg : routes[i].legs) {
             distance += leg.distance.inMeters;
         }
         return distance;

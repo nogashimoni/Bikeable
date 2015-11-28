@@ -60,6 +60,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
+    private int GRAPH_X_INTERVAL = 20;
+    private int MAX_GRAPH_SAMPLES = 500;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,18 +152,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
                     return;
                 }
-                EncodedPolyline currPathEncPoly = directionsManager.getCurrRouteEncPolyline();
-                PathElevationQuerier querier = new PathElevationQuerier(currPathEncPoly);
-                long distance = directionsManager.getCurrRouteDistance();
-                int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance,20);
-                ElevationResult[] results = querier.getElevationSamples(numOfSamples);
 
                 layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
                 ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.graph_popup,null);
 
                 GraphView graph = (GraphView) container.findViewById(R.id.altitude_graph);
-                PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph, results);
-                graphDrawer.drawGraph();
+                PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph);
+
+                for (int i = 0; i < directionsManager.getNumRoutes(); i ++ ) {
+                    PathElevationQuerier querier = new PathElevationQuerier(directionsManager.getEnodedPoylineByIndex(i));
+                    long distance = directionsManager.getRouteDistanceByIndex(i);
+                    int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
+                    ElevationResult[] results = querier.getElevationSamples(numOfSamples);
+                    graphDrawer.addSeries(results);
+                    if ( results == null )
+                        return;
+                }
+
+                graphDrawer.colorSeriosByIndex(directionsManager.getSelectedRouteIndex());
 
                 DisplayMetrics dm = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(dm);

@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.maps.model.ElevationResult;
@@ -11,13 +12,12 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
     GraphView graph;
     ElevationResult[] elevationResults;
 
-    public PathElevationGraphDrawer(GraphView graph, ElevationResult[] elevationResults) {
+    public PathElevationGraphDrawer(GraphView graph) {
         this.graph = graph;
-        this.elevationResults = elevationResults;
         setGraph(graph);
     }
 
-    public void setGraph(GraphView graph) {
+    private void setGraph(GraphView graph) {
         graph.removeAllSeries();
         graph.getLegendRenderer().setVisible(false);
         graph.getViewport().setScrollable(true);
@@ -26,7 +26,8 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         graph.getViewport().setMaxX(80); //has to divide by for in order that x-axis legand will show integers
     }
 
-    public void drawGraph() {
+
+    public void addSeries( ElevationResult[] elevationResults ) {
         DataPoint[] points = new DataPoint[elevationResults.length];
         for ( int i=0; i < elevationResults.length; i++) {
             points[i] = new DataPoint(i, elevationResults[i].elevation);
@@ -34,9 +35,14 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(points);
         series.setThickness(10);
+        series.setColor(Color.BLACK);
 
-        graph.removeAllSeries();
         graph.addSeries(series);
+    }
+
+    public void colorSeriosByIndex( int i ) {
+        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(i);
+        series.setColor(Color.BLUE);
     }
 
 }

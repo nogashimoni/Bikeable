@@ -11,18 +11,6 @@ import java.util.ArrayList;
 
 public class PathElevationQuerier {
 
-    public static void main(String[] args) {
-        ArrayList<com.google.maps.model.LatLng> path = createMockPathNoGms();
-        EncodedPolyline polyline = createMockRoute();
-        PathElevationQuerier querier = new PathElevationQuerier(path);
-        ElevationResult[] points;
-        try {
-            points = querier.getElevationSamples(10);
-        } catch (Exception e) {
-            System.out.println("getElevationSamples function failed");
-            return;
-        }
-    }
 
     ArrayList<com.google.maps.model.LatLng> path;
     EncodedPolyline route;
@@ -33,32 +21,41 @@ public class PathElevationQuerier {
         this.path = path;
         this.route = null;
         this.isByEncodedPolyline = false;
+
     }
 
     public PathElevationQuerier(EncodedPolyline route) {
         this.route = route;
         this.path = null;
         this.isByEncodedPolyline = true;
+
     }
 
     public PathElevationQuerier() {
         this.path = null;
         this.route = PathElevationQuerier.createMockRoute();
         this.isByEncodedPolyline = true;
+
     }
 
-    public int calcNumOfSamplesForXmetersIntervals(long pathDistance, int x) {
+    public int calcNumOfSamplesForXmetersIntervals(long pathDistance, int x, int max_elevation_samples) {
         int result;
         long numberOfSamples = (long)(pathDistance / x);
         if ( numberOfSamples >= Integer.MAX_VALUE ) {
             return Integer.MAX_VALUE;
         }
         result = (int)numberOfSamples;
+        if ( result > max_elevation_samples) {
+            return max_elevation_samples;
+        }
         return result;
     }
     public ElevationResult[] getElevationSamples(int numOfSamples) {
-        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyB5S5oZp1kPJnVgU4Gr5D4Og3RhDWdwPBM");
+
         ElevationResult[] elevations = null;
+//        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyB5S5oZp1kPJnVgU4Gr5D4Og3RhDWdwPBM");
+//        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBq4x4t8-j30Vbo5jrax_jIMkkMTlZdp1k");
+        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBCRcbSVolZ34CkIlUfwtcAld4uYXitR50");
 
         try {
             if (!isByEncodedPolyline) {
@@ -69,6 +66,7 @@ public class PathElevationQuerier {
             }
         } catch (Exception e) {
             System.out.println("Failed getting elevation info");
+            e.printStackTrace();
         }
         return elevations;
     }

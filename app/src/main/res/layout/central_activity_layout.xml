@@ -13,9 +13,6 @@
         android:layout_height="match_parent"
         android:id="@+id/centralLayout">
 
-        <TextView android:text="Welcome to Bikeable!" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
 
         <TextView
             android:text="from"
@@ -64,11 +61,6 @@
                 android:text="Clear" />
 
         </LinearLayout>
-
-        <TextView
-            android:text="To result:"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/to_result"
