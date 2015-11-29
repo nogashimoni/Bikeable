@@ -269,10 +269,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         LatLng tau = new LatLng(32.113523, 34.804399);
-        mMap.addMarker(new MarkerOptions()
-                        .title("Tel-Aviv University")
-                        .position(tau)
-        );
+//        mMap.addMarker(new MarkerOptions()
+//                        .title("Tel-Aviv University")
+//                        .position(tau)
+//        );
         mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
