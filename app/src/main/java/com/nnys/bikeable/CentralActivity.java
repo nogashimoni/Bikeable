@@ -129,9 +129,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onClick(View v) {
                 if (from_prediction == null || to_prediction == null)
                     return;
-//                if (directionsManager != null) {
-//                    directionsManager.clearDirectionFromMap();
-//                }
+                if (directionsManager != null) {
+                    directionsManager.clearDirectionFromMap();
+                }
                 directionsManager = new DirectionsManager(context, from_prediction, to_prediction);
                 directionsManager.drawAllRoutes(mMap);
                 directionsManager.drawRouteMarkers(mMap);
