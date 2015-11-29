@@ -60,6 +60,12 @@
                 android:layout_height="wrap_content"
                 android:text="Clear" />
 
+            <Button
+                android:id="@+id/bike_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="bike" />
+
         </LinearLayout>
 
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
