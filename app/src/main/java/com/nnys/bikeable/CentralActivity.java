@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -29,15 +30,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
-import com.google.maps.model.EncodedPolyline;
 import com.jjoe64.graphview.GraphView;
 
-import java.lang.reflect.Array;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -48,12 +49,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
-    protected DirectionsManager directionsManager =  null;
+    protected DirectionsManager directionsManager = null;
 
     private PlaceAutocompleteAdapter from_adapter;
     private PlaceAutocompleteAdapter to_adapter;
     private AutocompletePrediction to_prediction = null, from_prediction= null;
-    private Button searchBtn, clearBtn, showGraphBtn;
+    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton;
     private DirectionsRoute[] routes;
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
@@ -65,9 +66,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private int GRAPH_X_INTERVAL = 20;
     private int MAX_GRAPH_SAMPLES = 400;
 
+    private IriaBikePath iriaBikePath = null;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // to enable getting data from Tel Aviv muni website
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -121,9 +129,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onClick(View v) {
                 if (from_prediction == null || to_prediction == null)
                     return;
-                mMap.clear();
+//                if (directionsManager != null) {
+//                    directionsManager.clearDirectionFromMap();
+//                }
                 directionsManager = new DirectionsManager(context, from_prediction, to_prediction);
-//                directionsManager.drawRoute(0, mMap);
                 directionsManager.drawAllRoutes(mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -136,12 +145,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
 
             public void onClick(View v) {
+                if (directionsManager != null) {
+                    directionsManager.clearDirectionFromMap();
+                    directionsManager = null;
+                }
                 to_prediction = null;
                 from_prediction= null;
-                directionsManager = null;
                 from.setText("");
                 to.setText("");
-                mMap.clear();
             }
 
         });
@@ -187,6 +198,30 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         return false;
                     }
                 });
+            }
+        });
+
+        bikePathButton = (Button) findViewById(R.id.bike_button);
+        bikePathButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                if (iriaBikePath == null){
+                    try {
+                        iriaBikePath = new IriaBikePath(mMap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (iriaBikePath.isBikePathShown) {
+                    iriaBikePath.removeBikePathFromMap();
+                }
+                else {
+                    iriaBikePath.showBikePathOnMap();
+                }
+
             }
         });
     }

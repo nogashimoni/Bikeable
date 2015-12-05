@@ -5,6 +5,7 @@ import android.graphics.Color;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -36,12 +37,13 @@ public class DirectionsManager {
     private LatLngBounds directionBounds;
     private ArrayList<PolylineOptions> routesPolylineOpts;
     private ArrayList<Polyline> routesPolylines;
+    private ArrayList<Marker> directionMarkers;
     private int selectedRouteIndex;
 
     public DirectionsManager(GeoApiContext context, AutocompletePrediction from, AutocompletePrediction to){
         this.from = from;
         this.to = to;
-        try { //TODO: handle failure here
+        try { //TODO: handle failure here properly
             from_placeDetails = PlacesApi.placeDetails(context, from.getPlaceId()).await();
             to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
         } catch (Exception e) {
@@ -92,15 +94,25 @@ public class DirectionsManager {
     }
 
     protected void drawRouteMarkers(GoogleMap mMap){
+        directionMarkers = new ArrayList<>();
         MarkerOptions fromMarker = new MarkerOptions()
                 .title(from.getDescription())
                 .position(fromLatLng);
         MarkerOptions toMarker = new MarkerOptions()
                 .title(to.getDescription())
                 .position(toLatLng);
-        mMap.addMarker(fromMarker);
-        mMap.addMarker(toMarker);
+        directionMarkers.add(mMap.addMarker(fromMarker));
+        directionMarkers.add(mMap.addMarker(toMarker));
+    }
 
+    protected void clearDirectionFromMap() {
+        for (Polyline line :  routesPolylines){
+            line.remove();
+        }
+
+        for (Marker marker : directionMarkers){
+            marker.remove();
+        }
     }
 
     protected void selectAndColorRoute (int routeInd){
