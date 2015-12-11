@@ -11,18 +11,14 @@ import java.util.ArrayList;
 
 public class PathElevationQuerier {
 
-
     ArrayList<com.google.maps.model.LatLng> path;
     EncodedPolyline route;
-
 
     public PathElevationQuerier(EncodedPolyline route) {
         this.route = route;
     }
 
-    /*
-    In case numOfSamples calculated exceeds the maximum returns maximum samples.
-     */
+
     public static int calcNumOfSamplesForXmetersIntervals(long pathDistance, int x, int max_elevation_samples) {
         int result;
         long numberOfSamples = (long)(pathDistance / x);
