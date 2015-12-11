@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.nnys.bikeable.MyLocation.LocationResult;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
@@ -40,6 +42,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static java.lang.Thread.sleep;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
@@ -67,6 +71,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private int MAX_GRAPH_SAMPLES = 400;
 
     private IriaBikePath iriaBikePath = null;
+
+    private double currentLocationLat;
+    private double currentLocationLang;
+    LocationResult locationResult;
 
 
     @Override
@@ -165,6 +173,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     return;
                 }
 
+                LatLng ll = new LatLng(0,0);
+                getCurrentLocationLatLang(ll);
+                Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
+
+                getCurrentLocationLatLang(ll);
+                Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
+
                 layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
                 ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.graph_popup,null);
 
@@ -200,6 +215,23 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 });
             }
         });
+
+        currentLocationLang = -1;
+        currentLocationLat = -1;
+        locationResult = new LocationResult(){
+            @Override
+            public void gotLocation(Location location){
+//                didGetLocation = true;
+                currentLocationLat = location.getLatitude();
+                currentLocationLang = location.getLongitude();
+                try {
+                    sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
 
         bikePathButton = (Button) findViewById(R.id.bike_button);
         bikePathButton.setOnClickListener(new View.OnClickListener(){
@@ -313,4 +345,32 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
 
     }
+
+
+    private boolean isCurrentLocationSet(){
+        MyLocation myLocation = new MyLocation();
+        myLocation.getLocation(this, locationResult);
+        if (currentLocationLang == -1 || currentLocationLat == -1 ) {
+            return false;
+        }
+        return true;
+    }
+
+    private com.google.maps.model.LatLng getCurrentLocationLatLang(com.google.maps.model.LatLng latLng) {
+        while ( isCurrentLocationSet() == false ) {
+            try {
+                sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            continue;
+        }
+        latLng.lat = currentLocationLat;
+        latLng.lng = currentLocationLang;
+        currentLocationLat = -1 ;
+        currentLocationLang = -1;
+        return latLng;
+    }
+
+
 }
