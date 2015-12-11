@@ -41,6 +41,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static android.util.Log.println;
+
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
 
@@ -63,8 +65,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private int GRAPH_X_INTERVAL = 20;
-    private int MAX_GRAPH_SAMPLES = 400;
+    protected static int GRAPH_X_INTERVAL = 20;
+    protected static int MAX_GRAPH_SAMPLES = 400;
 
     private IriaBikePath iriaBikePath = null;
 
@@ -174,11 +176,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 for (int i = 0; i < directionsManager.getNumRoutes(); i ++ ) {
                     PathElevationQuerier querier = new PathElevationQuerier(directionsManager.getEnodedPoylineByIndex(i));
                     long distance = directionsManager.getRouteDistanceByIndex(i);
-                    int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
+                    int numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
                     ElevationResult[] results = querier.getElevationSamples(numOfSamples);
                     graphDrawer.addSeries(results);
                     if ( results == null )
                         return;
+
+                    PathElevationScoreCalculator pathElevationScoreCalculator = new PathElevationScoreCalculator(results, distance);
+                    double score = pathElevationScoreCalculator.getPathScore();
+                    Log.i("INFO:", String.format("Path %d score is %f. selected route is: %d", i, score, directionsManager.getSelectedRouteIndex()));
                 }
 
                 graphDrawer.colorSeriosByIndex(directionsManager.getSelectedRouteIndex());
