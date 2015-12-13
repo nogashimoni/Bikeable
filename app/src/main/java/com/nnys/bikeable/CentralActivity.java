@@ -2,10 +2,12 @@ package com.nnys.bikeable;
 
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -51,14 +53,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     protected GeoApiContext context;
     protected DirectionsManager directionsManager = null;
 
-    private PlaceAutocompleteAdapter from_adapter;
-    private PlaceAutocompleteAdapter to_adapter;
-    private AutocompletePrediction to_prediction = null, from_prediction= null;
+//    private PlaceAutocompleteAdapter from_adapter;
+//    private PlaceAutocompleteAdapter to_adapter;
+//    final private AutocompletePrediction to_prediction = null, from_prediction= null;
     private Button searchBtn, clearBtn, showGraphBtn, bikePathButton;
     private DirectionsRoute[] routes;
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
-    private AutoCompleteTextView to, from;
+    private ClearableAutoCompleteTextView to, from;
 
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
@@ -89,36 +91,70 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 
-        from = (AutoCompleteTextView) findViewById(R.id.from);
-        to = (AutoCompleteTextView) findViewById(R.id.to);
-        from.setText("");
-        to.setText("");
-
-        from_adapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
-                null);
-        from.setAdapter(from_adapter);
-        to_adapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
-                null);
-        to.setAdapter(to_adapter);
+        from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
+        from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
+        to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+                null));
+        to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+                null));
 
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-
-        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-            }
-        });
-
-        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-            }
-        });
+//
+//        from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+//
+//        from.setOnKeyListener(new View.OnKeyListener() {
+//            @Override
+//            public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                if (from.getText().length() == 0) {
+//                    from.onClearListener.onClear();
+//                } else {
+//                    from.showClearButton();
+//                }
+//                return false;
+//            }
+//        });
+//
+//        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                AutoCompleteTextView v2 = (AutoCompleteTextView)view;
+//                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
+//            }
+//        });
+//
+//        from.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
+//            @Override
+//            public void onClear() {
+//                from.clearListSelection();
+//                from.dismissDropDown();
+//                from.setText("");
+//                from.hideClearButton();
+//                from_prediction = null;
+//            }
+//        });
+//
+//        // TODO: set what happens when the string is ""
+//
+//        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
+//            }
+//        });
+//
+//        to.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
+//            @Override
+//            public void onClear() {
+//                to.clearListSelection();
+//                to.dismissDropDown();
+//                to.setText("");
+//                to_prediction = null;
+//            }
+//        });
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
@@ -127,12 +163,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
 
             public void onClick(View v) {
-                if (from_prediction == null || to_prediction == null)
+                if (from.getPrediction() == null || to.getPrediction() == null)
                     return;
                 if (directionsManager != null) {
                     directionsManager.clearDirectionFromMap();
                 }
-                directionsManager = new DirectionsManager(context, from_prediction, to_prediction);
+                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
                 directionsManager.drawAllRoutes(mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -149,8 +185,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     directionsManager.clearDirectionFromMap();
                     directionsManager = null;
                 }
-                to_prediction = null;
-                from_prediction= null;
+                from.setPrediction(null);
+                to.setPrediction(null);
                 from.setText("");
                 to.setText("");
             }
@@ -313,4 +349,5 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
 
     }
+
 }
