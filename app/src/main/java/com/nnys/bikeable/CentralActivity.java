@@ -7,23 +7,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -31,9 +26,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
-import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
@@ -53,11 +46,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     protected GeoApiContext context;
     protected DirectionsManager directionsManager = null;
 
-//    private PlaceAutocompleteAdapter from_adapter;
-//    private PlaceAutocompleteAdapter to_adapter;
-//    final private AutocompletePrediction to_prediction = null, from_prediction= null;
+    private AllRoutes allRoutes;
+
     private Button searchBtn, clearBtn, showGraphBtn, bikePathButton;
-    private DirectionsRoute[] routes;
+
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
     private ClearableAutoCompleteTextView to, from;
@@ -65,11 +57,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private int GRAPH_X_INTERVAL = 20;
-    private int MAX_GRAPH_SAMPLES = 400;
-
     private IriaBikePath iriaBikePath = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +76,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .addApi(Places.GEO_DATA_API)
                 .build();
 
-
         setContentView(R.layout.central_activity_layout);
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
@@ -100,61 +87,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
                 null));
 
+        allRoutes = new AllRoutes();
+
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-//
-//        from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
-//
-//        from.setOnKeyListener(new View.OnKeyListener() {
-//            @Override
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                if (from.getText().length() == 0) {
-//                    from.onClearListener.onClear();
-//                } else {
-//                    from.showClearButton();
-//                }
-//                return false;
-//            }
-//        });
-//
-//        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                AutoCompleteTextView v2 = (AutoCompleteTextView)view;
-//                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-//
-//        from.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
-//            @Override
-//            public void onClear() {
-//                from.clearListSelection();
-//                from.dismissDropDown();
-//                from.setText("");
-//                from.hideClearButton();
-//                from_prediction = null;
-//            }
-//        });
-//
-//        // TODO: set what happens when the string is ""
-//
-//        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-//
-//        to.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
-//            @Override
-//            public void onClear() {
-//                to.clearListSelection();
-//                to.dismissDropDown();
-//                to.setText("");
-//                to_prediction = null;
-//            }
-//        });
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
@@ -165,39 +102,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onClick(View v) {
                 if (from.getPrediction() == null || to.getPrediction() == null)
                     return;
-                if (directionsManager != null) {
-                    directionsManager.clearDirectionFromMap();
-                }
+                if (directionsManager != null)
+                    directionsManager.clearMarkersFromMap();
                 directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
-                directionsManager.drawAllRoutes(mMap);
+                allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
             }
         });
 
-        clearBtn = (Button) findViewById(R.id.clear_button);
-        clearBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-                if (directionsManager != null) {
-                    directionsManager.clearDirectionFromMap();
-                    directionsManager = null;
-                }
-                from.setPrediction(null);
-                to.setPrediction(null);
-                from.setText("");
-                to.setText("");
-            }
-
-        });
-
         showGraphBtn = (Button) findViewById(R.id.show_graph_button);
         showGraphBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
+                if (allRoutes.getSelectedRouteByIndex() == -1) {
                     return;
                 }
 
@@ -207,17 +126,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 GraphView graph = (GraphView) container.findViewById(R.id.altitude_graph);
                 PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph);
 
-                for (int i = 0; i < directionsManager.getNumRoutes(); i ++ ) {
-                    PathElevationQuerier querier = new PathElevationQuerier(directionsManager.getEnodedPoylineByIndex(i));
-                    long distance = directionsManager.getRouteDistanceByIndex(i);
-                    int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
-                    ElevationResult[] results = querier.getElevationSamples(numOfSamples);
+                for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
+                    ElevationResult[] results = bikeableRoute.elevationQuerier
+                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
-                    if ( results == null )
-                        return;
                 }
 
-                graphDrawer.colorSeriosByIndex(directionsManager.getSelectedRouteIndex());
+                graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
 
                 DisplayMetrics dm = new DisplayMetrics();
                 getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -316,8 +231,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
-                if (directionsManager != null) {
-                    MapUtils.selectClickedRoute(directionsManager, clickLatLng);
+                if (!allRoutes.bikeableRoutes.isEmpty()) {
+                    MapUtils.selectClickedRoute(allRoutes, clickLatLng);
                 }
             }
         }
