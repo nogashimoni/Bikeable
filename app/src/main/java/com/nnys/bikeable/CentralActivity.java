@@ -30,7 +30,7 @@ import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
-
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
