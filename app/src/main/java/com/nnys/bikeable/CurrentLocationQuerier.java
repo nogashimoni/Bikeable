@@ -7,18 +7,6 @@ import android.util.Log;
 
 public class CurrentLocationQuerier {
 
-
-    public static void main(String[] args) {
-//
-//        LatLng ll = new LatLng(0,0);
-//        CurrentLocationQuerier currentLocationQuerier = new CurrentLocationQuerier(this);
-//        getCurrentLocationLatLang(ll);
-//        Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
-//
-//        CurrentLocationQuerier.getCurrentLocationLatLang(ll);
-//        Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
-    }
-
     private double currentLocationLat;
     private double currentLocationLang;
     private MyLocation.LocationResult locationResult;
@@ -57,7 +45,7 @@ public class CurrentLocationQuerier {
         Log.i("INFO", "in get current loctaion lat lang");
         while (!isCurrentLocationSet()) {
             try {
-                
+
                 sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
