@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
@@ -58,6 +59,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private LayoutInflater layoutInflater;
 
     private IriaBikePath iriaBikePath = null;
+    private PathElevationGraphDrawer graphDrawer;
+    private GraphView graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +81,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 
+        disableSlidingPanel();
+
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
@@ -88,6 +93,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 null));
 
         allRoutes = new AllRoutes();
+        graph = (GraphView)findViewById(R.id.altitude_graph);
 
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
@@ -109,48 +115,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
-            }
-        });
 
-        showGraphBtn = (Button) findViewById(R.id.show_graph_button);
-        showGraphBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (allRoutes.getSelectedRouteByIndex() == -1) {
-                    return;
-                }
-
-                layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.graph_popup,null);
-
-                GraphView graph = (GraphView) container.findViewById(R.id.altitude_graph);
-                PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph);
-
+                graphDrawer = new PathElevationGraphDrawer(graph);
                 for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
+                enableSlidingPanel(); //TODO doesn't work
 
-                graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
-
-                DisplayMetrics dm = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(dm);
-                int width = dm.widthPixels;
-                int height = dm.heightPixels;
-
-                graphPopupWindow = new PopupWindow(container, width,300, true);
-                graphPopupWindow.showAtLocation(findViewById(R.id.centralLayout), Gravity.BOTTOM, 0, 0);
-
-                container.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        graphPopupWindow.dismiss();
-                        return false;
-                    }
-                });
             }
         });
+
 
         bikePathButton = (Button) findViewById(R.id.bike_button);
         bikePathButton.setOnClickListener(new View.OnClickListener(){
@@ -176,6 +152,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
     }
+
+    private void disableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setEnabled(false);
+        LinearLayout srolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        srolling_part.setVisibility(View.INVISIBLE);
+    }
+
+    private void enableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setEnabled(true);
+        LinearLayout scrolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        scrolling_part.setVisibility(View.VISIBLE);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -233,6 +224,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 Log.i("inside listener begin", "inside listener begin2");
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
+
+                    if (allRoutes.getSelectedRouteByIndex() >= 0)
+                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
                 }
             }
         }

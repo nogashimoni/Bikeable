@@ -16,8 +16,8 @@ import java.util.ArrayList;
 
 public class BikeableRoute {
 
-    private final static int GRAPH_X_INTERVAL = 20;
-    private final static int MAX_GRAPH_SAMPLES = 400;
+    public final static int GRAPH_X_INTERVAL = 20;
+    public final static int MAX_GRAPH_SAMPLES = 400;
 
     /* route's DirectionRout object */
     DirectionsRoute directionsRoute;

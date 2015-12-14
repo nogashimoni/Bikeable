@@ -91,18 +91,6 @@
                         android:text="Search" />
 
                     <Button
-                        android:id="@+id/show_graph_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Show graph" />
-
-                    <Button
-                        android:id="@+id/clear_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Clear" />
-
-                    <Button
                         android:id="@+id/bike_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -119,9 +107,10 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center|top">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center|top"
+        android:id="@+id/scrolling_part">
 
         <TextView
             android:layout_width="match_parent"
@@ -130,20 +119,28 @@
             android:text="The Awesome Sliding Up Panel"
             android:textSize="16sp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center|top"
+            android:text="Hi"
+            android:textSize="16sp" />
+
         <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
             <!--android:layout_width="wrap_content"-->
             <!--android:layout_height="wrap_content" >-->
 
-            <!--<com.jjoe64.graphview.helper.GraphViewXML-->
-                <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-                <!--android:id="@+id/altitude_graph"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="200dip"-->
-                <!--app:seriesData="0=5;2=5;3=0;4=0"-->
-                <!--app:seriesType="line"-->
-                <!--app:seriesColor="#000000"-->
-                <!--app:theme="@style/AppTheme.PopupOverlay"-->
-                <!--android:background="#969686" />-->
+            <com.jjoe64.graphview.helper.GraphViewXML
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/altitude_graph"
+                android:layout_width="match_parent"
+                android:gravity="center|top"
+                android:layout_height="200dip"
+                app:seriesData="0=5;2=5;3=0;4=0"
+                app:seriesType="line"
+                app:seriesColor="#000000"
+                android:background="#969686" />
+            <!--app:theme="@style/AppTheme.PopupOverlay"-->
 
         <!--</RelativeLayout>-->
 
