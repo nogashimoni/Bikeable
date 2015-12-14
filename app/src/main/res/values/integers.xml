@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="bound_padding">200</integer>
+    <integer name="auto_complete_thresh">3</integer>
+</resources>
