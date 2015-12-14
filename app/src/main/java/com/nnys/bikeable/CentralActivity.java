@@ -37,7 +37,7 @@ import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
-
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -103,58 +103,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-//
-//        from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
-//
-//        from.setOnKeyListener(new View.OnKeyListener() {
-//            @Override
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                if (from.getText().length() == 0) {
-//                    from.onClearListener.onClear();
-//                } else {
-//                    from.showClearButton();
-//                }
-//                return false;
-//            }
-//        });
-//
-//        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                AutoCompleteTextView v2 = (AutoCompleteTextView)view;
-//                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-//
-//        from.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
-//            @Override
-//            public void onClear() {
-//                from.clearListSelection();
-//                from.dismissDropDown();
-//                from.setText("");
-//                from.hideClearButton();
-//                from_prediction = null;
-//            }
-//        });
-//
-//        // TODO: set what happens when the string is ""
-//
-//        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-//
-//        to.setOnClearListener(new ClearableAutoCompleteTextView.OnClearListener() {
-//            @Override
-//            public void onClear() {
-//                to.clearListSelection();
-//                to.dismissDropDown();
-//                to.setText("");
-//                to_prediction = null;
-//            }
-//        });
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
