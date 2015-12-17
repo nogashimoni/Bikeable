@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -41,6 +43,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static java.lang.Thread.sleep;
+
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
 
@@ -68,10 +72,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private IriaBikePath iriaBikePath = null;
 
+    private CurrentLocationQuerier currentLocationQuerier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        currentLocationQuerier = new CurrentLocationQuerier(this);
+        currentLocationQuerier.askToGetCurrentLocation();
 
         // to enable getting data from Tel Aviv muni website
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -132,6 +140,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (directionsManager != null) {
                     directionsManager.clearDirectionFromMap();
                 }
+                // hide keyboard
+                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                 directionsManager = new DirectionsManager(context, from_prediction, to_prediction);
                 directionsManager.drawAllRoutes(mMap);
                 directionsManager.drawRouteMarkers(mMap);
@@ -161,6 +173,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         showGraphBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i("INFO","Asking to get current location");
+                currentLocationQuerier.askToGetCurrentLocation();
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                com.google.maps.model.LatLng ll = currentLocationQuerier.getCurrentLocationDontWait();
+                Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
+
                 if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
                     return;
                 }
@@ -268,12 +290,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng tau = new LatLng(32.113523, 34.804399);
-//        mMap.addMarker(new MarkerOptions()
-//                        .title("Tel-Aviv University")
-//                        .position(tau)
-//        );
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
+
+        com.google.maps.model.LatLng currentLocation = currentLocationQuerier.getCurrentLocationDontWait();
+        if (currentLocation.lat == -1 || currentLocation.lng == -1) { // if we don't have the current location
+            LatLng tau = new LatLng(32.113523, 34.804399);            // focus map on tau
+            currentLocation.lat = tau.latitude;
+            currentLocation.lng = tau.longitude;
+        }
+
+       LatLng currentLocationGMS = MapUtils.getGmsLatLngFromModel(currentLocation);
+        mMap.addMarker(new MarkerOptions()
+                        .title("Current Location")
+                        .position(currentLocationGMS)
+        );
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocationGMS));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
