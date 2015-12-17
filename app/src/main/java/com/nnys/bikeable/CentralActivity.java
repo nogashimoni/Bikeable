@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -54,7 +57,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PlaceAutocompleteAdapter from_adapter;
     private PlaceAutocompleteAdapter to_adapter;
     private AutocompletePrediction to_prediction = null, from_prediction= null;
-    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton;
+    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton;
     private DirectionsRoute[] routes;
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
@@ -67,6 +70,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private int MAX_GRAPH_SAMPLES = 400;
 
     private IriaBikePath iriaBikePath = null;
+    private IriaBikePath iriaBikeSinglePath = null;
+    private BikePathCalculator pathCalculator = null;
+    private int pathNumber;
+    private boolean isPathCalculatorInit;
 
 
     @Override
@@ -137,6 +144,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
+                pathNumber = 0;
+                isPathCalculatorInit = false;
             }
         });
 
@@ -157,7 +166,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         });
 
-        showGraphBtn = (Button) findViewById(R.id.show_graph_button);
+        /*showGraphBtn = (Button) findViewById(R.id.show_graph_button);
         showGraphBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -199,7 +208,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 });
             }
-        });
+        });*/
 
         bikePathButton = (Button) findViewById(R.id.bike_button);
         bikePathButton.setOnClickListener(new View.OnClickListener(){
@@ -220,6 +229,45 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 else {
                     iriaBikePath.showBikePathOnMap();
+                }
+
+            }
+        });
+
+
+        singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
+        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                if (directionsManager == null){
+                    return;
+                }
+                if (iriaBikePath == null){
+                    try {
+                        iriaBikePath = new IriaBikePath(mMap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                ArrayList <Polyline> iriaPaths = iriaBikePath.getPaths();
+
+
+                int numOfroutes = directionsManager.getNumRoutes();
+                for (int i = 0; i < numOfroutes; i++) {
+                    BikePathCalculator pathCalculator = new BikePathCalculator(directionsManager.getRoutesPolylineOpts().get(i),
+                            directionsManager.getDirectionBounds(), iriaPaths, mMap, directionsManager.getRoutes()[i]);
+                    float bikePathDistance = pathCalculator.getTotalBikePathDitance();
+                    System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
+                    long routeDistance = pathCalculator.getCurrRouteDistance();
+                    //chosenRoute.setRouteDistance(pathCalculator.getCurrRouteDistance());
+                    System.out.println("distance: " + routeDistance);
+                    //chosenRoute.setRouteDistanceCoveredByBikePath(pathCalculator.getTotalBikePathDitance()[0]);
+                    float bikePathPersentage = pathCalculator.getBikePathPercentage(routeDistance, bikePathDistance);
+                    System.out.println("percentage: " + bikePathPersentage);
                 }
 
             }
