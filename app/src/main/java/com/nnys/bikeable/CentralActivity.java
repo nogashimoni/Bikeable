@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -118,6 +120,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     return;
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
+
+                // hide keyboard on search
+                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                 directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
