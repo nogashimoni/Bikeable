@@ -3,7 +3,7 @@
     <color name="colorPrimary">#84e0ff</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#6ebad4</color>
-    <color name="searchBG">#f9ffff</color>
+    <color name="searchBG">#e7ffff</color>
     <color name="whiteColor">#ffffff</color>
     <!--<color name="buttonBG">#6ebad4</color>-->
     <!--<color name="buttonText">#f9ffff</color>-->

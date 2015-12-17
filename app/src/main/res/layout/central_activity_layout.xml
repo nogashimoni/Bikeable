@@ -8,7 +8,8 @@
     android:gravity="bottom"
     sothree:umanoAnchorPoint="0.4"
     sothree:umanoPanelHeight="68dp"
-    sothree:umanoShadowHeight="4dp">
+    sothree:umanoShadowHeight="4dp"
+    sothree:umanoFadeColor="@android:color/transparent">
 
     <!--<android.support.design.widget.CoordinatorLayout-->
         <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
@@ -107,7 +108,7 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|top"
         android:id="@+id/scrolling_part">
@@ -116,30 +117,99 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center|top"
-            android:text="The Awesome Sliding Up Panel"
+            android:text="Scroll up for info"
+            android:textColor="@color/colorPrimary"
             android:textSize="16sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center|top"
-            android:text="Hi"
-            android:textSize="16sp" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/searchBG">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Duration:"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/path_duration"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/searchBG">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Distance:"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/path_distance"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/searchBG">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Difficulty:"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/path_difficulty"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/searchBG">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="% Bike path:"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/bike_path_perc"/>
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content" >-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content" >-->
 
-            <com.jjoe64.graphview.helper.GraphViewXML
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/altitude_graph"
-                android:layout_width="match_parent"
-                android:gravity="center|top"
-                android:layout_height="200dip"
-                app:seriesData="0=5;2=5;3=0;4=0"
-                app:seriesType="line"
-                app:seriesColor="#000000"
-                android:background="#969686" />
+        <com.jjoe64.graphview.helper.GraphViewXML
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/altitude_graph"
+            android:layout_width="match_parent"
+            android:gravity="center|top"
+            android:layout_height="200dip"
+            app:seriesData="0=5;2=5;3=0;4=0"
+            app:seriesType="line"
+            app:seriesColor="#000000"
+            android:background="#969686" />
             <!--app:theme="@style/AppTheme.PopupOverlay"-->
 
         <!--</RelativeLayout>-->
