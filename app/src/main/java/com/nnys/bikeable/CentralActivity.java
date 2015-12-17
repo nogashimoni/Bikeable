@@ -81,7 +81,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 
-        disableSlidingPanel();
+        //disableSlidingPanel();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -165,6 +165,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         slidingUpLayout.setEnabled(true);
         LinearLayout scrolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
         scrolling_part.setVisibility(View.VISIBLE);
+        scrolling_part.requestLayout();
     }
 
 
