@@ -7,10 +7,10 @@
     tools:showIn="@layout/activity_main" tools:context=".MainActivity"
     android:background="@color/whiteColor">
 
-    <ImageButton
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/startButton"
-        android:src="@drawable/bikeable4"
-        android:background="@color/whiteColor" />
+<ImageButton
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/startButton"
+    android:src="@drawable/bikeable5"
+    android:background="@color/whiteColor" />
 </RelativeLayout>
