@@ -10,6 +10,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -29,6 +30,7 @@ dependencies {
     compile 'com.google.maps:google-maps-services:0.1.9'
     compile 'com.google.maps.android:android-maps-utils:0.4'
     compile 'com.jjoe64:graphview:4.0.1'
-    //compile 'com.google.maps.android.geometry.Bounds:2.0'
+    compile 'com.sothree.slidinguppanel:library:3.2.0'
+    compile 'com.android.support:multidex:1.0.1'
 
 }

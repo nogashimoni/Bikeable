@@ -3,6 +3,7 @@ package com.nnys.bikeable;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -13,16 +14,13 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -34,11 +32,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
-import com.google.maps.model.DirectionsRoute;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
-
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -54,27 +51,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     protected GeoApiContext context;
     protected DirectionsManager directionsManager = null;
 
-    private PlaceAutocompleteAdapter from_adapter;
-    private PlaceAutocompleteAdapter to_adapter;
-    private AutocompletePrediction to_prediction = null, from_prediction= null;
+    private AllRoutes allRoutes;
+
     private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton;
-    private DirectionsRoute[] routes;
+
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
-    private AutoCompleteTextView to, from;
+    private ClearableAutoCompleteTextView to, from;
 
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private int GRAPH_X_INTERVAL = 20;
-    private int MAX_GRAPH_SAMPLES = 400;
-
     private IriaBikePath iriaBikePath = null;
+    private PathElevationGraphDrawer graphDrawer;
+    private GraphView graph;
     private IriaBikePath iriaBikeSinglePath = null;
     private BikePathCalculator pathCalculator = null;
     private int pathNumber;
     private boolean isPathCalculatorInit;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,39 +87,25 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .addApi(Places.GEO_DATA_API)
                 .build();
 
-
         setContentView(R.layout.central_activity_layout);
 
-        from = (AutoCompleteTextView) findViewById(R.id.from);
-        to = (AutoCompleteTextView) findViewById(R.id.to);
-        from.setText("");
-        to.setText("");
+        //disableSlidingPanel();
 
-        from_adapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
-                null);
-        from.setAdapter(from_adapter);
-        to_adapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
-                null);
-        to.setAdapter(to_adapter);
+        from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
+        from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
+        to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+                null));
+        to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+                null));
+
+        allRoutes = new AllRoutes();
+        graph = (GraphView)findViewById(R.id.altitude_graph);
 
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-
-        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-            }
-        });
-
-        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-            }
-        });
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
@@ -134,81 +114,27 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
 
             public void onClick(View v) {
-                if (from_prediction == null || to_prediction == null)
+                if (from.getPrediction() == null || to.getPrediction() == null)
                     return;
-//                if (directionsManager != null) {
-//                    directionsManager.clearDirectionFromMap();
-//                }
-                directionsManager = new DirectionsManager(context, from_prediction, to_prediction);
-                directionsManager.drawAllRoutes(mMap);
+                if (directionsManager != null)
+                    directionsManager.clearMarkersFromMap();
+                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
-                pathNumber = 0;
-                isPathCalculatorInit = false;
-            }
-        });
 
-        clearBtn = (Button) findViewById(R.id.clear_button);
-        clearBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-                if (directionsManager != null) {
-                    directionsManager.clearDirectionFromMap();
-                    directionsManager = null;
-                }
-                to_prediction = null;
-                from_prediction= null;
-                from.setText("");
-                to.setText("");
-            }
-
-        });
-
-        /*showGraphBtn = (Button) findViewById(R.id.show_graph_button);
-        showGraphBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
-                    return;
-                }
-
-                layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.graph_popup,null);
-
-                GraphView graph = (GraphView) container.findViewById(R.id.altitude_graph);
-                PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph);
-
-                for (int i = 0; i < directionsManager.getNumRoutes(); i ++ ) {
-                    PathElevationQuerier querier = new PathElevationQuerier(directionsManager.getEnodedPoylineByIndex(i));
-                    long distance = directionsManager.getRouteDistanceByIndex(i);
-                    int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
-                    ElevationResult[] results = querier.getElevationSamples(numOfSamples);
+                graphDrawer = new PathElevationGraphDrawer(graph);
+                for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
+                    ElevationResult[] results = bikeableRoute.elevationQuerier
+                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
-                    if ( results == null )
-                        return;
                 }
+                enableSlidingPanel(); //TODO doesn't work
 
-                graphDrawer.colorSeriosByIndex(directionsManager.getSelectedRouteIndex());
-
-                DisplayMetrics dm = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(dm);
-                int width = dm.widthPixels;
-                int height = dm.heightPixels;
-
-                graphPopupWindow = new PopupWindow(container, width,300, true);
-                graphPopupWindow.showAtLocation(findViewById(R.id.centralLayout), Gravity.BOTTOM, 0, 0);
-
-                container.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        graphPopupWindow.dismiss();
-                        return false;
-                    }
-                });
             }
-        });*/
+        });
+
 
         bikePathButton = (Button) findViewById(R.id.bike_button);
         bikePathButton.setOnClickListener(new View.OnClickListener(){
@@ -256,10 +182,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 ArrayList <Polyline> iriaPaths = iriaBikePath.getPaths();
 
 
-                int numOfroutes = directionsManager.getNumRoutes();
+                int numOfroutes = allRoutes.getNumRoutes();
                 for (int i = 0; i < numOfroutes; i++) {
-                    BikePathCalculator pathCalculator = new BikePathCalculator(directionsManager.getRoutesPolylineOpts().get(i),
-                            directionsManager.getDirectionBounds(), iriaPaths, mMap, directionsManager.getRoutes()[i]);
+                    BikePathCalculator pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
+                            directionsManager.getDirectionBounds(), iriaPaths, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
                     float bikePathDistance = pathCalculator.getTotalBikePathDitance();
                     System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
                     long routeDistance = pathCalculator.getCurrRouteDistance();
@@ -273,6 +199,22 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
     }
+
+    private void disableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setEnabled(false);
+        LinearLayout srolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        srolling_part.setVisibility(View.INVISIBLE);
+    }
+
+    private void enableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setEnabled(true);
+        LinearLayout scrolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        scrolling_part.setVisibility(View.VISIBLE);
+        scrolling_part.requestLayout();
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -317,10 +259,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         LatLng tau = new LatLng(32.113523, 34.804399);
-        mMap.addMarker(new MarkerOptions()
-                        .title("Tel-Aviv University")
-                        .position(tau)
-        );
+//        mMap.addMarker(new MarkerOptions()
+//                        .title("Tel-Aviv University")
+//                        .position(tau)
+//        );
         mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
@@ -328,8 +270,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
-                if (directionsManager != null) {
-                    MapUtils.selectClickedRoute(directionsManager, clickLatLng);
+                if (!allRoutes.bikeableRoutes.isEmpty()) {
+                    MapUtils.selectClickedRoute(allRoutes, clickLatLng);
+
+                    if (allRoutes.getSelectedRouteByIndex() >= 0)
+                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
                 }
             }
         }
