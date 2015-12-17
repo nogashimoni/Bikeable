@@ -26,7 +26,7 @@ public class CurrentLocationQuerier {
                 currentLocationLat = location.getLatitude();
                 currentLocationLang = location.getLongitude();
                 try {
-                    sleep(5);
+                    sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -46,7 +46,7 @@ public class CurrentLocationQuerier {
         while (!isCurrentLocationSet()) {
             try {
 
-                sleep(10);
+                sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
