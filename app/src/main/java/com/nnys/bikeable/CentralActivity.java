@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,7 +48,7 @@ import java.util.ArrayList;
 import static java.lang.Thread.sleep;
 
 
-public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
+public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks {
 
     private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
             new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
@@ -72,14 +74,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private IriaBikePath iriaBikePath = null;
 
-    private CurrentLocationQuerier currentLocationQuerier;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        currentLocationQuerier = new CurrentLocationQuerier(this);
-        currentLocationQuerier.askToGetCurrentLocation();
 
         // to enable getting data from Tel Aviv muni website
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -92,8 +90,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, 0 /* clientId */, this)
                 .addApi(Places.GEO_DATA_API)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
-
 
         setContentView(R.layout.central_activity_layout);
 
@@ -173,15 +173,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         showGraphBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("INFO","Asking to get current location");
-                currentLocationQuerier.askToGetCurrentLocation();
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                com.google.maps.model.LatLng ll = currentLocationQuerier.getCurrentLocationDontWait();
-                Log.i("INFO:", String.format(" current lat: %f, current lng: %f", ll.lat, ll.lng));
 
                 if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
                     return;
@@ -291,20 +282,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        com.google.maps.model.LatLng currentLocation = currentLocationQuerier.getCurrentLocationDontWait();
-        if (currentLocation.lat == -1 || currentLocation.lng == -1) { // if we don't have the current location
-            LatLng tau = new LatLng(32.113523, 34.804399);            // focus map on tau
-            currentLocation.lat = tau.latitude;
-            currentLocation.lng = tau.longitude;
-        }
+        LatLng tau = new LatLng(32.113523, 34.804399);            // focus map on tau
 
-       LatLng currentLocationGMS = MapUtils.getGmsLatLngFromModel(currentLocation);
         mMap.addMarker(new MarkerOptions()
                         .title("Current Location")
-                        .position(currentLocationGMS)
+                        .position(tau)
         );
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocationGMS));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
@@ -340,8 +325,33 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             line.add(currPoint);
         }
         mMap.addPolyline(line);*/
+    }
 
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+            Log.i("INFO", String.format("Current loction lat: %f",mLastLocation.getLatitude()));
+            Log.i("INFO", String.format("Current location lang %f",mLastLocation.getLongitude()));
+        } else {
+            Log.i("INFO", "current position is NULL");
+        }
+    }
 
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    protected void onStart(){
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop(){
+        mGoogleApiClient.disconnect();
+        super.onStop();
     }
 }
