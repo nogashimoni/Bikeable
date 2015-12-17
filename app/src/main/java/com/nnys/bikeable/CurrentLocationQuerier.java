@@ -11,51 +11,54 @@ public class CurrentLocationQuerier {
     private double currentLocationLang;
     private MyLocation.LocationResult locationResult;
     private Context callingActivityContext;
+    private MyLocation myLocation;
 
     public CurrentLocationQuerier(Context callingActivityContext) {
         this.callingActivityContext = callingActivityContext;
-        this.setCurrentLocationListener();
-    }
-
-    private void  setCurrentLocationListener() {
-        currentLocationLang = -1;
-        currentLocationLat = -1;
+        this.currentLocationLat = -1;
+        this.currentLocationLang = -1;
+        this.myLocation = new MyLocation();
         locationResult = new MyLocation.LocationResult() {
             @Override
             public void gotLocation(Location location) {
                 currentLocationLat = location.getLatitude();
                 currentLocationLang = location.getLongitude();
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         };
     }
 
-    private boolean isCurrentLocationSet(){
-        MyLocation myLocation = new MyLocation();
-        myLocation.getLocation(this.callingActivityContext, locationResult);
-        return !(currentLocationLang == -1 || currentLocationLat == -1);
+
+    private double getCurrentLocationLat() {
+        return currentLocationLat;
     }
 
+    private double getCurrentLocationLang() {
+        return currentLocationLang;
+    }
 
-    public LatLng getCurrentLocationLatLang(LatLng latLng) {
-        Log.i("INFO", "in get current loctaion lat lang");
-        while (!isCurrentLocationSet()) {
+    public LatLng waitForCurrentLocation() {
+        while (getCurrentLocationLang() == - 1 || getCurrentLocationLang() == -1) {
             try {
-
-                sleep(1000);
+                sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        latLng.lat = currentLocationLat;
-        latLng.lng = currentLocationLang;
-        currentLocationLat = -1 ;
+        LatLng result = new LatLng(currentLocationLat, currentLocationLang);
         currentLocationLang = -1;
-        return latLng;
+        currentLocationLat = -1;
+        return result;
+    }
+
+    public LatLng getCurrentLocationDontWait() {
+        LatLng result = new LatLng(currentLocationLat, currentLocationLang);
+        currentLocationLang = -1;
+        currentLocationLang = -1;
+        return result;
+    }
+
+    public void askToGetCurrentLocation() {
+        myLocation.getLocation(this.callingActivityContext, locationResult);
     }
 
 }
