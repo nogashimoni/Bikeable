@@ -189,9 +189,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     float bikePathDistance = pathCalculator.getTotalBikePathDitance();
                     System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
                     long routeDistance = pathCalculator.getCurrRouteDistance();
-                    //chosenRoute.setRouteDistance(pathCalculator.getCurrRouteDistance());
+
                     System.out.println("distance: " + routeDistance);
-                    //chosenRoute.setRouteDistanceCoveredByBikePath(pathCalculator.getTotalBikePathDitance()[0]);
+
                     float bikePathPersentage = pathCalculator.getBikePathPercentage(routeDistance, bikePathDistance);
                     System.out.println("percentage: " + bikePathPersentage);
                 }

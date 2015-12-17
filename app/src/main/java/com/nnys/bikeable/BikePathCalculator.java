@@ -180,7 +180,7 @@ public class BikePathCalculator {
             for (LatLng point : bikePathPoints){
                 bikePathPolyLineOpt.add(point);
             }
-            bikePathPolyLineOpt.color(Color.BLUE);
+            bikePathPolyLineOpt.color(Color.MAGENTA);
             bikeMap.addPolyline(bikePathPolyLineOpt);
         }
     }
