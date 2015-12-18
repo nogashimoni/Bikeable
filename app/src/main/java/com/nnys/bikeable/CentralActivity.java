@@ -184,7 +184,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                     PathElevationScoreCalculator pathElevationScoreCalculator = new PathElevationScoreCalculator(results, distance);
                     double score = pathElevationScoreCalculator.getPathScore();
+                    double uphillPresentage = pathElevationScoreCalculator.getUphillPresentage();
+                    double uphillAbove5Presentage = pathElevationScoreCalculator.getUphillAbove5degrees();
+
                     Log.i("INFO:", String.format("Path %d score is %f. selected route is: %d", i, score, directionsManager.getSelectedRouteIndex()));
+                    Log.i("INFO:", String.format("Path %d uphill percentage is %f. selected route is: %d", i, uphillPresentage, directionsManager.getSelectedRouteIndex()));
+                    Log.i("INFO:", String.format("Path %d uphill above 5 degrees percentage is %f. selected route is: %d", i, uphillAbove5Presentage, directionsManager.getSelectedRouteIndex()));
                 }
 
                 graphDrawer.colorSeriosByIndex(directionsManager.getSelectedRouteIndex());
