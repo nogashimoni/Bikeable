@@ -131,45 +131,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
 
-        clearBtn = (Button) findViewById(R.id.clear_button);
-        clearBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-                if (directionsManager != null) {
-                    directionsManager.clearDirectionFromMap();
-                    directionsManager = null;
-                }
-                to_prediction = null;
-                from_prediction= null;
-                from.setText("");
-                to.setText("");
-            }
-
-        });
-
-        showGraphBtn = (Button) findViewById(R.id.show_graph_button);
-        showGraphBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
-                    return;
-                }
-
-                layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.graph_popup,null);
-
-                GraphView graph = (GraphView) container.findViewById(R.id.altitude_graph);
-                PathElevationGraphDrawer graphDrawer = new PathElevationGraphDrawer(graph);
-
-                for (int i = 0; i < directionsManager.getNumRoutes(); i ++ ) {
-                    PathElevationQuerier querier = new PathElevationQuerier(directionsManager.getEnodedPoylineByIndex(i));
-                    long distance = directionsManager.getRouteDistanceByIndex(i);
-                    int numOfSamples = querier.calcNumOfSamplesForXmetersIntervals(distance, GRAPH_X_INTERVAL, MAX_GRAPH_SAMPLES);
-                    ElevationResult[] results = querier.getElevationSamples(numOfSamples);
+                graphDrawer = new PathElevationGraphDrawer(graph);
+                for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
+                    ElevationResult[] results = bikeableRoute.elevationQuerier
+                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
-                    if ( results == null )
-                        return;
                 }
                 enableSlidingPanel(); //TODO doesn't work
 
