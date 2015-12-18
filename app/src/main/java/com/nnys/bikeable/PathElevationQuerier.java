@@ -34,7 +34,7 @@ public class PathElevationQuerier {
 
     public static int getDistanceBetweenSamples(long pathDistance){
         int resultDistance;
-        int numOfSamples = calcNumOfSamplesForXmetersIntervals(pathDistance, CentralActivity.GRAPH_X_INTERVAL, CentralActivity.MAX_GRAPH_SAMPLES);
+        int numOfSamples = calcNumOfSamplesForXmetersIntervals(pathDistance, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
         resultDistance = (int)pathDistance/numOfSamples;
         return resultDistance;
     }
