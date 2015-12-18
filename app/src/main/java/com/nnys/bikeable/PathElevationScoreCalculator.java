@@ -6,6 +6,22 @@ import com.google.maps.model.EncodedPolyline;
 import static java.lang.Math.atan;
 import static java.lang.Math.log;
 
+/**
+ * This is a class that calculates a score for a path.
+ * The score is calculated by the function "get path score"
+ * Usage example:
+ *
+ PathElevationScoreCalculator pathElevationScoreCalculator = new PathElevationScoreCalculator(
+    results, distance);
+ double score = pathElevationScoreCalculator.getPathScore();
+ double uphillPresentage = pathElevationScoreCalculator.getUphillPresentage();
+ double uphillAbove5Presentage = pathElevationScoreCalculator.getUphillAbove5degrees();
+
+ Log.i("INFO:", String.format("Path score is %f", score);
+ Log.i("INFO:", String.format("Path uphill percentage is %f", uphillPresentage);
+ Log.i("INFO:", String.format("Path uphill above 5 degrees percentage is %f",
+    uphillAbove5Presentage);
+ */
 public class PathElevationScoreCalculator {
 
     ElevationResult[] elevationResults;
