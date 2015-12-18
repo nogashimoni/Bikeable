@@ -35,7 +35,7 @@ public class PathElevationScoreCalculator {
         this.elevationResults = elevationResults;
         this.length = length;
         this.xDelta = PathElevationQuerier.getDistanceBetweenSamples(length);
-        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(length, CentralActivity.GRAPH_X_INTERVAL, CentralActivity.MAX_GRAPH_SAMPLES);
+        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(length, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
         this.createDegreesArray();
     }
 
