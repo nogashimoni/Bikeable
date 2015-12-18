@@ -88,4 +88,8 @@ public class IriaBikePath {
         }
         isBikePathShown = false;
     }
+
+    public ArrayList <Polyline> getPaths (){
+        return bikePathsTLV;
+    }
 }
