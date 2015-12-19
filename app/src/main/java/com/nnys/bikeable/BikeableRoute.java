@@ -12,9 +12,11 @@ import com.google.maps.model.ElevationResult;
 import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.LatLng;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class BikeableRoute {
+public class BikeableRoute implements Serializable {
 
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
@@ -76,6 +78,10 @@ public class BikeableRoute {
             line.add(currPoint);
         }
         return line;
+    }
+
+    public List<LatLng> getRouteLatLngArr(){
+        return directionsRoute.overviewPolyline.decodePath();
     }
 
 }

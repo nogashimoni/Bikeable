@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.LatLng;
+import com.skobbler.ngx.SKCoordinate;
 
 import java.util.ArrayList;
 
@@ -18,6 +19,10 @@ public class MapUtils {
         return gmsLatLng;
     }
 
+    public static SKCoordinate getSKCoordinateFromModel(LatLng modelLatLng){
+        SKCoordinate skLatLng = new SKCoordinate(modelLatLng.lng, modelLatLng.lat);
+        return skLatLng;
+    }
     public static ArrayList<LatLng> getArrModelLatLngFromGms (ArrayList<com.google.android.gms.maps.model.LatLng> gmsLatLngArr){
         ArrayList<LatLng> result = new ArrayList<>();
         for (com.google.android.gms.maps.model.LatLng gmsLatLng : gmsLatLngArr){

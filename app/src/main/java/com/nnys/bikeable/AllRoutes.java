@@ -61,12 +61,23 @@ public class AllRoutes {
         return bikeableRoutes;
     }
 
-    public int getSelectedRouteByIndex() {
+    public int getSelectedRouteIndex() {
         return selectedRouteIndex;
     }
 
     public void setSelectedRouteIndex(int selectedRouteIndex) {
         this.selectedRouteIndex = selectedRouteIndex;
+    }
+
+    public BikeableRoute getRouteByIndex(int index){
+        return bikeableRoutes.get(index);
+    }
+
+    public BikeableRoute getSelectedRoute(){
+        if (selectedRouteIndex == -1)
+                return null;
+        else
+            return bikeableRoutes.get(selectedRouteIndex);
     }
 
 }
