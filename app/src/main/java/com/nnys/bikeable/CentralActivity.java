@@ -207,10 +207,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                BikeableRoute selectedRoute = allRoutes.getSelectedRoute();
-                if (selectedRoute != null) {
+                ArrayList<LatLng> selectedRouteLatLngs = MapUtils.getLstGmsLatLngFromModel(
+                                        allRoutes.getSelectedRoute().getRouteLatLngs());
+                Log.i("INFO:", String.format("route before starting activity!!! %d", selectedRouteLatLngs.size()));
+
+                if (selectedRouteLatLngs != null) {
                     Intent navIntent = new Intent(CentralActivity.this, NavigationActivity.class);
-                    navIntent.putExtra("BikeableRoute", selectedRoute);
+                    navIntent.putExtra("routeLatLngs", selectedRouteLatLngs);
                     startActivity(navIntent);
                 }
             }

@@ -16,7 +16,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BikeableRoute implements Serializable {
+public class BikeableRoute {
 
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
@@ -80,7 +80,7 @@ public class BikeableRoute implements Serializable {
         return line;
     }
 
-    public List<LatLng> getRouteLatLngArr(){
+    public List<LatLng> getRouteLatLngs(){
         return directionsRoute.overviewPolyline.decodePath();
     }
 

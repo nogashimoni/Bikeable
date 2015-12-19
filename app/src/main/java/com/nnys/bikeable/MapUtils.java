@@ -5,6 +5,7 @@ import com.google.maps.model.LatLng;
 import com.skobbler.ngx.SKCoordinate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapUtils {
 
@@ -19,19 +20,13 @@ public class MapUtils {
         return gmsLatLng;
     }
 
-    public static SKCoordinate getSKCoordinateFromModel(LatLng modelLatLng){
-        SKCoordinate skLatLng = new SKCoordinate(modelLatLng.lng, modelLatLng.lat);
+    public static SKCoordinate getSKCoordinateFromGms(com.google.android.gms.maps.model.LatLng gmsLatLng){
+        SKCoordinate skLatLng = new SKCoordinate(gmsLatLng.longitude, gmsLatLng.latitude);
         return skLatLng;
     }
-    public static ArrayList<LatLng> getArrModelLatLngFromGms (ArrayList<com.google.android.gms.maps.model.LatLng> gmsLatLngArr){
-        ArrayList<LatLng> result = new ArrayList<>();
-        for (com.google.android.gms.maps.model.LatLng gmsLatLng : gmsLatLngArr){
-            result.add(getModelLatLngFromGms(gmsLatLng));
-        }
-        return result;
-    }
 
-    public static ArrayList<com.google.android.gms.maps.model.LatLng> getArrGmsLatLngFromModel (ArrayList<LatLng> modelLatLngArr){
+
+    public static ArrayList<com.google.android.gms.maps.model.LatLng> getLstGmsLatLngFromModel (List<LatLng> modelLatLngArr){
         ArrayList<com.google.android.gms.maps.model.LatLng> result = new ArrayList<>();
         for (LatLng modelLatLng : modelLatLngArr){
             result.add(getGmsLatLngFromModel(modelLatLng));

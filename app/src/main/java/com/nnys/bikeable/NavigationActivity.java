@@ -2,17 +2,18 @@ package com.nnys.bikeable;
 
 
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.maps.DirectionsApi;
-import com.google.maps.GeoApiContext;
-import com.google.maps.model.LatLng;
-import com.google.maps.model.TravelMode;
+import com.google.android.gms.maps.model.LatLng;
 import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.SKMaps;
 import com.skobbler.ngx.SKMapsInitSettings;
@@ -28,7 +29,6 @@ import com.skobbler.ngx.map.SKMapSurfaceView;
 import com.skobbler.ngx.map.SKMapViewHolder;
 import com.skobbler.ngx.map.SKMapViewStyle;
 import com.skobbler.ngx.map.SKPOICluster;
-import com.skobbler.ngx.map.SKPolyline;
 import com.skobbler.ngx.map.SKScreenPoint;
 import com.skobbler.ngx.navigation.SKAdvisorSettings;
 import com.skobbler.ngx.navigation.SKNavigationListener;
@@ -50,7 +50,6 @@ import com.skobbler.ngx.versioning.SKMapUpdateListener;
 import com.skobbler.ngx.versioning.SKVersioningManager;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -58,10 +57,17 @@ import java.util.Locale;
 
 public class NavigationActivity extends AppCompatActivity implements SKPrepareMapTextureListener, SKMapUpdateListener, SKMapSurfaceListener, SKRouteListener, SKNavigationListener, SKCurrentPositionListener {
 
+    /*
+     * layout related fields
+     */
+
+    private Button returnButton;
+    private TextView waitForLocationTextBox, nextAdviceTextBox;
+
     /**
      * route inforamtion
      */
-    BikeableRoute routeInfo;
+    List<LatLng> routeLatLngs;
 
     /**
      * map related fields
@@ -108,8 +114,14 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         super.onCreate(savedInstanceState);
 
         // get the route info
-        routeInfo = (BikeableRoute) getIntent().getSerializableExtra("BikeableRoute");
-
+        Bundle bundle = getIntent().getExtras();
+       routeLatLngs = getIntent().getParcelableArrayListExtra("routeLatLngs");
+        if (routeLatLngs == null){
+            Log.i("INFO:", "route is null");
+        }
+        else {
+            Log.i("INFO:", String.format("route is null not null!!! %d", routeLatLngs.size()));
+        }
         // Added for current location
         currentPositionProvider = new SKCurrentPositionProvider(this);
         currentPositionProvider.setCurrentPositionListener(this);
@@ -160,7 +172,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         initMapSettings.setPreinstalledMapsPath(mapResDirPath + "/PreinstalledMaps");
         SKMaps.getInstance().initializeSKMaps(this, initMapSettings);
 
-        // set up advisor
+        // set up advisor (text to speach)
         final SKAdvisorSettings advisorSettings = initMapSettings.getAdvisorSettings();
         advisorSettings.setAdvisorConfigPath(mapResDirPath + "/Advisor");
         advisorSettings.setResourcePath(mapResDirPath + "/Advisor/Languages");
@@ -170,6 +182,24 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         SKRouteManager.getInstance().setAudioAdvisorSettings(advisorSettings);
 
         setContentView(R.layout.navigation_layout);
+
+        setContentView(R.layout.navigation_layout);
+
+        returnButton = (Button) findViewById(R.id.back_to_res_btn);
+        returnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (skToolsNavigationInProgress) {
+                    return;
+                }
+                textToSpeechEngine.shutdown();
+                finish();
+            }
+        });
+
+        waitForLocationTextBox = (TextView) findViewById(R.id.wait_for_location_message);
+        nextAdviceTextBox = (TextView) findViewById(R.id.next_advice);
+
         mapHolder = (SKMapViewHolder) findViewById(R.id.map_surface_holder);
         mapHolder.setMapSurfaceListener(this);
         mapHolder.onResume();
@@ -179,8 +209,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
     public void onSurfaceCreated(SKMapViewHolder skMapViewHolder) {
         Log.i("INFO: ", "onSurfaceCreated");
         // focus on starting point
-        SKCoordinate startingPosition = MapUtils.getSKCoordinateFromModel(
-                routeInfo.getRouteLatLngArr().get(0));
+        SKCoordinate startingPosition = MapUtils.getSKCoordinateFromGms(
+                routeLatLngs.get(0));
         mapView = mapHolder.getMapSurfaceView();
         mapView.centerMapOnPosition(startingPosition);
         mapView.getMapSettings().setCompassShown(true);
@@ -202,7 +232,6 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         // set tts
         if (textToSpeechEngine == null) {
-            Toast.makeText(NavigationActivity.this, "Initializing TTS engine", Toast.LENGTH_LONG).show();
             textToSpeechEngine = new TextToSpeech(NavigationActivity.this,
                     new TextToSpeech.OnInitListener() {
                         @Override
@@ -210,7 +239,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                             if (status == TextToSpeech.SUCCESS) {
                                 Toast.makeText(
                                         NavigationActivity.this,
-                                        "TTS success",
+                                        "Initialized Text-To-Speech",
                                         Toast.LENGTH_LONG)
                                         .show();
                                 int result = textToSpeechEngine.setLanguage(Locale.ENGLISH);
@@ -221,12 +250,14 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                                             Toast.LENGTH_LONG).show();
                                 }
                             } else {
-                                Toast.makeText(NavigationActivity.this,"TTS not initialized!",
+                                Toast.makeText(NavigationActivity.this,
+                                        "Failed to initialized Text-To-Speech",
                                         Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
         }
+        waitForLocationTextBox.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -240,6 +271,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(true);
         navigationSettings.setEnableReferenceStreetNames(false);
+
         // get the navigation manager object
         navigationManager = SKNavigationManager.getInstance();
         navigationManager.setMapView(mapView);
@@ -255,6 +287,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 //        startPositionDelayChecker();
     }
 
+
     @Override
     public void onCurrentPositionUpdate(SKPosition currentPosition) {
         // Added for current location
@@ -265,50 +298,54 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             // never got current position
             this.currentPosition = currentPosition;
             gotFirstCurrentLocation = true;
+            waitForLocationTextBox.setVisibility(View.INVISIBLE);
             positionAndCalcRoute(currentPosition);
         }
         else {
             this.currentPosition = currentPosition;
-            SKPositionerManager.getInstance().reportNewGPSPosition(this.currentPosition);
-            if (skToolsNavigationInProgress) {
-                if (this.currentPosition.getHorizontalAccuracy() >= 150) {
-                    numberOfConsecutiveBadPositionReceivedDuringNavi++;
-                    if (numberOfConsecutiveBadPositionReceivedDuringNavi >= 3) {
+            if (this.currentPosition != null) {
+                SKPositionerManager.getInstance().reportNewGPSPosition(this.currentPosition);
+                if (skToolsNavigationInProgress) {
+                    if (this.currentPosition.getHorizontalAccuracy() >= 150) {
+                        numberOfConsecutiveBadPositionReceivedDuringNavi++;
+                        if (numberOfConsecutiveBadPositionReceivedDuringNavi >= 3) {
+                            numberOfConsecutiveBadPositionReceivedDuringNavi = 0;
+                            onGPSSignalLost();
+                        }
+                    } else {
                         numberOfConsecutiveBadPositionReceivedDuringNavi = 0;
-                        onGPSSignalLost();
+                        onGPSSignalRecovered();
                     }
-                } else {
-                    numberOfConsecutiveBadPositionReceivedDuringNavi = 0;
-                    onGPSSignalRecovered();
                 }
             }
+
         }
     }
+
 
     private void positionAndCalcRoute(SKPosition currentPosition) {
         Log.i("INFO: ", "position and calc route");
         mapView.centerMapOnPosition(currentPosition.getCoordinate());
         SKPositionerManager.getInstance().reportNewGPSPosition(currentPosition);
-        GeoApiContext context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
         // add a polyline by google coordinates
         List pointsList = new ArrayList();
-        SKPolyline polyline = new SKPolyline();
-        List<SKCoordinate> nodes = new ArrayList<SKCoordinate>();
+//        SKPolyline polyline = new SKPolyline();
+//        List<SKCoordinate> nodes = new ArrayList<SKCoordinate>();
 
-        for (LatLng google_point : routeInfo.getRouteLatLngArr()){
-            pointsList.add(new SKPosition(google_point.lng, google_point.lat));
-            nodes.add(new SKCoordinate(google_point.lng, google_point.lat));
+        for (com.google.android.gms.maps.model.LatLng google_point : routeLatLngs){
+            pointsList.add(new SKPosition(google_point.longitude, google_point.latitude));
+//            nodes.add(new SKCoordinate(google_point.longitude, google_point.latitude));
         }
-        // Add the google polyline
-        polyline.setNodes(nodes);
-        polyline.setColor(new float[]{0f, 0f, 1f, 1f});
-        polyline.setOutlineColor(new float[] { 0f, 0f, 1f, 1f });
-        polyline.setOutlineSize(4);
-        polyline.setIdentifier(12);
-        polyline.setOutlineDottedPixelsSolid(3);
-        polyline.setOutlineDottedPixelsSkip(3);
-        mapView.addPolyline(polyline);
+//        // Add the google polyline
+//        polyline.setNodes(nodes);
+//        polyline.setColor(new float[]{0f, 0f, 1f, 1f});
+//        polyline.setOutlineColor(new float[] { 0f, 0f, 1f, 1f });
+//        polyline.setOutlineSize(4);
+//        polyline.setIdentifier(12);
+//        polyline.setOutlineDottedPixelsSolid(3);
+//        polyline.setOutlineDottedPixelsSkip(3);
+//        mapView.addPolyline(polyline);
 
         // set the route listener
         SKRouteSettings routeSettings = new SKRouteSettings();
@@ -322,6 +359,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         Log.i("INFO:", "before calculating route");
         SKRouteManager.getInstance().setRouteListener(this);
         SKRouteManager.getInstance().calculateRouteWithPoints(pointsList, routeSettings);
+
         Log.i("INFO:", "after calculating route");
 
     }
@@ -506,6 +544,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onDestinationReached() {
+        nextAdviceTextBox.setText("Destination reached");
+        returnButton.setVisibility(View.VISIBLE);
         navigationStop();
     }
 
@@ -514,14 +554,23 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         if (textToSpeechEngine != null && !textToSpeechEngine.isSpeaking()) {
             textToSpeechEngine.stop();
         }
+        SKRouteManager.getInstance().clearCurrentRoute();
         navigationManager.stopNavigation();
     }
 
     @Override
     public void onSignalNewAdviceWithInstruction(String instruction) {
-        instruction = instruction.split("onto")[0];
+        instruction = instruction.split("onto")[0].toUpperCase();
         SKLogging.writeLog("TTS", "onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
-        textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
+        nextAdviceTextBox.setText(instruction);
+        nextAdviceTextBox.setVisibility(View.VISIBLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null, null);
+        }
+        else{
+            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
+
+        }
     }
 
 
@@ -547,11 +596,16 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onReRoutingStarted() {
-        Toast.makeText(NavigationActivity.this, "not rerouting! stopping navigation!", Toast.LENGTH_SHORT).show();
+        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
+        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
+                Toast.LENGTH_SHORT).show();
         navigationStop();
     }
+
     @Override
-    public void onFreeDriveUpdated(String s, String s1, String s2, SKNavigationState.SKStreetType skStreetType, double v, double v1) {
+    public void onFreeDriveUpdated(String s, String s1, String s2,
+                                   SKNavigationState.SKStreetType skStreetType,
+                                   double v, double v1) {
 
     }
 
@@ -572,17 +626,10 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onRouteCalculationCompleted(final SKRouteInfo routeInfo) {
-        Toast.makeText(NavigationActivity.this,"Calculation completed!", Toast.LENGTH_SHORT).show();
-
         Log.i("INFO:", "route calc completed!");
         final List<SKRouteAdvice> advices = SKRouteManager.getInstance()
                 .getAdviceList(routeInfo.getRouteID(),
                         SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
-        if (advices != null) {
-            for (SKRouteAdvice advice : advices) {
-                Log.i("INFO_ADVICE", " Route advice is " + advice.toString());
-            }
-        }
         skToolsRouteCalculated = true; // TODO: is this needed?
 
     }
@@ -602,6 +649,17 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onOnlineRouteComputationHanging(int i) {
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.i("INFO:", "Back button pressed");
+        super.onBackPressed();
+        navigationStop();
+        textToSpeechEngine.stop();
+        textToSpeechEngine.shutdown();
+        finish();
 
     }
 }
