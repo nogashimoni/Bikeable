@@ -28,7 +28,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CentralActivity"></activity>
+        <activity
+            android:name=".CentralActivity"></activity>
+
+        <activity
+            android:name=".NavigationActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

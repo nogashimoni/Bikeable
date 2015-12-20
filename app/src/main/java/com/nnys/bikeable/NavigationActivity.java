@@ -1,6 +1,8 @@
 package com.nnys.bikeable;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -63,6 +65,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     private Button returnButton;
     private TextView waitForLocationTextBox, nextAdviceTextBox;
+    boolean exitNavActivity;
 
     /**
      * route inforamtion
@@ -213,6 +216,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 routeLatLngs.get(0));
         mapView = mapHolder.getMapSurfaceView();
         mapView.centerMapOnPosition(startingPosition);
+        mapView.getMapSettings().setCompassPosition(new SKScreenPoint(10, 50));
         mapView.getMapSettings().setCompassShown(true);
 
         // set internationalization settings
@@ -408,6 +412,184 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
 
     @Override
+    public void onDestinationReached() {
+        nextAdviceTextBox.setText("Destination reached");
+        returnButton.setVisibility(View.VISIBLE);
+        navigationStop();
+    }
+
+
+    @Override
+    public void onSignalNewAdviceWithInstruction(String instruction) {
+        instruction = instruction.split("onto")[0].toUpperCase();
+        SKLogging.writeLog("TTS", "onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
+        nextAdviceTextBox.setText(instruction);
+        nextAdviceTextBox.setVisibility(View.VISIBLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null, null);
+        }
+        else{
+            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
+
+        }
+    }
+
+
+    private void navigationStop() {
+        skToolsNavigationInProgress = false;
+        if (textToSpeechEngine != null && !textToSpeechEngine.isSpeaking()) {
+            textToSpeechEngine.stop();
+        }
+        SKRouteManager.getInstance().clearCurrentRoute();
+        navigationManager.stopNavigation();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.i("INFO:", "Back button pressed");
+        if (skToolsNavigationInProgress) {
+            showAlertDialog();
+        }
+        else {
+            exitActivity();
+        }
+    }
+
+    void exitActivity(){
+        textToSpeechEngine.shutdown();
+        finish();
+    }
+
+    void showAlertDialog(){
+
+        /**
+         * CREDIT: http://www.mkyong.com/android/android-alert-dialog-example/
+         * http://developer.android.com/guide/topics/ui/dialogs.html
+         */
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        // set title
+        alertDialogBuilder.setTitle("Exit Navigation");
+
+        alertDialogBuilder
+                .setMessage("Are you sure you want to exit navigation?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        NavigationActivity.super.onBackPressed();
+                        navigationStop();
+                        exitActivity();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
+
+
+    @Override
+    public void onReRoutingStarted() {
+        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
+        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
+                Toast.LENGTH_SHORT).show();
+        navigationStop();
+    }
+
+
+    @Override
+    public void onRouteCalculationCompleted(final SKRouteInfo routeInfo) {
+        Log.i("INFO:", "route calc completed!");
+        final List<SKRouteAdvice> advices = SKRouteManager.getInstance()
+                .getAdviceList(routeInfo.getRouteID(),
+                        SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
+        skToolsRouteCalculated = true; // TODO: is this needed?
+
+    }
+
+
+    @Override
+    public void onRouteCalculationFailed(SKRoutingErrorCode skRoutingErrorCode) {
+        Log.i("INFO:", "route calc Failed!!");
+        Log.i("CALC failed: ", String.format("%d", skRoutingErrorCode.getValue()));
+        Toast.makeText(NavigationActivity.this, String.format(
+                "Calculation failed %d", skRoutingErrorCode.getValue()), Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    public void onServerLikeRouteCalculationCompleted(SKRouteJsonAnswer skRouteJsonAnswer) {
+
+    }
+
+
+    @Override
+    public void onFreeDriveUpdated(String s, String s1, String s2,
+                                   SKNavigationState.SKStreetType skStreetType,
+                                   double v, double v1) {
+
+    }
+
+
+    @Override
+    public void onOnlineRouteComputationHanging(int i) {
+
+    }
+
+
+    @Override
+    public void onViaPointReached(int i) {
+
+    }
+
+    @Override
+    public void onVisualAdviceChanged(boolean b, boolean b1, SKNavigationState skNavigationState) {
+
+    }
+
+
+    @Override
+    public void onTunnelEvent(boolean b) {
+
+    }
+
+
+    @Override
+    public void onSignalNewAdviceWithAudioFiles(String[] strings, boolean b) {
+
+    }
+
+
+    @Override
+    public void onSpeedExceededWithAudioFiles(String[] strings, boolean b) {
+
+    }
+
+
+    @Override
+    public void onSpeedExceededWithInstruction(String s, boolean b) {
+
+    }
+
+
+    @Override
+    public void onUpdateNavigationState(SKNavigationState skNavigationState) {
+
+    }
+
+
+    @Override
     public void onActionPan() {
 
     }
@@ -539,127 +721,6 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onNoNewVersionDetected() {
-
-    }
-
-    @Override
-    public void onDestinationReached() {
-        nextAdviceTextBox.setText("Destination reached");
-        returnButton.setVisibility(View.VISIBLE);
-        navigationStop();
-    }
-
-    private void navigationStop() {
-        skToolsNavigationInProgress = false;
-        if (textToSpeechEngine != null && !textToSpeechEngine.isSpeaking()) {
-            textToSpeechEngine.stop();
-        }
-        SKRouteManager.getInstance().clearCurrentRoute();
-        navigationManager.stopNavigation();
-    }
-
-    @Override
-    public void onSignalNewAdviceWithInstruction(String instruction) {
-        instruction = instruction.split("onto")[0].toUpperCase();
-        SKLogging.writeLog("TTS", "onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
-        nextAdviceTextBox.setText(instruction);
-        nextAdviceTextBox.setVisibility(View.VISIBLE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null, null);
-        }
-        else{
-            textToSpeechEngine.speak(instruction, TextToSpeech.QUEUE_ADD, null);
-
-        }
-    }
-
-
-    @Override
-    public void onSignalNewAdviceWithAudioFiles(String[] strings, boolean b) {
-
-    }
-
-    @Override
-    public void onSpeedExceededWithAudioFiles(String[] strings, boolean b) {
-
-    }
-
-    @Override
-    public void onSpeedExceededWithInstruction(String s, boolean b) {
-
-    }
-
-    @Override
-    public void onUpdateNavigationState(SKNavigationState skNavigationState) {
-
-    }
-
-    @Override
-    public void onReRoutingStarted() {
-        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
-        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
-                Toast.LENGTH_SHORT).show();
-        navigationStop();
-    }
-
-    @Override
-    public void onFreeDriveUpdated(String s, String s1, String s2,
-                                   SKNavigationState.SKStreetType skStreetType,
-                                   double v, double v1) {
-
-    }
-
-    @Override
-    public void onViaPointReached(int i) {
-
-    }
-
-    @Override
-    public void onVisualAdviceChanged(boolean b, boolean b1, SKNavigationState skNavigationState) {
-
-    }
-
-    @Override
-    public void onTunnelEvent(boolean b) {
-
-    }
-
-    @Override
-    public void onRouteCalculationCompleted(final SKRouteInfo routeInfo) {
-        Log.i("INFO:", "route calc completed!");
-        final List<SKRouteAdvice> advices = SKRouteManager.getInstance()
-                .getAdviceList(routeInfo.getRouteID(),
-                        SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
-        skToolsRouteCalculated = true; // TODO: is this needed?
-
-    }
-
-    @Override
-    public void onRouteCalculationFailed(SKRoutingErrorCode skRoutingErrorCode) {
-        Log.i("INFO:", "route calc Failed!!");
-        Log.i("CALC failed: " , String.format("%d", skRoutingErrorCode.getValue()));
-        Toast.makeText(NavigationActivity.this, String.format(
-                "Calculation failed %d", skRoutingErrorCode.getValue()), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onServerLikeRouteCalculationCompleted(SKRouteJsonAnswer skRouteJsonAnswer) {
-
-    }
-
-    @Override
-    public void onOnlineRouteComputationHanging(int i) {
-
-    }
-
-    @Override
-    public void onBackPressed() {
-        Log.i("INFO:", "Back button pressed");
-        super.onBackPressed();
-        navigationStop();
-        textToSpeechEngine.stop();
-        textToSpeechEngine.shutdown();
-        finish();
 
     }
 }
