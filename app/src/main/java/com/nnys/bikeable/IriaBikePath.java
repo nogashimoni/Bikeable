@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -25,16 +26,20 @@ import java.util.ArrayList;
  */
 public class IriaBikePath {
 
-    Boolean isBikePathShown;
-    Boolean isListInitialized;
-    ArrayList<Polyline> bikePathsTLV;
+    static Boolean isBikePathShown;
+    static Boolean isListInitialized;
+    static ArrayList<Polyline> bikePathsTLV;
+    private static ArrayList <LatLng> telOfanStationsList;
 
 
     // TODO: can we initialize when app starts?
-    public IriaBikePath(GoogleMap mMap) throws IOException, XmlPullParserException {
+    public static void getIriaBikePath(GoogleMap mMap) throws IOException, XmlPullParserException {
         isBikePathShown = false;
         bikePathsTLV = new ArrayList<>();
-        String bikeJsonWGS84 = getBikeLayerJsonStr();
+        telOfanStationsList = new ArrayList<>();
+        URL bikePathLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+        URL telOfanLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+        String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
         ArrayList<PolylineOptions> bikePathPolylinesOpts =
                 IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
         // TODO: Add the line with a different z and width
@@ -43,10 +48,14 @@ public class IriaBikePath {
             bikePathsTLV.add(mMap.addPolyline(line));
         }
         isListInitialized = true;
+
+        String telOfanJsonWGS84 = getBikeLayerJsonStr(telOfanLayerUrl);
+        telOfanStationsList =
+                IriaJson.getStationsFromJsonStr(telOfanJsonWGS84);
     }
 
-    public static String getBikeLayerJsonStr() throws IOException, XmlPullParserException {
-        URL bikeLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+    public static String getBikeLayerJsonStr(URL url) throws IOException, XmlPullParserException {
+        URL bikeLayerUrl = url;
         String xmlStr = UrlManager.getUrlResponse(bikeLayerUrl);
         InputStream xmlIS = new ByteArrayInputStream( xmlStr.getBytes());
         return(parseBikeXMLtoJson(xmlIS));
@@ -68,7 +77,7 @@ public class IriaBikePath {
     }
 
 
-    public void showBikePathOnMap() {
+    public static void showBikePathOnMap() {
         if (!isListInitialized){
             return;
         }
@@ -79,7 +88,7 @@ public class IriaBikePath {
     }
 
 
-    public void removeBikePathFromMap() {
+    public static void removeBikePathFromMap() {
         if (!isListInitialized) {
             return;
         }
@@ -89,7 +98,14 @@ public class IriaBikePath {
         isBikePathShown = false;
     }
 
-    public ArrayList <Polyline> getPaths (){
+    public static boolean getIsBikePathShown(){
+        return isBikePathShown;
+    }
+    public static ArrayList<Polyline> getBikePathsTLV (){
         return bikePathsTLV;
+    }
+
+    public static ArrayList <LatLng> getTelOfanStationsList (){
+        return telOfanStationsList;
     }
 }
