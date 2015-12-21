@@ -24,6 +24,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
@@ -43,12 +45,12 @@ import com.jjoe64.graphview.GraphView;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
-import static java.lang.Thread.sleep;
 
-
-public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks {
+public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
     private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
             new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
@@ -73,6 +75,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private int MAX_GRAPH_SAMPLES = 400;
 
     private IriaBikePath iriaBikePath = null;
+
+    private Location mCurrentLocation = null;
+    private String mLastUpdateTime;
+    private LocationRequest mLocationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -282,14 +288,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng tau = new LatLng(32.113523, 34.804399);            // focus map on tau
-
+        LatLng placeToFocusOn;
+        if ( mCurrentLocation == null ) {
+            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+        } else {
+            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        }
         mMap.addMarker(new MarkerOptions()
-                        .title("Current Location")
-                        .position(tau)
+                        .title("current location (or tau)")
+                        .position(placeToFocusOn)
         );
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
@@ -330,14 +340,53 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            Log.i("INFO", String.format("Current loction lat: %f",mLastLocation.getLatitude()));
-            Log.i("INFO", String.format("Current location lang %f",mLastLocation.getLongitude()));
-        } else {
-            Log.i("INFO", "current position is NULL");
+//        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+//                mGoogleApiClient);
+//        //mLastLocation.getAltitude();
+//        if (mLastLocation != null) {
+//            Log.i("INFO", String.format("Current loction lat: %f",mLastLocation.getLatitude()));
+//            Log.i("INFO", String.format("Current location lang %f",mLastLocation.getLongitude()));
+//        } else {
+//            Log.i("INFO", "current position is NULL");
+//        }
+        boolean mRequestingLocationUpdates = true;
+        if (mRequestingLocationUpdates) {
+            createLocationRequest();
+            startLocationUpdates();
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        Log.i("INFO", String.format("Current loction lat: %f", mCurrentLocation.getLatitude()));
+        Log.i("INFO", String.format("Current location lang %f", mCurrentLocation.getLongitude()));
+        updateUI();
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    public void updateUI() {
+
+        LatLng placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        mMap.addMarker(new MarkerOptions()
+                        .title("current location")
+                        .position(placeToFocusOn)
+        );
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
+
     }
 
     @Override
