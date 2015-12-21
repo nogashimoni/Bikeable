@@ -79,11 +79,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         // to enable getting data from Tel Aviv muni website
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -179,7 +178,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         showGraphBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (directionsManager == null || directionsManager.getSelectedRouteIndex() == -1) {
                     return;
                 }
