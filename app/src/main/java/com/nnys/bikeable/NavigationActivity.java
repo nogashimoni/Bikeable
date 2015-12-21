@@ -21,6 +21,7 @@ import com.skobbler.ngx.SKMaps;
 import com.skobbler.ngx.SKMapsInitSettings;
 import com.skobbler.ngx.SKPrepareMapTextureListener;
 import com.skobbler.ngx.SKPrepareMapTextureThread;
+import com.skobbler.ngx.map.SKAnimationSettings;
 import com.skobbler.ngx.map.SKAnnotation;
 import com.skobbler.ngx.map.SKCoordinateRegion;
 import com.skobbler.ngx.map.SKMapCustomPOI;
@@ -65,7 +66,6 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     private Button returnButton;
     private TextView waitForLocationTextBox, nextAdviceTextBox;
-    boolean exitNavActivity;
 
     /**
      * route inforamtion
@@ -216,7 +216,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 routeLatLngs.get(0));
         mapView = mapHolder.getMapSurfaceView();
         mapView.centerMapOnPosition(startingPosition);
-        mapView.getMapSettings().setCompassPosition(new SKScreenPoint(10, 50));
+        mapView.getMapSettings().setCompassPosition(new SKScreenPoint(0, 60));
         mapView.getMapSettings().setCompassShown(true);
 
         // set internationalization settings
@@ -234,7 +234,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         mapView.getMapSettings()
                 .setMapInternationalizationSettings(mapInternationalizationSettings);
 
-        // set tts
+        // set text to speech
         if (textToSpeechEngine == null) {
             textToSpeechEngine = new TextToSpeech(NavigationActivity.this,
                     new TextToSpeech.OnInitListener() {
@@ -282,13 +282,13 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         // set listener for navigation events
         navigationManager.setNavigationListener(this);
 
-
+        // start navigation
         Log.i("INFO:", "start navigation");
         navigationManager.startNavigation(navigationSettings);
         skToolsNavigationInProgress = true;
         numberOfConsecutiveBadPositionReceivedDuringNavi = 0;
-//        gpsPositionsDelayChecker = new Handler();
-//        startPositionDelayChecker();
+        gpsPositionsDelayChecker = new Handler();
+        startPositionDelayChecker();
     }
 
 
@@ -333,7 +333,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         SKPositionerManager.getInstance().reportNewGPSPosition(currentPosition);
 
         // add a polyline by google coordinates
-        List pointsList = new ArrayList();
+        List<SKPosition> pointsList = new ArrayList();
 //        SKPolyline polyline = new SKPolyline();
 //        List<SKCoordinate> nodes = new ArrayList<SKCoordinate>();
 
@@ -341,6 +341,9 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             pointsList.add(new SKPosition(google_point.longitude, google_point.latitude));
 //            nodes.add(new SKCoordinate(google_point.longitude, google_point.latitude));
         }
+
+        showDestinationOnMap(pointsList.get(pointsList.size()-1).getCoordinate());
+
 //        // Add the google polyline
 //        polyline.setNodes(nodes);
 //        polyline.setColor(new float[]{0f, 0f, 1f, 1f});
@@ -372,17 +375,16 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
      * Called when the gps signal was lost
      */
     private void onGPSSignalLost() {
-//        navigationManager.showSearchingForGPSPanel();
-        Toast.makeText(NavigationActivity.this, "GPS signal lost", Toast.LENGTH_SHORT).show();
+        waitForLocationTextBox.setText(getString(R.string.gps_lost_text));
+        waitForLocationTextBox.setVisibility(View.VISIBLE);
     }
 
     /**
      * Called when the gps signal was recovered after a loss
      */
     private void onGPSSignalRecovered() {
-//        navigationManager.hideSearchingForGPSPanel();
-//        Toast.makeText(MainActivity.this, "GPS signal recovered", Toast.LENGTH_SHORT).show();
-
+        waitForLocationTextBox.setVisibility(View.INVISIBLE);
+        waitForLocationTextBox.setText(getString(R.string.wait_curr_location));
     }
 
     /**
@@ -434,14 +436,23 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         }
     }
 
-
     private void navigationStop() {
         skToolsNavigationInProgress = false;
         if (textToSpeechEngine != null && !textToSpeechEngine.isSpeaking()) {
             textToSpeechEngine.stop();
         }
+        gpsPositionsDelayChecker.removeCallbacks(gpsPositionDelayCheckerRunnable);
         SKRouteManager.getInstance().clearCurrentRoute();
         navigationManager.stopNavigation();
+    }
+
+    private void showDestinationOnMap(SKCoordinate destinationPoint){
+        SKAnnotation annotation = new SKAnnotation(SKAnnotation
+                .SK_ANNOTATION_TYPE_DESTINATION_FLAG);
+        annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_RED);
+        annotation.setLocation(destinationPoint);
+        mapView.addAnnotation(annotation,
+                SKAnimationSettings.ANIMATION_NONE);
     }
 
     @Override
@@ -469,10 +480,10 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
         // set title
-        alertDialogBuilder.setTitle("Exit Navigation");
+        alertDialogBuilder.setTitle(getString(R.string.exit_nav_title));
 
         alertDialogBuilder
-                .setMessage("Are you sure you want to exit navigation?")
+                .setMessage(getString(R.string.exit_nav_q))
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -514,17 +525,16 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         final List<SKRouteAdvice> advices = SKRouteManager.getInstance()
                 .getAdviceList(routeInfo.getRouteID(),
                         SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
-        skToolsRouteCalculated = true; // TODO: is this needed?
-
+        skToolsRouteCalculated = true;
     }
 
 
     @Override
     public void onRouteCalculationFailed(SKRoutingErrorCode skRoutingErrorCode) {
-        Log.i("INFO:", "route calc Failed!!");
-        Log.i("CALC failed: ", String.format("%d", skRoutingErrorCode.getValue()));
+        Log.i("Route CALC failed: ", String.format("%d", skRoutingErrorCode.getValue()));
         Toast.makeText(NavigationActivity.this, String.format(
-                "Calculation failed %d", skRoutingErrorCode.getValue()), Toast.LENGTH_SHORT).show();
+                "Route calculation failed %d", skRoutingErrorCode.getValue()), Toast.LENGTH_SHORT)
+                .show();
     }
 
 
