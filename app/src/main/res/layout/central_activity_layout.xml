@@ -1,103 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:fitsSystemWindows="true"
-    tools:context=".CentralActivity">
-    <!--android:background="#d9d9d9"-->
+    android:id="@+id/sliding_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="bottom"
+    sothree:umanoAnchorPoint="0.4"
+    sothree:umanoPanelHeight="68dp"
+    sothree:umanoShadowHeight="4dp">
+
+    <!--<android.support.design.widget.CoordinatorLayout-->
+        <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+        <!--xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" android:fitsSystemWindows="true"-->
+        <!--tools:context=".CentralActivity">-->
+        <!--&lt;!&ndash;android:background="#d9d9d9"&ndash;&gt;-->
 
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/centralLayout"
-        android:background="@color/searchBG">
-        <!--android:background="#b8e7fd"-->
-
-        <LinearLayout
-            android:orientation="horizontal"
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:id="@+id/centralLayout"
+            android:background="@color/searchBG">
+            <!--android:background="#b8e7fd"-->
+
+            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:map="http://schemas.android.com/apk/res-auto"
+                android:name="com.google.android.gms.maps.MapFragment"
+                android:id="@+id/map"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                map:uiZoomControls="true"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="@dimen/fromto_margin"
+                    android:layout_marginLeft="@dimen/fromto_margin">
+
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/from"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/from_text"
+                        android:dropDownVerticalOffset="0dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/fromto_margin"
+                    android:layout_marginLeft="@dimen/fromto_margin">
+
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/to"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/to_text"
+                        android:dropDownVerticalOffset="0dp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal">
+
+                    <Button
+                        android:id="@+id/res_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Search" />
+                    <Button
+                        android:id="@+id/bike_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="bike" />
+
+                    <Button
+                        android:id="@+id/single_bike_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="single" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+
+
+    <!--</android.support.design.widget.CoordinatorLayout>-->
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center|top"
+        android:id="@+id/scrolling_part">
 
         <TextView
-            android:text="From"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/fromto_margin"/>
-
-        <AutoCompleteTextView
-            android:id="@+id/from"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:completionThreshold="1" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:gravity="center|top"
+            android:text="The Awesome Sliding Up Panel"
+            android:textSize="16sp" />
 
-            <TextView
-                android:text="To"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/fromto_margin" />
-
-            <AutoCompleteTextView
-                android:id="@+id/to"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:completionThreshold="3" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal">
+            android:layout_height="match_parent"
+            android:gravity="center|top"
+            android:text="Hi"
+            android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/res_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Search" />
+        <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content" >-->
 
-            <Button
-                android:id="@+id/show_graph_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Show graph" />
+            <com.jjoe64.graphview.helper.GraphViewXML
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/altitude_graph"
+                android:layout_width="match_parent"
+                android:gravity="center|top"
+                android:layout_height="200dip"
+                app:seriesData="0=5;2=5;3=0;4=0"
+                app:seriesType="line"
+                app:seriesColor="#000000"
+                android:background="#969686" />
+            <!--app:theme="@style/AppTheme.PopupOverlay"-->
 
-            <Button
-                android:id="@+id/clear_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Clear" />
-
-            <Button
-                android:id="@+id/bike_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="bike" />
-
-        </LinearLayout>
-
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:map="http://schemas.android.com/apk/res-auto"
-            android:name="com.google.android.gms.maps.MapFragment"
-            android:id="@+id/map"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            map:uiZoomControls="true"/>
-
+        <!--</RelativeLayout>-->
 
     </LinearLayout>
 
 
-</android.support.design.widget.CoordinatorLayout>
-
-
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>

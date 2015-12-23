@@ -5,9 +5,6 @@ import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
 
-/**
- * Created by Sharon on 23/11/2015.
- */
 public class MapUtils {
 
     public static LatLng getModelLatLngFromGms(com.google.android.gms.maps.model.LatLng gmsLatLng){
@@ -37,12 +34,13 @@ public class MapUtils {
         return result;
     }
 
-    public static void selectClickedRoute (DirectionsManager directionsManager, com.google.android.gms.maps.model.LatLng clickLatLng){
-        for (int i = 0; i < directionsManager.getNumRoutes(); i++) {
-            if (PolyUtil.isLocationOnPath(clickLatLng, directionsManager.getRoutesPolylineOpts()
-                    .get(i).getPoints(), true, 100)){
-                directionsManager.setSelectedRouteIndex(i);
-                directionsManager.selectAndColorRoute(directionsManager.getSelectedRouteIndex());
+    public static void selectClickedRoute (AllRoutes allRoutes, com.google.android.gms.maps.model.LatLng clickLatLng){
+        for (int i = 0; i < allRoutes.getNumRoutes(); i++){
+            // TODO: change 100 to constant value
+            BikeableRoute route = allRoutes.getAllRoutes().get(i);
+            if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 100)){
+                allRoutes.setSelectedRouteIndex(i);
+                allRoutes.selectAndColorRoute(i);
                 break;
             }
         }
