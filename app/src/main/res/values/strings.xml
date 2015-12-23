@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Bikeable</string>
     <string name="action_settings">Settings</string>
+    <string name="action_layers">Map layers</string>
     <string name="from_text">Choose starting point...</string>
     <string name="to_text">Choose destination...</string>
 </resources>

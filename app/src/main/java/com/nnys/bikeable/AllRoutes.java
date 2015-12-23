@@ -43,7 +43,7 @@ public class AllRoutes {
     protected void selectAndColorRoute (int routeInd){
         for (int i = 0; i < getNumRoutes(); i++){
             if (i == routeInd){
-                bikeableRoutes.get(i).routePolyline.setColor(Color.BLUE);
+                bikeableRoutes.get(i).routePolyline.setColor(0xFF84E0FF);
                 bikeableRoutes.get(i).routePolyline.setZIndex(1);
             }
             else{

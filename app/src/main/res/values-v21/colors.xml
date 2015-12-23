@@ -5,4 +5,5 @@
     <color name="colorAccent">#6ebad4</color>
     <color name="searchBG">#f9ffff</color>
     <color name="whiteColor">#ffffff</color>
+    <color name="selectedRouteColor">#84e0ff</color>
 </resources>
