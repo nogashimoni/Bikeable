@@ -11,34 +11,15 @@ import java.util.ArrayList;
 
 public class PathElevationQuerier {
 
-
     ArrayList<com.google.maps.model.LatLng> path;
     EncodedPolyline route;
-    boolean isByEncodedPolyline;
-
-    public PathElevationQuerier(ArrayList<com.google.maps.model.LatLng> path) {
-        assert (path.size() > 0);
-        this.path = path;
-        this.route = null;
-        this.isByEncodedPolyline = false;
-
-    }
 
     public PathElevationQuerier(EncodedPolyline route) {
         this.route = route;
-        this.path = null;
-        this.isByEncodedPolyline = true;
-
     }
 
-    public PathElevationQuerier() {
-        this.path = null;
-        this.route = PathElevationQuerier.createMockRoute();
-        this.isByEncodedPolyline = true;
 
-    }
-
-    public int calcNumOfSamplesForXmetersIntervals(long pathDistance, int x, int max_elevation_samples) {
+    public static int calcNumOfSamplesForXmetersIntervals(long pathDistance, int x, int max_elevation_samples) {
         int result;
         long numberOfSamples = (long)(pathDistance / x);
         if ( numberOfSamples >= Integer.MAX_VALUE ) {
@@ -50,6 +31,14 @@ public class PathElevationQuerier {
         }
         return result;
     }
+
+    public static int getDistanceBetweenSamples(long pathDistance){
+        int resultDistance;
+        int numOfSamples = calcNumOfSamplesForXmetersIntervals(pathDistance, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
+        resultDistance = (int)pathDistance/numOfSamples;
+        return resultDistance;
+    }
+
     public ElevationResult[] getElevationSamples(int numOfSamples) {
 
         ElevationResult[] elevations = null;
@@ -58,12 +47,7 @@ public class PathElevationQuerier {
         GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBCRcbSVolZ34CkIlUfwtcAld4uYXitR50");
 
         try {
-            if (!isByEncodedPolyline) {
-                elevations = ElevationApi.getByPath(context, numOfSamples, path.get(0), path.get(1)).await();
-                // TODO
-            } else {
-                elevations = ElevationApi.getByPath(context, numOfSamples, route).await();
-            }
+            elevations = ElevationApi.getByPath(context, numOfSamples, route).await();
         } catch (Exception e) {
             System.out.println("Failed getting elevation info");
             e.printStackTrace();

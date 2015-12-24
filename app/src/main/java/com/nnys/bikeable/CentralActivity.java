@@ -1,5 +1,7 @@
 package com.nnys.bikeable;
 
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -52,17 +56,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private ArrayList <Polyline> iriaBikePathList = null;
-    private ArrayList <LatLng> stations = null;
+    private IriaBikePath iriaBikePath = null;
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
+    private IriaBikePath iriaBikeSinglePath = null;
     private BikePathCalculator pathCalculator = null;
-    private int pathNum;
-    private int toDraw;
+    private int pathNumber;
+    private boolean isPathCalculatorInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // to enable getting data from Tel Aviv muni website
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -74,8 +82,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .build();
 
         setContentView(R.layout.central_activity_layout);
-        pathNum = 0;
-        toDraw = 0;
 
         //disableSlidingPanel();
 
@@ -106,6 +112,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     return;
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
+
+                // hide keyboard on search
+                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                 directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
