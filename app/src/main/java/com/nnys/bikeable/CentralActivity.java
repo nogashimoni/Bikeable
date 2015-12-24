@@ -103,7 +103,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         //disableSlidingPanel();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
-        from.setPrediction(new CurrentLocationPrediction());
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -141,7 +140,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
 
             public void onClick(View v) {
-                if (from.getPrediction() == null || to.getPrediction() == null)
+
+                boolean isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
+                Log.i("INFO", "in on click of search button");
+
+                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation)
                     return;
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
@@ -150,7 +153,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                if ( isSearchFromCurrentLocation ) {
+                    Log.i("INFO", "creating from new builder");
+                    com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                    directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
+                    return; /// currentLocationLatLng
+                } else {
+                    directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                }
+
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -393,62 +404,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    protected void onStart() {
-        mGoogleApiClient.connect();
-        super.onStart();
-    }
-
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
     }
 
-    class CurrentLocationPrediction implements AutocompletePrediction {
 
-        @Override
-        public CharSequence getFullText(CharacterStyle characterStyle) {
-            return "Current location";
-        }
-
-        @Override
-        public CharSequence getPrimaryText(CharacterStyle characterStyle) {
-            return "Current location";
-        }
-
-        @Override
-        public CharSequence getSecondaryText(CharacterStyle characterStyle) {
-            return "Current location";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Current location";
-        }
-
-        @Override
-        public List<? extends Substring> getMatchedSubstrings() {
-            return null;
-        }
-
-        @Override
-        public String getPlaceId() {
-            return "ChIJHe2BaptMHRURU6OwjH2uLGQ";
-        }
-
-        @Override
-        public List<Integer> getPlaceTypes() {
-            return null;
-        }
-
-        @Override
-        public AutocompletePrediction freeze() {
-            return null;
-        }
-
-        @Override
-        public boolean isDataValid() {
-            return true;
-        }
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
     }
+
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+//    }
+
+
+
 }
 

@@ -1,5 +1,8 @@
 package com.nnys.bikeable;
 
+import android.text.style.CharacterStyle;
+import android.util.Log;
+
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -17,6 +20,7 @@ import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DirectionsManager {
 
@@ -40,6 +44,41 @@ public class DirectionsManager {
             e.printStackTrace();
         }
         fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
+        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+        try {
+            calculatedRoutes = DirectionsApi.newRequest(context)
+                    .alternatives(true)
+                    .mode(TravelMode.WALKING)
+                    .origin(from_placeDetails.geometry.location)
+                    .destination(to_placeDetails.geometry.location)
+                    .await();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        directionBoundsBuilder = new LatLngBounds.Builder();
+        directionBoundsBuilder.include(fromLatLng);
+        directionBoundsBuilder.include(toLatLng);
+        directionBounds = directionBoundsBuilder.build();
+    }
+
+    public DirectionsManager(GeoApiContext context, com.google.android.gms.maps.model.LatLng cuurentLocationLatLng, AutocompletePrediction to) {
+        this.from = null;
+        this.to = to;
+        try { //TODO: handle failure here properly
+            from_placeDetails = null;
+            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
+            if ( to_placeDetails == null ) {
+                Log.i("INFO", "to place detailes is null!!!!!!!");
+                throw new Exception();
+            }
+            Log.i("INFO", "finished annoying part");
+        } catch (Exception e) {
+            e.printStackTrace();
+            e.printStackTrace();
+            e.printStackTrace();
+        }
+        fromLatLng = cuurentLocationLatLng;
         toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
         try {
             calculatedRoutes = DirectionsApi.newRequest(context)
