@@ -1,7 +1,10 @@
 package com.nnys.bikeable;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -24,34 +27,34 @@ import java.util.ArrayList;
 /**
  * Created by Yishay on 11/27/2015.
  */
-public class IriaBikePath {
+public class IriaData {
 
-    static Boolean isBikePathShown;
-    static Boolean isListInitialized;
-    static ArrayList<Polyline> bikePathsTLV;
+    static boolean isBikePathShown;
+    static boolean isBikePathPolylinesAdded;
+
+    static boolean isTelOFunShown;
+    static boolean isTelOFunMarkersAdded;
+
+    static ArrayList<Polyline> bikePathsPolylines;
+    static ArrayList<Marker> telOFunMarkers;
+
     private static ArrayList <LatLng> telOfanStationsList;
     private static ArrayList<PolylineOptions> bikePathPolylinesOpts;
 
+    public static Boolean isDataReceived;
 
     // TODO: can we initialize when app starts?
-    public static void getIriaBikePath(GoogleMap mMap) throws IOException, XmlPullParserException {
+    public static void getIriaData() throws IOException, XmlPullParserException {
         isBikePathShown = false;
-        bikePathsTLV = new ArrayList<>();
+        bikePathsPolylines = new ArrayList<>();
         telOfanStationsList = new ArrayList<>();
         URL bikePathLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
         URL telOfanLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
         String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
         bikePathPolylinesOpts = IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
         // TODO: Add the line with a different z and width
-        for (PolylineOptions line : bikePathPolylinesOpts) {
-            line.visible(false);
-            bikePathsTLV.add(mMap.addPolyline(line));
-        }
-        isListInitialized = true;
-
         String telOfanJsonWGS84 = getBikeLayerJsonStr(telOfanLayerUrl);
-        telOfanStationsList =
-                IriaJson.getStationsFromJsonStr(telOfanJsonWGS84);
+        telOfanStationsList = IriaJson.getStationsFromJsonStr(telOfanJsonWGS84);
     }
 
     public static String getBikeLayerJsonStr(URL url) throws IOException, XmlPullParserException {
@@ -77,33 +80,85 @@ public class IriaBikePath {
         return res;
     }
 
+    public static void addTelOFunToMap (GoogleMap mMap) {
+        if (isTelOFunMarkersAdded)
+            return;
+        telOFunMarkers = new ArrayList<>();
+        for (LatLng station : telOfanStationsList) {
+            telOFunMarkers.add(
+                    mMap.addMarker(new MarkerOptions()
+                            .position(station)
+                            .icon(BitmapDescriptorFactory
+                                    .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            .visible(false)));
+        }
+        isTelOFunMarkersAdded = true;
+    }
 
-    public static void showBikePathOnMap() {
-        if (!isListInitialized){
+    public static void addBikePathToMap (GoogleMap mMap) {
+        if (isBikePathPolylinesAdded)
+            return;
+        bikePathsPolylines = new ArrayList<>();
+        for (PolylineOptions line : bikePathPolylinesOpts) {
+            line.visible(false);
+            bikePathsPolylines.add(mMap.addPolyline(line));
+        }
+        isBikePathPolylinesAdded = true;
+    }
+
+
+    public static void showTelOFunOnMap() {
+        if (!isTelOFunMarkersAdded){
             return;
         }
-        for (Polyline line : bikePathsTLV){
+        for (Marker station : telOFunMarkers){
+            station.setVisible(true);
+        }
+        isTelOFunShown = true;
+    }
+
+
+    public static void showBikePathOnMap() {
+        if (!isBikePathPolylinesAdded){
+            return;
+        }
+        for (Polyline line : bikePathsPolylines){
             line.setVisible(true);
         }
         isBikePathShown = true;
     }
 
 
-    public static void removeBikePathFromMap() {
-        if (!isListInitialized) {
+    public static void removeTelOFunFromMap() {
+        if (!isTelOFunMarkersAdded) {
             return;
         }
-        for (Polyline line : bikePathsTLV) {
+        for (Marker station : telOFunMarkers) {
+            station.setVisible(false);
+        }
+        isTelOFunShown = false;
+    }
+
+    public static void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathsPolylines) {
             line.setVisible(false);
         }
         isBikePathShown = false;
     }
 
-    public static boolean getIsBikePathShown(){
+    public static boolean isBikePathShown(){
         return isBikePathShown;
     }
-    public static ArrayList<Polyline> getBikePathsTLV (){
-        return bikePathsTLV;
+
+    public static Boolean isTelOFunShown() {
+        return isTelOFunShown;
+    }
+
+    public static ArrayList<Polyline> getBikePathsPolylines(){
+        return bikePathsPolylines;
     }
 
     public static ArrayList<PolylineOptions> getBikePathsTLVPolyLineOpt (){

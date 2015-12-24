@@ -1,19 +1,13 @@
 package com.nnys.bikeable;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -28,17 +22,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -73,10 +63,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // to enable getting data from Tel Aviv muni website
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -143,21 +129,26 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                if (iriaBikePathList == null){
-                    try {
-                        IriaBikePath.getIriaBikePath(mMap);
-                        iriaBikePathList = IriaBikePath.getBikePathsTLV();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
+                if (!IriaData.isDataReceived){
+                    Toast.makeText(
+                            CentralActivity.this,
+                            "Failed to get Tel-Aviv Municipality Data",
+                            Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                if (IriaBikePath.getIsBikePathShown()) {
-                    IriaBikePath.removeBikePathFromMap();
+                IriaData.addBikePathToMap(mMap);
+                IriaData.addTelOFunToMap(mMap);
+                if (IriaData.isBikePathShown()) {
+                    IriaData.removeBikePathFromMap();
                 }
                 else {
-                    IriaBikePath.showBikePathOnMap();
+                    IriaData.showBikePathOnMap();
+                }
+                if (IriaData.isTelOFunShown()){
+                    IriaData.removeTelOFunFromMap();
+                }
+                else {
+                    IriaData.showTelOFunOnMap();
                 }
 
             }
@@ -169,30 +160,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                if (directionsManager == null){
-                    return;
-                }
-                if (iriaBikePathList == null){
-                    try {
-                        IriaBikePath.getIriaBikePath(mMap);
-                        iriaBikePathList = IriaBikePath.getBikePathsTLV();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
+                System.out.print("before if");
+                Log.i("info:", "inside clickkkkkkkkkkkkkkkkkkkkkkkk");
+                if (allRoutes.getSelectedRouteIndex() != -1){
+                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
+                        Log.i("info:", "bike path shown");
+                        allRoutes.getSelectedRoute().showBikePathOnMap();
+                    }
+                    else{
+                        Log.i("info:", "bike path not shown");
+                        allRoutes.getSelectedRoute().removeBikePathFromMap();
                     }
                 }
-
-                ArrayList <PolylineOptions> iriaPathPolyLineOpt = IriaBikePath.getBikePathsTLVPolyLineOpt();
-
-                int numOfroutes = allRoutes.getNumRoutes();
-                for (int i = 0; i < numOfroutes; i++) {
-                    pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
-                            directionsManager.getDirectionBounds(), iriaBikePathList, iriaPathPolyLineOpt, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
-                    //pathCalculator.getBikePathPercentageByRoute(1);
+                else{
+                    Log.i("info:", "in else");
                 }
-
-                stations = IriaBikePath.getTelOfanStationsList();
             }
         });
     }
@@ -270,8 +252,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteByIndex() >= 0)
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
+                    if (allRoutes.getSelectedRouteIndex() >= 0)
+                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
                 }
             }
         }
