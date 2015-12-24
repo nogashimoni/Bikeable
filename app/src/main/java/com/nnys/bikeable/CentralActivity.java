@@ -56,21 +56,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private IriaBikePath iriaBikePath = null;
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
-    private IriaBikePath iriaBikeSinglePath = null;
-    private BikePathCalculator pathCalculator = null;
-    private int pathNumber;
-    private boolean isPathCalculatorInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // to enable getting data from Tel Aviv muni website
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
