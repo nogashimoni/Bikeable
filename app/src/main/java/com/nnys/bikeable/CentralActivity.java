@@ -1,26 +1,21 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.CharacterStyle;
 import android.util.Log;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -36,9 +31,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
@@ -50,6 +43,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -83,7 +77,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +103,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         //disableSlidingPanel();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
+        from.setPrediction(new CurrentLocationPrediction());
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -118,7 +113,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 null));
 
         allRoutes = new AllRoutes();
-        graph = (GraphView)findViewById(R.id.altitude_graph);
+        graph = (GraphView) findViewById(R.id.altitude_graph);
 
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
@@ -162,7 +157,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         .getInteger(R.integer.bound_padding)));
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
+                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
@@ -174,11 +169,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
 
         bikePathButton = (Button) findViewById(R.id.bike_button);
-        bikePathButton.setOnClickListener(new View.OnClickListener(){
+        bikePathButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (iriaBikePath == null){
+                if (iriaBikePath == null) {
                     try {
                         iriaBikePath = new IriaBikePath(mMap);
                     } catch (IOException e) {
@@ -189,8 +184,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 if (iriaBikePath.isBikePathShown) {
                     iriaBikePath.removeBikePathFromMap();
-                }
-                else {
+                } else {
                     iriaBikePath.showBikePathOnMap();
                 }
 
@@ -199,14 +193,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
 
         singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
-        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
+        singleBikePathButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (directionsManager == null){
+                if (directionsManager == null) {
                     return;
                 }
-                if (iriaBikePath == null){
+                if (iriaBikePath == null) {
                     try {
                         iriaBikePath = new IriaBikePath(mMap);
                     } catch (IOException e) {
@@ -216,7 +210,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 }
 
-                ArrayList <Polyline> iriaPaths = iriaBikePath.getPaths();
+                ArrayList<Polyline> iriaPaths = iriaBikePath.getPaths();
 
 
                 int numOfroutes = allRoutes.getNumRoutes();
@@ -238,16 +232,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         slidingUpLayout.setEnabled(false);
-        LinearLayout srolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        LinearLayout srolling_part = (LinearLayout) findViewById(R.id.scrolling_part);
         srolling_part.setVisibility(View.INVISIBLE);
     }
 
     private void enableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         slidingUpLayout.setEnabled(true);
-        LinearLayout scrolling_part = (LinearLayout)findViewById(R.id.scrolling_part);
+        LinearLayout scrolling_part = (LinearLayout) findViewById(R.id.scrolling_part);
         scrolling_part.setVisibility(View.VISIBLE);
         scrolling_part.requestLayout();
     }
@@ -347,7 +341,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             line.add(currPoint);
         }
         mMap.addPolyline(line);*/
-    } // TODO delete? came from merging
+    }
 
 
     @Override
@@ -390,14 +384,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void updateUI() {
-//
-//        LatLng placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-//        mMap.addMarker(new MarkerOptions()
-//                        .title("current location")
-//                        .position(placeToFocusOn)
-//        );
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
-//        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
+
 
     }
 
@@ -406,13 +393,62 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    protected void onStart(){
+    protected void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
     }
 
-    protected void onStop(){
+    protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
     }
+
+    class CurrentLocationPrediction implements AutocompletePrediction {
+
+        @Override
+        public CharSequence getFullText(CharacterStyle characterStyle) {
+            return "Current location";
+        }
+
+        @Override
+        public CharSequence getPrimaryText(CharacterStyle characterStyle) {
+            return "Current location";
+        }
+
+        @Override
+        public CharSequence getSecondaryText(CharacterStyle characterStyle) {
+            return "Current location";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Current location";
+        }
+
+        @Override
+        public List<? extends Substring> getMatchedSubstrings() {
+            return null;
+        }
+
+        @Override
+        public String getPlaceId() {
+            return "ChIJHe2BaptMHRURU6OwjH2uLGQ";
+        }
+
+        @Override
+        public List<Integer> getPlaceTypes() {
+            return null;
+        }
+
+        @Override
+        public AutocompletePrediction freeze() {
+            return null;
+        }
+
+        @Override
+        public boolean isDataValid() {
+            return true;
+        }
+    }
 }
+
