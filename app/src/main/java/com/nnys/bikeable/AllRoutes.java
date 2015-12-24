@@ -53,6 +53,13 @@ public class AllRoutes {
         }
     }
 
+    public BikeableRoute getSelectedRoute (){
+        if (selectedRouteIndex < 0){
+            return null;
+        }
+        return bikeableRoutes.get(selectedRouteIndex);
+    }
+
     public int getNumRoutes(){
         return bikeableRoutes.size();
     }
@@ -61,7 +68,7 @@ public class AllRoutes {
         return bikeableRoutes;
     }
 
-    public int getSelectedRouteByIndex() {
+    public int getSelectedRouteIndex() {
         return selectedRouteIndex;
     }
 

@@ -2,7 +2,6 @@ package com.nnys.bikeable;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -35,9 +34,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -61,21 +58,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private IriaBikePath iriaBikePath = null;
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
-    private IriaBikePath iriaBikeSinglePath = null;
-    private BikePathCalculator pathCalculator = null;
-    private int pathNumber;
-    private boolean isPathCalculatorInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // to enable getting data from Tel Aviv muni website
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -145,20 +133,26 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                if (iriaBikePath == null){
-                    try {
-                        iriaBikePath = new IriaBikePath(mMap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
+                if (!IriaData.isDataReceived){
+                    Toast.makeText(
+                            CentralActivity.this,
+                            "Failed to get Tel-Aviv Municipality Data",
+                            Toast.LENGTH_SHORT).show();
+                    return;
                 }
-                if (iriaBikePath.isBikePathShown) {
-                    iriaBikePath.removeBikePathFromMap();
+                IriaData.addBikePathToMap(mMap);
+                IriaData.addTelOFunToMap(mMap);
+                if (IriaData.isBikePathShown()) {
+                    IriaData.removeBikePathFromMap();
                 }
                 else {
-                    iriaBikePath.showBikePathOnMap();
+                    IriaData.showBikePathOnMap();
+                }
+                if (IriaData.isTelOFunShown()){
+                    IriaData.removeTelOFunFromMap();
+                }
+                else {
+                    IriaData.showTelOFunOnMap();
                 }
 
             }
@@ -170,36 +164,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                if (directionsManager == null){
-                    return;
-                }
-                if (iriaBikePath == null){
-                    try {
-                        iriaBikePath = new IriaBikePath(mMap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
+                System.out.print("before if");
+                Log.i("info:", "inside clickkkkkkkkkkkkkkkkkkkkkkkk");
+                if (allRoutes.getSelectedRouteIndex() != -1){
+                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
+                        Log.i("info:", "bike path shown");
+                        allRoutes.getSelectedRoute().showBikePathOnMap();
+                    }
+                    else{
+                        Log.i("info:", "bike path not shown");
+                        allRoutes.getSelectedRoute().removeBikePathFromMap();
                     }
                 }
-
-                ArrayList <Polyline> iriaPaths = iriaBikePath.getPaths();
-
-
-                int numOfroutes = allRoutes.getNumRoutes();
-                for (int i = 0; i < numOfroutes; i++) {
-                    BikePathCalculator pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
-                            directionsManager.getDirectionBounds(), iriaPaths, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
-                    float bikePathDistance = pathCalculator.getTotalBikePathDitance();
-                    System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
-                    long routeDistance = pathCalculator.getCurrRouteDistance();
-
-                    System.out.println("distance: " + routeDistance);
-
-                    float bikePathPersentage = pathCalculator.getBikePathPercentage(routeDistance, bikePathDistance);
-                    System.out.println("percentage: " + bikePathPersentage);
+                else{
+                    Log.i("info:", "in else");
                 }
-
             }
         });
     }
@@ -279,8 +258,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteByIndex() >= 0)
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
+                    if (allRoutes.getSelectedRouteIndex() >= 0)
+                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
                 }
             }
         }

@@ -20,6 +20,14 @@ public class IriaJson {
         return bikePathPolylineOpts;
     }
 
+    public static ArrayList<LatLng> getStationsFromJsonStr(String jsonStr){
+        Gson gson = new Gson();
+        System.out.println(gson.fromJson(jsonStr, IriaBikeData.class));
+        IriaBikeData o = gson.fromJson(jsonStr, IriaBikeData.class);
+        ArrayList<LatLng> stations = getAllStations(o.getFeatures());
+        return stations;
+    }
+
     public static ArrayList<PolylineOptions> getAllPathsPolylines(List<Feature> features){
         ArrayList<PolylineOptions> result = new ArrayList<>();
         PolylineOptions currPathPolylineOpts = null;
@@ -36,6 +44,16 @@ public class IriaJson {
                 }
                 result.add(currPathPolylineOpts);
             }
+        }
+        System.out.println("hurray!");
+        return result;
+    }
+
+    public static ArrayList<LatLng> getAllStations(List<Feature> features){
+        ArrayList<LatLng> result = new ArrayList<>();
+        for (Feature feature: features){
+            result.add(new LatLng(
+                    Double.parseDouble(feature.getGeometry().getY()), Double.parseDouble(feature.getGeometry().getX())));
         }
         System.out.println("hurray!");
         return result;
@@ -82,10 +100,14 @@ class Feature {
 
 class Geometry{
     private List<List<List<String>>> paths;
+    private String x;
+    private String y;
 
     public List<List<List<String>>> getPaths() {
         return paths;
     }
+    public String getX () { return x; }
+    public String getY () { return y; }
 }
 
 
