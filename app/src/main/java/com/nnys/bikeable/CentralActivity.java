@@ -232,11 +232,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(item.getItemId()){
+            case R.id.action_settings:
+                return true;
+            case R.id.iria_bike_path_cb:
+                return false;
+            case R.id.iria_telOFun_cb:
+                return false;
         }
 
         return super.onOptionsItemSelected(item);

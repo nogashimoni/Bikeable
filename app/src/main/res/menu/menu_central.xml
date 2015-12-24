@@ -5,6 +5,15 @@
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
 
-    <item android:id="@+id/action_layers" android:title="@string/action_layers"
-        android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:id="@+id/iria_bike_path_cb"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_layers"/>
+
+    <item
+        android:id="@+id/iria_telOFun_cb"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_telOFun"/>
 </menu>
