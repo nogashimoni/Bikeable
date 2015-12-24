@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -75,16 +76,15 @@ public class DirectionsManager {
             Log.i("INFO", "finished annoying part");
         } catch (Exception e) {
             e.printStackTrace();
-            e.printStackTrace();
-            e.printStackTrace();
         }
-        fromLatLng = cuurentLocationLatLng;
+        fromLatLng = new com.google.android.gms.maps.model.LatLng(cuurentLocationLatLng.latitude, cuurentLocationLatLng.longitude);
+
         toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
         try {
             calculatedRoutes = DirectionsApi.newRequest(context)
                     .alternatives(true)
                     .mode(TravelMode.WALKING)
-                    .origin(from_placeDetails.geometry.location)
+                    .origin(MapUtils.getModelLatLngFromGms(fromLatLng))
                     .destination(to_placeDetails.geometry.location)
                     .await();
 
@@ -98,9 +98,10 @@ public class DirectionsManager {
     }
 
     protected void drawRouteMarkers(GoogleMap mMap){
+        String fromTitle = ( from == null ? "Current Location": from.getDescription());
         directionMarkers = new ArrayList<>();
         MarkerOptions fromMarker = new MarkerOptions()
-                .title(from.getDescription())
+                .title(fromTitle)
                 .position(fromLatLng);
         MarkerOptions toMarker = new MarkerOptions()
                 .title(to.getDescription())

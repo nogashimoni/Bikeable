@@ -157,7 +157,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     Log.i("INFO", "creating from new builder");
                     com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
-                    return; /// currentLocationLatLng
+                     /// currentLocationLatLng
                 } else {
                     directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
                 }
