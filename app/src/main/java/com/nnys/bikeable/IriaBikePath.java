@@ -30,6 +30,7 @@ public class IriaBikePath {
     static Boolean isListInitialized;
     static ArrayList<Polyline> bikePathsTLV;
     private static ArrayList <LatLng> telOfanStationsList;
+    private static ArrayList<PolylineOptions> bikePathPolylinesOpts;
 
 
     // TODO: can we initialize when app starts?
@@ -40,8 +41,7 @@ public class IriaBikePath {
         URL bikePathLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
         URL telOfanLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
         String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
-        ArrayList<PolylineOptions> bikePathPolylinesOpts =
-                IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
+        bikePathPolylinesOpts = IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
         // TODO: Add the line with a different z and width
         for (PolylineOptions line : bikePathPolylinesOpts) {
             line.visible(false);
@@ -59,6 +59,7 @@ public class IriaBikePath {
         String xmlStr = UrlManager.getUrlResponse(bikeLayerUrl);
         InputStream xmlIS = new ByteArrayInputStream( xmlStr.getBytes());
         return(parseBikeXMLtoJson(xmlIS));
+
     }
 
 
@@ -103,6 +104,10 @@ public class IriaBikePath {
     }
     public static ArrayList<Polyline> getBikePathsTLV (){
         return bikePathsTLV;
+    }
+
+    public static ArrayList<PolylineOptions> getBikePathsTLVPolyLineOpt (){
+        return bikePathPolylinesOpts;
     }
 
     public static ArrayList <LatLng> getTelOfanStationsList (){

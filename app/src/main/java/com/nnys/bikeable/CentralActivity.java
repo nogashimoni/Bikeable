@@ -67,6 +67,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
     private BikePathCalculator pathCalculator = null;
+    private int pathNum;
+    private int toDraw;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +88,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .build();
 
         setContentView(R.layout.central_activity_layout);
+        pathNum = 0;
+        toDraw = 0;
 
         //disableSlidingPanel();
 
@@ -179,27 +183,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
                 }
 
+                ArrayList <PolylineOptions> iriaPathPolyLineOpt = IriaBikePath.getBikePathsTLVPolyLineOpt();
 
                 int numOfroutes = allRoutes.getNumRoutes();
                 for (int i = 0; i < numOfroutes; i++) {
-                    BikePathCalculator pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
-                            directionsManager.getDirectionBounds(), iriaBikePathList, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
-                    float bikePathDistance = pathCalculator.calcTotalBikePathDitance();
-                    System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
-                    long routeDistance = pathCalculator.calcCurrRouteDistance();
-
-                    System.out.println("distance: " + routeDistance);
-
-                    float bikePathPersentage = pathCalculator.calcBikePathPercentage(routeDistance, bikePathDistance);
-                    System.out.println("percentage: " + bikePathPersentage);
+                    pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
+                            directionsManager.getDirectionBounds(), iriaBikePathList, iriaPathPolyLineOpt, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
+                    //pathCalculator.getBikePathPercentageByRoute(1);
                 }
 
                 stations = IriaBikePath.getTelOfanStationsList();
-
-                System.out.println("stations number: " + stations.size());
-                System.out.println("station: " + stations.get(0).latitude + " " + stations.get(0).longitude);
-
-
             }
         });
     }
