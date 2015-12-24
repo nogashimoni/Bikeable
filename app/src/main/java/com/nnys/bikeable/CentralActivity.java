@@ -295,19 +295,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
 
-        LatLng placeToFocusOn;
-        if ( mCurrentLocation == null ) {
-            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
-        } else {
-            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        }
-        mMap.addMarker(new MarkerOptions()
-                        .title("current location (or tau)")
-                        .position(placeToFocusOn)
-        );
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
+//        LatLng placeToFocusOn;
+//        if ( mCurrentLocation == null ) {
+//            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+//        } else {
+//            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+//        }
+//        mMap.addMarker(new MarkerOptions()
+//                        .title("current location (or tau)")
+//                        .position(placeToFocusOn)
+//        );
+//
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
@@ -389,14 +390,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void updateUI() {
-
-        LatLng placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        mMap.addMarker(new MarkerOptions()
-                        .title("current location")
-                        .position(placeToFocusOn)
-        );
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
+//
+//        LatLng placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+//        mMap.addMarker(new MarkerOptions()
+//                        .title("current location")
+//                        .position(placeToFocusOn)
+//        );
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
+//        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
     }
 
