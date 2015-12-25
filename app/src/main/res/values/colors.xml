@@ -7,4 +7,5 @@
     <color name="searchBG">#f9ffff</color>
     <color name="whiteColor">#ffffff</color>
     <color name="warningRed">#f59681</color>
+    <color name="Instruction_bg">#CC6ebad4</color>
 </resources>

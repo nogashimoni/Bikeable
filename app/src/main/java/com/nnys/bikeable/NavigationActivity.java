@@ -4,14 +4,17 @@ package com.nnys.bikeable;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,10 +37,12 @@ import com.skobbler.ngx.map.SKMapViewStyle;
 import com.skobbler.ngx.map.SKPOICluster;
 import com.skobbler.ngx.map.SKScreenPoint;
 import com.skobbler.ngx.navigation.SKAdvisorSettings;
+import com.skobbler.ngx.navigation.SKCrossingDescriptor;
 import com.skobbler.ngx.navigation.SKNavigationListener;
 import com.skobbler.ngx.navigation.SKNavigationManager;
 import com.skobbler.ngx.navigation.SKNavigationSettings;
 import com.skobbler.ngx.navigation.SKNavigationState;
+import com.skobbler.ngx.navigation.SKVisualAdviceColor;
 import com.skobbler.ngx.positioner.SKCurrentPositionListener;
 import com.skobbler.ngx.positioner.SKCurrentPositionProvider;
 import com.skobbler.ngx.positioner.SKPosition;
@@ -58,6 +63,12 @@ import java.util.List;
 import java.util.Locale;
 
 
+//TODO: add IriaData to this map. shouldn't be hard to implement
+/*
+ * CREDIT: This code was base on the MapActivity.java code from skobbler demo app, avialable at:
+ * http://developer.skobbler.com/support#download
+ */
+
 public class NavigationActivity extends AppCompatActivity implements SKPrepareMapTextureListener, SKMapUpdateListener, SKMapSurfaceListener, SKRouteListener, SKNavigationListener, SKCurrentPositionListener {
 
     /*
@@ -66,6 +77,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     private Button returnButton;
     private TextView waitForLocationTextBox, nextAdviceTextBox;
+    private ImageView nextAdviceImageView;
 
     /**
      * route inforamtion
@@ -216,7 +228,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 routeLatLngs.get(0));
         mapView = mapHolder.getMapSurfaceView();
         mapView.centerMapOnPosition(startingPosition);
-        mapView.getMapSettings().setCompassPosition(new SKScreenPoint(0, 60));
+        mapView.getMapSettings().setCompassPosition(new SKScreenPoint(0, 150));
         mapView.getMapSettings().setCompassShown(true);
 
         // set internationalization settings
@@ -302,7 +314,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             // never got current position
             this.currentPosition = currentPosition;
             gotFirstCurrentLocation = true;
-            waitForLocationTextBox.setVisibility(View.INVISIBLE);
+            waitForLocationTextBox.setVisibility(View.GONE);
             positionAndCalcRoute(currentPosition);
         }
         else {
@@ -312,7 +324,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
                 if (skToolsNavigationInProgress) {
                     if (this.currentPosition.getHorizontalAccuracy() >= 150) {
                         numberOfConsecutiveBadPositionReceivedDuringNavi++;
-                        if (numberOfConsecutiveBadPositionReceivedDuringNavi >= 3) {
+                        if (numberOfConsecutiveBadPositionReceivedDuringNavi >= 1000) {
                             numberOfConsecutiveBadPositionReceivedDuringNavi = 0;
                             onGPSSignalLost();
                         }
@@ -383,7 +395,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
      * Called when the gps signal was recovered after a loss
      */
     private void onGPSSignalRecovered() {
-        waitForLocationTextBox.setVisibility(View.INVISIBLE);
+        waitForLocationTextBox.setVisibility(View.GONE);
         waitForLocationTextBox.setText(getString(R.string.wait_curr_location));
     }
 
@@ -415,7 +427,9 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onDestinationReached() {
-        nextAdviceTextBox.setText("Destination reached");
+        nextAdviceImageView.setVisibility(View.GONE);
+        nextAdviceTextBox.setText("Destination reached!");
+        nextAdviceTextBox.setGravity(Gravity.CENTER_HORIZONTAL);
         returnButton.setVisibility(View.VISIBLE);
         navigationStop();
     }
@@ -423,7 +437,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onSignalNewAdviceWithInstruction(String instruction) {
-        instruction = instruction.split("onto")[0].toUpperCase();
+        instruction = instruction.split("onto")[0];
+        instruction = instruction.substring(0, 1).toUpperCase() + instruction.substring(1);
         SKLogging.writeLog("TTS", "onSignalNewAdviceWithInstruction " + instruction, Log.DEBUG);
         nextAdviceTextBox.setText(instruction);
         nextAdviceTextBox.setVisibility(View.VISIBLE);
@@ -512,10 +527,11 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onReRoutingStarted() {
-        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
-        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
-                Toast.LENGTH_SHORT).show();
-        navigationStop();
+        //TODO: understand what should be done here
+//        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
+//        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
+//                Toast.LENGTH_SHORT).show();
+//        navigationStop();
     }
 
 
@@ -565,7 +581,25 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onVisualAdviceChanged(boolean b, boolean b1, SKNavigationState skNavigationState) {
+        SKCrossingDescriptor currentImageCrossingDescriptor =
+                skNavigationState.getFirstCrossingDescriptor();
+        String currentVisualAdviceImage = mapResDirPath + "/current_advice_image.png";
+        final SKVisualAdviceColor firstVisualAdviceColor = new SKVisualAdviceColor();
+        firstVisualAdviceColor.setAllowedStreetColor(new float[]{0.2f, 0.2f, 0.2f, 0.4f});
+        firstVisualAdviceColor.setForbiddenStreetColor(new float[]{0.2f, 0.2f, 0.2f, 0.7f});
+        firstVisualAdviceColor.setRouteStreetColor(new float[]{0.2f, 0.2f, 0.2f, 1});
 
+        SKNavigationManager.getInstance().renderVisualAdviceImage(currentImageCrossingDescriptor,
+                currentVisualAdviceImage, firstVisualAdviceColor);
+
+        File adviceFile = new  File(currentVisualAdviceImage);
+
+        if(adviceFile.exists()){
+            Bitmap adviceBitmap = BitmapFactory.decodeFile(adviceFile.getAbsolutePath());
+            nextAdviceImageView = (ImageView) findViewById(R.id.next_advice_image);
+            nextAdviceImageView.setImageBitmap(adviceBitmap);
+            nextAdviceImageView.setVisibility(View.VISIBLE);
+        }
     }
 
 

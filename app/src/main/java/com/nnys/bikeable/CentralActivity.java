@@ -103,7 +103,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 null));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
                 null));
-        from.setHint( "Current Location");
 
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
