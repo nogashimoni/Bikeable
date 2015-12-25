@@ -271,7 +271,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         Log.i("INFO:", "inside all routes completed");
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
         // set the desired navigation settings
-        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.SIMULATION);
+        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(true);
         navigationSettings.setEnableReferenceStreetNames(false);

@@ -50,6 +50,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
             new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
 
+    private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
+
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
     protected DirectionsManager directionsManager = null;
@@ -110,26 +112,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-//
-//        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                from_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-//
-//        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                to_prediction = (AutocompletePrediction) parent.getItemAtPosition(position);
-//            }
-//        });
-
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
         searchBtn = (Button) findViewById(R.id.res_button);
+        startNavButton = (Button) findViewById(R.id.start_nav_button);
+
+
         searchBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
 
             @Override
             public void onClick(View v) {
@@ -138,11 +127,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 Log.i("INFO", "in on click of search button");
 
                 if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
-
                     return;
                 }
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
+
+                startNavButton.setVisibility(View.INVISIBLE);
 
                 // hide keyboard on search
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -174,31 +164,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         });
 
 
-        bikePathButton = (Button) findViewById(R.id.bike_button);
-        bikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (iriaBikePath == null){
-                    try {
-                        iriaBikePath = new IriaBikePath(mMap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (iriaBikePath.isBikePathShown) {
-                    iriaBikePath.removeBikePathFromMap();
-                }
-                else {
-                    iriaBikePath.showBikePathOnMap();
-                }
-
-            }
-        });
-
-
         singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
         singleBikePathButton.setOnClickListener(new View.OnClickListener(){
 
@@ -217,7 +182,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-        startNavButton = (Button) findViewById(R.id.start_nav_button);
         startNavButton.setOnClickListener(new View.OnClickListener(){
 
             @Override
@@ -337,18 +301,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
 
-//        LatLng placeToFocusOn;
-//        if ( mCurrentLocation == null ) {
-//            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
-//        } else {
-//            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-//        }
+        LatLng placeToFocusOn;
+        if ( mCurrentLocation == null ) {
+            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+        } else {
+            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        }
 //        mMap.addMarker(new MarkerOptions()
 //                        .title("current location (or tau)")
 //                        .position(placeToFocusOn)
 //        );
 //
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
@@ -358,8 +322,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteIndex() >= 0)
+                    if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
+                        startNavButton.setVisibility(View.VISIBLE);
+                    }
                 }
             }
         }

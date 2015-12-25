@@ -6,7 +6,5 @@
     <color name="colorPrimaryLight">#e0f6fc</color>
     <color name="searchBG">#f9ffff</color>
     <color name="whiteColor">#ffffff</color>
-</resources>    <color name="warningRed">#f59681</color>
-    <!--<color name="buttonText">#f9ffff</color>-->
+    <color name="warningRed">#f59681</color>
 </resources>
-    <!--#3F51B5 #d9d9d9  #FF4081-->
