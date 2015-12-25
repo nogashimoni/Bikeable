@@ -17,8 +17,12 @@ import java.util.ArrayList;
 
 public class BikeableRoute {
 
+    // TODO move to constants file
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
+    public final static int WALKING_SPEED = 5;
+    public final static int BIKIG_SPEED = 16;
+
 
     /* route's DirectionRout object */
     DirectionsRoute directionsRoute;
@@ -31,11 +35,14 @@ public class BikeableRoute {
 
     /* route distance from source to destination point */
     long distance;
+    int duration;
+
+
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
     ElevationResult[] routeElevationArr;
-    double uphillPrecentage;
+    double averageUphillDegree;
     int numOfElevationSamples;
 
     double bikePathPercentage;
@@ -49,11 +56,13 @@ public class BikeableRoute {
         this.directionsRoute = directionsRoute;
 
         distance = calcRouteDistance();
+        duration = calculateEstimatedBikingDuration();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
         routeElevationArr = createGraphElevationArray();
         pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
+        averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
 
 
         routePolylineOptions = createRoutesPolyOpts();
@@ -136,4 +145,24 @@ public class BikeableRoute {
         return isBikePathShown;
     }
 
+    private int calculateEstimatedBikingDuration( ) {
+        //TODO
+        return 7;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public long getDistance() {
+        return distance;
+    }
+
+    public double getAverageUphillDegree() {
+        return averageUphillDegree;
+    }
+
+    public double getBikePathPercentage() {
+        return bikePathPercentage;
+    }
 }

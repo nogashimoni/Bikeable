@@ -13,6 +13,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -148,7 +149,30 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private void enableSlidingPanel() {
         SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
-        slidingUpLayout.setPanelHeight(60);
+        slidingUpLayout.setPanelHeight(65);
+        updateInfoTable();
+
+    }
+
+    private void updateInfoTable() {
+        BikeableRoute currentRoute = allRoutes.getSelectedRoute();
+        if ( currentRoute == null ) {
+            return;
+        }
+        TextView pathDurationTextView = (TextView)findViewById(R.id.path_duration);
+        TextView pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
+        TextView pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
+        TextView pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
+
+        pathDurationTextView.setText("");
+        pathPercTextView.setText("");
+        pathDistanceTextView.setText("");
+        pathUphillAverageTextView.setText("");
+
+        pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
+        pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
+        pathDistanceTextView.setText(String.format("%ld", currentRoute.getDistance()));
+        pathUphillAverageTextView.setText(String.format("%f", currentRoute.getAverageUphillDegree()));
 
     }
 
@@ -251,8 +275,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteIndex() >= 0)
+                    if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
+                        updateInfoTable();
+                    }
                 }
             }
         }
