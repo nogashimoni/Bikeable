@@ -1,10 +1,8 @@
 package com.nnys.bikeable;
 
 import com.google.maps.model.ElevationResult;
-import com.google.maps.model.EncodedPolyline;
 
 import static java.lang.Math.atan;
-import static java.lang.Math.log;
 
 /**
  * This is a class that calculates a score for a path.
@@ -25,17 +23,17 @@ import static java.lang.Math.log;
 public class PathElevationScoreCalculator {
 
     ElevationResult[] elevationResults;
-    long length;
+    long pathLength;
     int numOfSamples;
     int xDelta;
     double[] degreesArray;
 
 
-    public PathElevationScoreCalculator(ElevationResult[] elevationResults, long length){
+    public PathElevationScoreCalculator(ElevationResult[] elevationResults, long pathLength){
         this.elevationResults = elevationResults;
-        this.length = length;
-        this.xDelta = PathElevationQuerier.getDistanceBetweenSamples(length);
-        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(length, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
+        this.pathLength = pathLength;
+        this.xDelta = PathElevationQuerier.getDistanceBetweenSamples(pathLength);
+        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(pathLength, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
         this.createDegreesArray();
     }
 

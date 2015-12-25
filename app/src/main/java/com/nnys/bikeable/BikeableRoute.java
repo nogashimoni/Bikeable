@@ -27,6 +27,7 @@ public class BikeableRoute {
     PolylineOptions routePolylineOptions;
     Polyline routePolyline;
     EncodedPolyline routeEncodedPolyline;
+    PathElevationScoreCalculator pathElevationScoreCalculator;
 
     /* route distance from source to destination point */
     long distance;
@@ -34,9 +35,10 @@ public class BikeableRoute {
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
     ElevationResult[] routeElevationArr;
+    double uphillPrecentage;
     int numOfElevationSamples;
-    double bikePathPercentage;
 
+    double bikePathPercentage;
     boolean isBikePathPolylinesAdded;
     boolean isBikePathShown;
     ArrayList <PolylineOptions> bikePathInRoute;
@@ -51,6 +53,8 @@ public class BikeableRoute {
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
         routeElevationArr = createGraphElevationArray();
+        pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
+
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
