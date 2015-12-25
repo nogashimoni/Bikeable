@@ -59,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             public void run() {
                 Intent intent = new Intent(MainActivity.this, CentralActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+                finish(); // Call once you redirect to another activity
             }
         }, 5000);
     }

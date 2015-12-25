@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import android.content.Context;
 import android.location.Location;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -55,7 +56,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton;
+    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+            startNavButton;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
@@ -129,6 +131,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
 
+            @Override
             public void onClick(View v) {
 
                 boolean isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
@@ -170,6 +173,32 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
+
+        bikePathButton = (Button) findViewById(R.id.bike_button);
+        bikePathButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                if (iriaBikePath == null){
+                    try {
+                        iriaBikePath = new IriaBikePath(mMap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (iriaBikePath.isBikePathShown) {
+                    iriaBikePath.removeBikePathFromMap();
+                }
+                else {
+                    iriaBikePath.showBikePathOnMap();
+                }
+
+            }
+        });
+
+
         singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
         singleBikePathButton.setOnClickListener(new View.OnClickListener(){
 
@@ -187,6 +216,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
         });
+
+        startNavButton = (Button) findViewById(R.id.start_nav_button);
+        startNavButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                ArrayList<LatLng> selectedRouteLatLngs = MapUtils.getLstGmsLatLngFromModel(
+                                        allRoutes.getSelectedRoute().getRouteLatLngs());
+                Log.i("INFO:", String.format("route before starting activity!!! %d", selectedRouteLatLngs.size()));
+
+                if (selectedRouteLatLngs != null) {
+                    Intent navIntent = new Intent(CentralActivity.this, NavigationActivity.class);
+                    navIntent.putExtra("routeLatLngs", selectedRouteLatLngs);
+                    startActivity(navIntent);
+                }
+            }
+        });
+
     }
 
     private void disableSlidingPanel() {

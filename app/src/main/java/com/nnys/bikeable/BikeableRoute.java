@@ -14,6 +14,7 @@ import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BikeableRoute {
 
@@ -130,6 +131,10 @@ public class BikeableRoute {
 
     public boolean isBikePathShown (){
         return isBikePathShown;
+    }
+
+    public List<LatLng> getRouteLatLngs(){
+        return directionsRoute.overviewPolyline.decodePath();
     }
 
 }

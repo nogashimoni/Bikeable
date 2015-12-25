@@ -76,4 +76,15 @@ public class AllRoutes {
         this.selectedRouteIndex = selectedRouteIndex;
     }
 
+    public BikeableRoute getRouteByIndex(int index){
+        return bikeableRoutes.get(index);
+    }
+
+    public BikeableRoute getSelectedRoute(){
+        if (selectedRouteIndex == -1)
+                return null;
+        else
+            return bikeableRoutes.get(selectedRouteIndex);
+    }
+
 }
