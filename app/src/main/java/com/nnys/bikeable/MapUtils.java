@@ -14,6 +14,11 @@ public class MapUtils {
         return modelLatLng;
     }
 
+    public static SKCoordinate getSKLatLngFromGms(com.google.android.gms.maps.model.LatLng gmsLatLng){
+        SKCoordinate modelLatLng = new SKCoordinate(gmsLatLng.longitude, gmsLatLng.latitude);
+        return modelLatLng;
+    }
+
     public static com.google.android.gms.maps.model.LatLng getGmsLatLngFromModel(LatLng modelLatLng){
         com.google.android.gms.maps.model.LatLng gmsLatLng =
                 new com.google.android.gms.maps.model.LatLng(modelLatLng.lat, modelLatLng.lng);
@@ -44,6 +49,14 @@ public class MapUtils {
                 break;
             }
         }
+    }
+
+    public static ArrayList<SKCoordinate> getSKLstLatLngFromGMS(List<com.google.android.gms.maps.model.LatLng> fromLst){
+        ArrayList<SKCoordinate> result = new ArrayList<>();
+        for (com.google.android.gms.maps.model.LatLng gmsLatLng : fromLst){
+            result.add(getSKLatLngFromGms(gmsLatLng));
+        }
+        return result;
     }
 
 }
