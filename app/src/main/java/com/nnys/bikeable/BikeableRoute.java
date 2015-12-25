@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import android.renderscript.Sampler;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Polyline;
@@ -34,6 +35,12 @@ public class BikeableRoute {
     PathElevationQuerier elevationQuerier;
     ElevationResult[] routeElevationArr;
     int numOfElevationSamples;
+    double bikePathPercentage;
+
+    boolean isBikePathPolylinesAdded;
+    boolean isBikePathShown;
+    ArrayList <PolylineOptions> bikePathInRoute;
+    ArrayList <Polyline> bikePathPolyLineInRoute;
 
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
@@ -47,6 +54,49 @@ public class BikeableRoute {
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
+        if (IriaData.isDataReceived) {
+            BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
+                    directionsRoute);
+            bikePathPercentage = pathCalculator.getBikePathPercentageByRoute();
+            bikePathInRoute = pathCalculator.getBikePaths();
+            addBikePathToMap(mMap);
+        }
+    }
+
+    public void addBikePathToMap (GoogleMap mMap) {
+        if (isBikePathPolylinesAdded)
+            return;
+        Log.i("info:", "inside add function");
+        bikePathPolyLineInRoute = new ArrayList<>();
+        for (PolylineOptions line : bikePathInRoute) {
+            line.visible(false);
+            Log.i("info", "inside add function for");
+            bikePathPolyLineInRoute.add(mMap.addPolyline(line));
+        }
+        isBikePathPolylinesAdded = true;
+    }
+
+    public void showBikePathOnMap() {
+        if (!isBikePathPolylinesAdded){
+            return;
+        }
+        Log.i("info", "inside show function");
+        for (Polyline line : bikePathPolyLineInRoute){
+            Log.i("info", "inside show function for");
+            line.setVisible(true);
+            line.setZIndex(10);
+        }
+        isBikePathShown = true;
+    }
+
+    public void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.setVisible(false);
+        }
+        isBikePathShown = false;
     }
 
 
@@ -76,6 +126,10 @@ public class BikeableRoute {
             line.add(currPoint);
         }
         return line;
+    }
+
+    public boolean isBikePathShown (){
+        return isBikePathShown;
     }
 
 }

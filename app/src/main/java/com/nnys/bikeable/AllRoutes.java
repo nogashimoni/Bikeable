@@ -43,7 +43,7 @@ public class AllRoutes {
     protected void selectAndColorRoute (int routeInd){
         for (int i = 0; i < getNumRoutes(); i++){
             if (i == routeInd){
-                bikeableRoutes.get(i).routePolyline.setColor(Color.BLUE);
+                bikeableRoutes.get(i).routePolyline.setColor(0xFF84E0FF);
                 bikeableRoutes.get(i).routePolyline.setZIndex(1);
             }
             else{
@@ -51,6 +51,13 @@ public class AllRoutes {
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
+    }
+
+    public BikeableRoute getSelectedRoute (){
+        if (selectedRouteIndex < 0){
+            return null;
+        }
+        return bikeableRoutes.get(selectedRouteIndex);
     }
 
     public int getNumRoutes(){
@@ -61,7 +68,7 @@ public class AllRoutes {
         return bikeableRoutes;
     }
 
-    public int getSelectedRouteByIndex() {
+    public int getSelectedRouteIndex() {
         return selectedRouteIndex;
     }
 

@@ -4,9 +4,9 @@ import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -23,8 +23,9 @@ import com.google.android.gms.location.places.AutocompletePrediction;
  */
 public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     // was the text just cleared?
-    boolean justCleared = false;
+    boolean doClear = false;
     AutocompletePrediction prediction;
+    ClearableAutoCompleteTextView currView = this;
 
     // if not set otherwise, the default clear listener clears the text in the
     // text view
@@ -35,7 +36,6 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
             ClearableAutoCompleteTextView view = ClearableAutoCompleteTextView.this;
             view.clearListSelection();
             view.dismissDropDown();
-            view.setText("");
             view.hideClearButton();
             prediction = null;
         }
@@ -77,18 +77,40 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         this.setText("");
         this.hideClearButton();
 
-        this.setOnKeyListener(new View.OnKeyListener() {
+        this.addTextChangedListener(new TextWatcher() {
             @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                ClearableAutoCompleteTextView view = (ClearableAutoCompleteTextView)v;
-                if (view.getText().length() == 0) {
-                    view.onClearListener.onClear();
-                } else {
-                    view.showClearButton();
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() == 0){
+                    currView.onClearListener.onClear();
+                    doClear = false;
                 }
-                return false;
+                else {
+                    currView.showClearButton();
+                }
             }
         });
+//        this.setOnKeyListener(new View.OnKeyListener() {
+//            @Override
+//            public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                ClearableAutoCompleteTextView view = (ClearableAutoCompleteTextView)v;
+//                if (view.getText().length() == 0) {
+//                    view.onClearListener.onClear();
+//                } else {
+//                    view.showClearButton();
+//                }
+//                return false;
+//            }
+//        });
 
         this.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -112,8 +134,8 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                     return false;
 
                 if (event.getX() > et.getWidth() - et.getPaddingRight() - imgClearButton.getIntrinsicWidth()) {
-                    onClearListener.onClear();
-                    justCleared = true;
+                    doClear = true;
+                    currView.setText("");
                 }
                 return false;
             }
