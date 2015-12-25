@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.skobbler.ngx.SKCoordinate;
 import com.skobbler.ngx.SKMaps;
 import com.skobbler.ngx.SKMapsInitSettings;
@@ -35,6 +36,7 @@ import com.skobbler.ngx.map.SKMapSurfaceView;
 import com.skobbler.ngx.map.SKMapViewHolder;
 import com.skobbler.ngx.map.SKMapViewStyle;
 import com.skobbler.ngx.map.SKPOICluster;
+import com.skobbler.ngx.map.SKPolyline;
 import com.skobbler.ngx.map.SKScreenPoint;
 import com.skobbler.ngx.navigation.SKAdvisorSettings;
 import com.skobbler.ngx.navigation.SKCrossingDescriptor;
@@ -231,6 +233,11 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         mapView.getMapSettings().setCompassPosition(new SKScreenPoint(0, 150));
         mapView.getMapSettings().setCompassShown(true);
 
+        // show Iria data //TODO: this is not working
+//        if (IriaData.isDataReceived){
+//            addIriaDataToNavMap();
+//        }
+
         // set internationalization settings
         final SKMapInternationalizationSettings mapInternationalizationSettings =
                 new SKMapInternationalizationSettings();
@@ -283,7 +290,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
         Log.i("INFO:", "inside all routes completed");
         SKNavigationSettings navigationSettings = new SKNavigationSettings();
         // set the desired navigation settings
-        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+        navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.SIMULATION);
         navigationSettings.setPositionerVerticalAlignment(-0.25f);
         navigationSettings.setShowRealGPSPositions(true);
         navigationSettings.setEnableReferenceStreetNames(false);
@@ -346,6 +353,7 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         // add a polyline by google coordinates
         List<SKPosition> pointsList = new ArrayList();
+
 //        SKPolyline polyline = new SKPolyline();
 //        List<SKCoordinate> nodes = new ArrayList<SKCoordinate>();
 
@@ -381,6 +389,33 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
         Log.i("INFO:", "after calculating route");
 
+    }
+
+    private void addIriaDataToNavMap() {
+        for (PolylineOptions line: IriaData.getBikePathsTLVPolyLineOpt()){
+            SKPolyline polyline = new SKPolyline();
+            polyline.setNodes( MapUtils.getSKLstLatLngFromGMS(line.getPoints()));
+            polyline.setOutlineSize(1);
+            polyline.setOutlineColor(new float[]{0f, 1f, 0f, 1f});
+            polyline.setOutlineColor(new float[] { 0f, 1f, 0f, 1f });
+            polyline.setOutlineSize(4);
+            polyline.setIdentifier(12);
+            polyline.setOutlineDottedPixelsSolid(3);
+            polyline.setOutlineDottedPixelsSkip(3);
+            polyline.setColor(new float[]{0f, 1f, 0f, 1f});
+            Log.i("Info:", "Add line");
+            mapView.addPolyline(polyline);
+        }
+
+        for (LatLng stationLatLng: IriaData.getTelOfanStationsList()){
+            SKAnnotation annotation = new SKAnnotation(SKAnnotation
+                    .SK_ANNOTATION_TYPE_MARKER);
+            annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_GREEN);
+            annotation.setLocation(MapUtils.getSKCoordinateFromGms(stationLatLng));
+            Log.i("Info:", "Add station");
+            mapView.addAnnotation(annotation,
+                    SKAnimationSettings.ANIMATION_NONE);
+        }
     }
 
     /**
