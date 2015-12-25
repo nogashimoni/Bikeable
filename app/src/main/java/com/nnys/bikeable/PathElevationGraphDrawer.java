@@ -34,10 +34,16 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
 
     public void addSeries( ElevationResult[] elevationResults ) {
-        assert (elevationResults != null);
-        DataPoint[] points = new DataPoint[elevationResults.length];
-        for ( int i=0; i < elevationResults.length; i++) {
-            points[i] = new DataPoint(i, elevationResults[i].elevation);
+        DataPoint[] points;
+        if (elevationResults == null){
+            points = new DataPoint[1];
+            points[0] = new DataPoint(0, 0);
+        }
+        else {
+            points = new DataPoint[elevationResults.length];
+            for (int i = 0; i < elevationResults.length; i++) {
+                points[i] = new DataPoint(i, elevationResults[i].elevation);
+            }
         }
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(points);
@@ -62,12 +68,14 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         });
     }
 
-    public void colorSeriosByIndex( int i ) {
+    public void colorSeriesByIndex(int i) {
         for (int j=0; j<graph.getSeries().size(); j++) {
             LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(j);
             series.setColor(Color.BLACK);
         }
-        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(i);
+        graph.removeSeries(graph.getSeries().get(graph.getSeries().size()-1));
+        graph.addSeries(graph.getSeries().get(i));
+        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(graph.getSeries().size()-1);
         series.setColor(Color.BLUE);
         graph.invalidate();
 

@@ -117,6 +117,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
+                graphDrawer.addSeries(null);
                 enableSlidingPanel(); //TODO doesn't work
 
             }
@@ -256,7 +257,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0)
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
                 }
             }
         }
