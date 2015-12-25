@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         ImageView img = (ImageView)findViewById(R.id.bike_animation_image);
         img.setBackgroundResource(R.drawable.bike_anim);
         AnimationDrawable frameAnimation = (AnimationDrawable) img.getBackground();
+        frameAnimation.start();
 
         // to enable getting data from Tel Aviv muni website
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -52,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
 //        button.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-        frameAnimation.start();
 
         // Execute some code after 2 seconds have passed
         Handler handler = new Handler();
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, CentralActivity.class);
                 startActivity(intent);
             }
-        });
+        }, 5000);
     }
 
 }

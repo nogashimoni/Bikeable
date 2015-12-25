@@ -100,6 +100,8 @@ public class IriaData {
             return;
         bikePathsPolylines = new ArrayList<>();
         for (PolylineOptions line : bikePathPolylinesOpts) {
+            line.zIndex(20); // TODO: not hard coded
+            line.width(5); // TODO: not hard coded
             line.visible(false);
             bikePathsPolylines.add(mMap.addPolyline(line));
         }

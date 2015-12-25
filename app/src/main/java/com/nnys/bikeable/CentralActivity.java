@@ -3,16 +3,12 @@ package com.nnys.bikeable;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -28,7 +24,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
@@ -127,45 +122,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-
-        bikePathButton = (Button) findViewById(R.id.bike_button);
-        bikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (!IriaData.isDataReceived){
-                    Toast.makeText(
-                            CentralActivity.this,
-                            "Failed to get Tel-Aviv Municipality Data",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                IriaData.addBikePathToMap(mMap);
-                IriaData.addTelOFunToMap(mMap);
-                if (IriaData.isBikePathShown()) {
-                    IriaData.removeBikePathFromMap();
-                }
-                else {
-                    IriaData.showBikePathOnMap();
-                }
-                if (IriaData.isTelOFunShown()){
-                    IriaData.removeTelOFunFromMap();
-                }
-                else {
-                    IriaData.showTelOFunOnMap();
-                }
-
-            }
-        });
-
-
         singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
         singleBikePathButton.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View v) {
-                System.out.print("before if");
-                Log.i("info:", "inside clickkkkkkkkkkkkkkkkkkkkkkkk");
                 if (allRoutes.getSelectedRouteIndex() != -1){
                     if (!allRoutes.getSelectedRoute().isBikePathShown()) {
                         Log.i("info:", "bike path shown");
@@ -175,9 +136,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         Log.i("info:", "bike path not shown");
                         allRoutes.getSelectedRoute().removeBikePathFromMap();
                     }
-                }
-                else{
-                    Log.i("info:", "in else");
                 }
             }
         });
@@ -215,9 +173,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             case R.id.action_settings:
                 return true;
             case R.id.iria_bike_path_cb:
-                return false;
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    IriaData.addBikePathToMap(mMap);
+                    IriaData.showBikePathOnMap();
+                }
+                else{
+                    item.setChecked(false);
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    IriaData.removeBikePathFromMap();
+                }
+                return true;
             case R.id.iria_telOFun_cb:
-                return false;
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    IriaData.addTelOFunToMap(mMap);
+                    IriaData.showTelOFunOnMap();
+                }
+                else{
+                    item.setChecked(false);
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+
+                    IriaData.removeTelOFunFromMap();
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
