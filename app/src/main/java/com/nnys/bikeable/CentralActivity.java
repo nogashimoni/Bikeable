@@ -1,20 +1,14 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -30,17 +24,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -59,26 +48,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
-    private ClearableAutoCompleteTextView to, from;
+    private ClearableAutoCompleteTextView to, from, to2, from2;
 
     private PopupWindow graphPopupWindow;
     private LayoutInflater layoutInflater;
 
-    private IriaBikePath iriaBikePath = null;
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
-    private IriaBikePath iriaBikeSinglePath = null;
-    private BikePathCalculator pathCalculator = null;
-    private int pathNumber;
-    private boolean isPathCalculatorInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // to enable getting data from Tel Aviv muni website
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -142,67 +122,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-
-        bikePathButton = (Button) findViewById(R.id.bike_button);
-        bikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (iriaBikePath == null){
-                    try {
-                        iriaBikePath = new IriaBikePath(mMap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (iriaBikePath.isBikePathShown) {
-                    iriaBikePath.removeBikePathFromMap();
-                }
-                else {
-                    iriaBikePath.showBikePathOnMap();
-                }
-
-            }
-        });
-
-
         singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
         singleBikePathButton.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View v) {
-                if (directionsManager == null){
-                    return;
-                }
-                if (iriaBikePath == null){
-                    try {
-                        iriaBikePath = new IriaBikePath(mMap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XmlPullParserException e) {
-                        e.printStackTrace();
+                if (allRoutes.getSelectedRouteIndex() != -1){
+                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
+                        Log.i("info:", "bike path shown");
+                        allRoutes.getSelectedRoute().showBikePathOnMap();
+                    }
+                    else{
+                        Log.i("info:", "bike path not shown");
+                        allRoutes.getSelectedRoute().removeBikePathFromMap();
                     }
                 }
-
-                ArrayList <Polyline> iriaPaths = iriaBikePath.getPaths();
-
-
-                int numOfroutes = allRoutes.getNumRoutes();
-                for (int i = 0; i < numOfroutes; i++) {
-                    BikePathCalculator pathCalculator = new BikePathCalculator(allRoutes.getAllRoutes().get(i).routePolylineOptions,
-                            directionsManager.getDirectionBounds(), iriaPaths, mMap, allRoutes.getAllRoutes().get(i).directionsRoute);
-                    float bikePathDistance = pathCalculator.getTotalBikePathDitance();
-                    System.out.println("distanceeeeeeeeeeeeeeeeeeee: " + bikePathDistance);
-                    long routeDistance = pathCalculator.getCurrRouteDistance();
-
-                    System.out.println("distance: " + routeDistance);
-
-                    float bikePathPersentage = pathCalculator.getBikePathPercentage(routeDistance, bikePathDistance);
-                    System.out.println("percentage: " + bikePathPersentage);
-                }
-
             }
         });
     }
@@ -226,7 +160,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_central, menu);
         return true;
     }
 
@@ -235,11 +169,52 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch(item.getItemId()){
+            case R.id.action_settings:
+                return true;
+            case R.id.iria_bike_path_cb:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    IriaData.addBikePathToMap(mMap);
+                    IriaData.showBikePathOnMap();
+                }
+                else{
+                    item.setChecked(false);
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    IriaData.removeBikePathFromMap();
+                }
+                return true;
+            case R.id.iria_telOFun_cb:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    IriaData.addTelOFunToMap(mMap);
+                    IriaData.showTelOFunOnMap();
+                }
+                else{
+                    item.setChecked(false);
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+                    IriaData.removeTelOFunFromMap();
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -280,8 +255,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteByIndex() >= 0)
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteByIndex());
+                    if (allRoutes.getSelectedRouteIndex() >= 0)
+                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
                 }
             }
         }

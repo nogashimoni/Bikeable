@@ -3,7 +3,8 @@
     <color name="colorPrimary">#84e0ff</color>
     <color name="colorPrimaryDark">#308b9f</color>
     <color name="colorAccent">#6ebad4</color>
-    <color name="colorPrimaryLight">#e0f6fc</color>
     <color name="searchBG">#f9ffff</color>
+    <color name="colorPrimaryLight">#e0f6fc</color>
     <color name="whiteColor">#ffffff</color>
+    <color name="selectedRouteColor">#84e0ff</color>
 </resources>
