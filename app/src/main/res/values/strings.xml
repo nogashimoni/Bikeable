@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Bikeable</string>
     <string name="action_settings">Settings</string>
+    <string name="action_iria_layers">Show Tel Aviv Bike Paths</string>
+    <string name="action_iria_telOFun">Show Tel Aviv Bike Paths</string>
     <string name="from_text">Choose starting point...</string>
     <string name="to_text">Choose destination...</string>
 </resources>
