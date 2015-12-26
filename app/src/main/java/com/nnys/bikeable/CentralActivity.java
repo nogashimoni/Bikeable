@@ -137,9 +137,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             @Override
             public void onClick(View v) {
-                if (from.getPrediction() == null || to.getPrediction() == null)
+
+                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
+
+                Log.i("INFO", "in on click of search button");
+
+                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
                     return;
                 }
+
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
 
@@ -178,24 +184,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
 
-            }
-        });
-
-        singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
-        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (allRoutes.getSelectedRouteIndex() != -1){
-                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
-                        Log.i("info:", "bike path shown");
-                        allRoutes.getSelectedRoute().showBikePathOnMap();
-                    }
-                    else{
-                        Log.i("info:", "bike path not shown");
-                        allRoutes.getSelectedRoute().hideBikePathFromMap();
-                    }
-                }
             }
         });
 
@@ -346,7 +334,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         else {
             for (BikeableRoute route : allRoutes.bikeableRoutes) {
-                route.removeBikePathFromMap();;
+                route.hideBikePathFromMap();;
             }
         }
     }

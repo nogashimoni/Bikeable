@@ -4,9 +4,7 @@
     <string name="action_iria_layers">Show Tel Aviv Bike Paths</string>
     <string name="action_iria_telOFun">Show Tel-O-Fun stations</string>
     <string name="from_text">Current Location (type to search...) </string>
-    <string name="action_iria_telOFun">Show Tel-O-Fun stations</string>
     <string name="action_iria_matches_layer">Show matches with Bike Paths</string>
-    <string name="from_text">Choose starting point...</string>
     <string name="to_text">Choose destination...</string>
     <string name="wait_curr_location">Please wait for navigation to start</string>
     <string name="nav_back_button">Back to Search results</string>
