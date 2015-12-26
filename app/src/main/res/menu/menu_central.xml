@@ -12,6 +12,12 @@
         android:title="@string/action_iria_layers"/>
 
     <item
+        android:id="@+id/iria_bike_path_mathches"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_matches_layer"/>
+
+    <item
         android:id="@+id/iria_telOFun_cb"
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"

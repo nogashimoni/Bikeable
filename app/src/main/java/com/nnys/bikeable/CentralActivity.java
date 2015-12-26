@@ -55,10 +55,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
 
-    TextView pathDurationTextView;
-    TextView pathPercTextView;
-    TextView pathDistanceTextView;
-    TextView pathUphillAverageTextView;
+    private TextView pathDurationTextView;
+    private TextView pathPercTextView;
+    private TextView pathDistanceTextView;
+    private TextView pathUphillAverageTextView;
+
+    private boolean isShowBikeRouteMatchesChecked = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +108,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
 
             public void onClick(View v) {
+                removeBikePathMatchesFromMap(); // todo check if it's ok even if they're not colored
+
                 if (from.getPrediction() == null || to.getPrediction() == null)
                     return;
                 if (directionsManager != null)
@@ -127,30 +132,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     graphDrawer.addSeries(results);
                 }
 
+                if ( isShowBikeRouteMatchesChecked ) {
+                    showBikePathMatchesOnMap();
+                }
                 updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
 
             }
         });
 
-        singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
-        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (allRoutes.getSelectedRouteIndex() != -1){
-                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
-                        Log.i("info:", "bike path shown");
-                        allRoutes.getSelectedRoute().showBikePathOnMap();
-                    }
-                    else{
-                        Log.i("info:", "bike path not shown");
-                        allRoutes.getSelectedRoute().removeBikePathFromMap();
-                    }
-                }
-            }
-        });
     }
+
 
     private void disableSlidingPanel() {
         SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
@@ -202,6 +194,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         switch(item.getItemId()){
             case R.id.action_settings:
                 return true;
+
             case R.id.iria_bike_path_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -223,6 +216,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeBikePathFromMap();
                 }
                 return true;
+
+            case R.id.iria_bike_path_mathches:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowBikeRouteMatchesChecked = true;
+                    showBikePathMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowBikeRouteMatchesChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    removeBikePathMatchesFromMap();
+                }
+                return true;
+
             case R.id.iria_telOFun_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -248,6 +266,28 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void removeBikePathMatchesFromMap() {
+        if (allRoutes.bikeableRoutes.isEmpty()) { // no routes on map
+            return;
+        }
+        else {
+            for (BikeableRoute route : allRoutes.bikeableRoutes) {
+                route.removeBikePathFromMap();;
+            }
+        }
+    }
+
+    private void showBikePathMatchesOnMap() {
+        if (allRoutes.bikeableRoutes.isEmpty()) { // no routes on map
+            return;
+        }
+        else {
+            for (BikeableRoute route : allRoutes.bikeableRoutes) {
+                route.showBikePathOnMap();
+            }
+        }
     }
 
     /**

@@ -103,11 +103,6 @@
                         android:layout_height="wrap_content"
                         android:text="Search" />
 
-                    <Button
-                        android:id="@+id/single_bike_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="single" />
 
                 </LinearLayout>
             </LinearLayout>
