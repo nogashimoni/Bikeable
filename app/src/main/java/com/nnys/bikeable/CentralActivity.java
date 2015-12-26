@@ -76,6 +76,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
+    boolean isSearchFromCurrentLocation;
 
     TextView pathDurationTextView;
     TextView pathPercTextView;
@@ -134,7 +135,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                boolean isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
+                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
                 Log.i("INFO", "in on click of search button");
 
                 if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
@@ -143,7 +144,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
 
-                startNavButton.setVisibility(View.INVISIBLE);
+                startNavButton.setVisibility(View.GONE);
 
                 // hide keyboard on search
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -356,12 +357,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
-                        startNavButton.setVisibility(View.VISIBLE);
-                    }
-                    if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
+                        if (isSearchFromCurrentLocation) {
+                            startNavButton.setVisibility(View.VISIBLE);
+                        }
+
                     }
                 }
             }

@@ -43,7 +43,7 @@ public class BikeableRoute {
     ElevationResult[] routeElevationArr;
     double averageUphillDegree;
     int numOfElevationSamples;
-    double bikePathPercentage;
+    double worstDegree;
 
     double bikePathPercentage;
     boolean isBikePathPolylinesAdded;
