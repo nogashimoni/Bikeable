@@ -84,6 +84,7 @@ public class BikePathCalculator {
                     totalInRoutePaths.add(currPolyLineOpt);
                 }
                 currPolyLineOpt = new PolylineOptions();
+                currPolyLineOpt.width(5);
                 currPolyLineOpt.color(Color.MAGENTA);
 
             }
