@@ -224,9 +224,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         clearInfoTable();
 
-        pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
-        pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
-        pathDistanceTextView.setText(String.format("%d", currentRoute.getDistance()));
+        pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100));
+        pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
 
     }
@@ -474,9 +474,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
 
-        //**************************
-        builder.setAlwaysShow(true); //this is the key ingredient
-        //**************************
+        builder.setAlwaysShow(true);
 
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());

@@ -40,6 +40,8 @@ public class BikeableRoute {
     long distance;
     long duration;
     String durationString;
+    String distanceString;
+
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
@@ -69,6 +71,7 @@ public class BikeableRoute {
         distance = calcRouteDistance();
         duration = calculateEstimatedBikingDuration();
         durationString = updateDurationString();
+        distanceString = updateDistanceString();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
@@ -261,6 +264,16 @@ public class BikeableRoute {
         durationString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
         return durationString;
     }
+
+    private String updateDistanceString() {
+        if (distance < 1000){
+            distanceString = String.format("%d meters", distance);
+        }
+        else{
+            distanceString = String.format("%.2f km", distance/1000);
+        }
+        return distanceString;
+    }
     
     public long getDuration() {
         return duration;
@@ -273,6 +286,11 @@ public class BikeableRoute {
     public long getDistance() {
         return distance;
     }
+
+    public String getDistanceString() {
+        return distanceString;
+    }
+
 
     public double getAverageUphillDegree() {
         return averageUphillDegree;
