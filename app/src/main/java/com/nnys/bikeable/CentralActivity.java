@@ -84,6 +84,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathUphillAverageTextView;
 
     private boolean isShowBikeRouteMatchesChecked = false;
+    private boolean isShowCloseTelOFunStationsChecked = false;
 
 
     @Override
@@ -168,6 +169,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
+                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
                 for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
@@ -320,6 +322,32 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
 
                     IriaData.removeTelOFunFromMap();
+                }
+                return true;
+
+            case R.id.iria_telOFun_matches:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowCloseTelOFunStationsChecked = true;
+                    allRoutes.showTelOFunSourceMatchesOnMap();
+                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowCloseTelOFunStationsChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    allRoutes.hideTelOFunSourceMatchesOnMap();
+                    allRoutes.hideTelOFunDestinationMatchesOnMap();
                 }
                 return true;
         }

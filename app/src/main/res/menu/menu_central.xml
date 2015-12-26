@@ -22,4 +22,10 @@
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"
         android:title="@string/action_iria_telOFun"/>
+
+    <item
+        android:id="@+id/iria_telOFun_matches"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_telOFun_matches"/>
 </menu>
