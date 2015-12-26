@@ -45,17 +45,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton;
+    private Button searchBtn, singleBikePathButton;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
-    private ClearableAutoCompleteTextView to, from, to2, from2;
+    private ClearableAutoCompleteTextView to, from;
 
-    private PopupWindow graphPopupWindow;
-    private LayoutInflater layoutInflater;
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
+
+    TextView pathDurationTextView;
+    TextView pathPercTextView;
+    TextView pathDistanceTextView;
+    TextView pathUphillAverageTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +76,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         setContentView(R.layout.central_activity_layout);
 
         disableSlidingPanel();
+
+        pathDurationTextView = (TextView)findViewById(R.id.path_duration);
+        pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
+        pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
+        pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -118,6 +126,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
+
+                updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
 
             }
@@ -149,31 +159,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private void enableSlidingPanel() {
         SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
-        slidingUpLayout.setPanelHeight(65);
-        updateInfoTable();
+        slidingUpLayout.setPanelHeight(80);
 
     }
 
     private void updateInfoTable() {
         BikeableRoute currentRoute = allRoutes.getSelectedRoute();
         if ( currentRoute == null ) {
+            clearInfoTable();
             return;
         }
-        TextView pathDurationTextView = (TextView)findViewById(R.id.path_duration);
-        TextView pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
-        TextView pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
-        TextView pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
-        pathDurationTextView.setText("");
-        pathPercTextView.setText("");
-        pathDistanceTextView.setText("");
-        pathUphillAverageTextView.setText("");
+        clearInfoTable();
 
         pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
         pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
         pathDistanceTextView.setText(String.format("%d", currentRoute.getDistance()));
-        pathUphillAverageTextView.setText(String.format("%f", currentRoute.getAverageUphillDegree()));
+        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
 
+    }
+
+    private void clearInfoTable() {
+        pathDurationTextView.setText("");
+        pathPercTextView.setText("");
+        pathDistanceTextView.setText("");
+        pathUphillAverageTextView.setText("");
     }
 
 
