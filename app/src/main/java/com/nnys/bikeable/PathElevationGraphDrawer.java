@@ -56,17 +56,23 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     private void formatXAxix(GraphView graph) {
         graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
-        @Override
-        public String formatLabel(double value, boolean isValueX) {
-            if (isValueX) {
-                // new value is sample_num*x_interval_size(from values)
-                return super.formatLabel(value*BikeableRoute.GRAPH_X_INTERVAL, isValueX);
-            } else {
-                // show normal y values
-                return super.formatLabel(value, isValueX);
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                if (isValueX) {
+                    // new value is sample_num*x_interval_size(from values)
+                    return super.formatLabel(value * BikeableRoute.GRAPH_X_INTERVAL, isValueX);
+                } else {
+                    // show normal y values
+                    return super.formatLabel(value, isValueX);
+
+                }
             }
-        }
         });
+        graph.getGridLabelRenderer().setHorizontalAxisTitle("Distance (meters)");
+        graph.getGridLabelRenderer().setHorizontalAxisTitleColor(Color.rgb(48, 139, 159));
+        graph.getGridLabelRenderer().setVerticalAxisTitle("Elevation (meters)");
+        graph.getGridLabelRenderer().setVerticalAxisTitleColor(Color.rgb(48, 139, 159));
+
     }
 
     public void colorSeriesByIndex(int i) {

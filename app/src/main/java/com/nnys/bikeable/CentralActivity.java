@@ -183,6 +183,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
+                hideSearchView();
 
             }
         });
@@ -202,6 +203,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
         });
+
+    }
+
+    private void hideSearchView() {
+        searchBtn.setVisibility(View.GONE);
 
     }
 
