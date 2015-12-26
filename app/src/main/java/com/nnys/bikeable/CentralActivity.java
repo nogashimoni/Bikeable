@@ -167,10 +167,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     if (!allRoutes.getSelectedRoute().isBikePathShown()) {
                         Log.i("info:", "bike path shown");
                         allRoutes.getSelectedRoute().showBikePathOnMap();
+                        allRoutes.getSelectedRoute().showSourceTelOFunOnMap();
+                        allRoutes.getSelectedRoute().showDestinationTelOFunOnMap();
                     }
                     else{
                         Log.i("info:", "bike path not shown");
                         allRoutes.getSelectedRoute().removeBikePathFromMap();
+                        allRoutes.getSelectedRoute().removeSourceTelOFunFromMap();
+                        allRoutes.getSelectedRoute().removeDestinationTelOFunFromMap();
                     }
                 }
             }
@@ -364,7 +368,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
-            startLocationUpdates();
+//            startLocationUpdates();
         }
     }
 
