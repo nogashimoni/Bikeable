@@ -12,6 +12,7 @@ import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BikeableRoute {
 
@@ -35,8 +36,6 @@ public class BikeableRoute {
     long distance;
     long duration;
     String durationString;
-
-
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
@@ -66,7 +65,6 @@ public class BikeableRoute {
         pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
         averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
         worstDegree = pathElevationScoreCalculator.calcWorstDegree();
-
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
@@ -105,7 +103,7 @@ public class BikeableRoute {
         isBikePathShown = true;
     }
 
-    public void removeBikePathFromMap() {
+    public void hideBikePathFromMap() {
         if (!isBikePathPolylinesAdded) {
             return;
         }
@@ -115,6 +113,15 @@ public class BikeableRoute {
         isBikePathShown = false;
     }
 
+    public void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.remove();
+        }
+        isBikePathShown = false;
+    }
 
     private ElevationResult[] createGraphElevationArray() {
         routeElevationArr = elevationQuerier.getElevationSamples(numOfElevationSamples);
@@ -149,6 +156,10 @@ public class BikeableRoute {
         return isBikePathShown;
     }
 
+    public List<LatLng> getRouteLatLngs(){
+        return directionsRoute.overviewPolyline.decodePath();
+    }
+
     private long calculateEstimatedBikingDuration( ) {
         long walkingDuration = 0;
         for (DirectionsLeg leg : directionsRoute.legs) {
@@ -166,7 +177,7 @@ public class BikeableRoute {
         durationString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
         return durationString;
     }
-
+    
     public long getDuration() {
         return duration;
     }
