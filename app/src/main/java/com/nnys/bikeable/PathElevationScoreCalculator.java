@@ -69,7 +69,7 @@ public class PathElevationScoreCalculator {
         if (slop < 0){
             return result;
         }
-        result = atan(slop);
+        result = Math.toDegrees(atan(slop));
         return result;
 
     }
@@ -111,6 +111,16 @@ public class PathElevationScoreCalculator {
         result = sum/num;
 
         return result;
+    }
+
+    public double calcWorstDegree(){
+        double max = 0;
+        for (double degree: degreesArray) {
+            if (degree > max) {
+                max = degree;
+            }
+        }
+        return max;
     }
 
 }

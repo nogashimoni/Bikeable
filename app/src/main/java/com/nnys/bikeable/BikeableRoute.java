@@ -44,6 +44,7 @@ public class BikeableRoute {
     ElevationResult[] routeElevationArr;
     double averageUphillDegree;
     int numOfElevationSamples;
+    double worstDegree;
 
     double bikePathPercentage;
     boolean isBikePathPolylinesAdded;
@@ -63,6 +64,7 @@ public class BikeableRoute {
         routeElevationArr = createGraphElevationArray();
         pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
         averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
+        worstDegree = pathElevationScoreCalculator.calcWorstDegree();
 
 
         routePolylineOptions = createRoutesPolyOpts();
@@ -164,5 +166,9 @@ public class BikeableRoute {
 
     public double getBikePathPercentage() {
         return bikePathPercentage;
+    }
+
+    public double getWorstDegree() {
+        return worstDegree;
     }
 }

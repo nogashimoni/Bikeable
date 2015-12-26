@@ -171,7 +171,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
         pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
-        pathDistanceTextView.setText(String.format("%ld", currentRoute.getDistance()));
+        pathDistanceTextView.setText(String.format("%d", currentRoute.getDistance()));
         pathUphillAverageTextView.setText(String.format("%f", currentRoute.getAverageUphillDegree()));
 
     }
