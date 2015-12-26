@@ -135,7 +135,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
                     else{
                         Log.i("info:", "bike path not shown");
-                        allRoutes.getSelectedRoute().removeBikePathFromMap();
+                        allRoutes.getSelectedRoute().hideBikePathFromMap();
                     }
                 }
             }

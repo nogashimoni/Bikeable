@@ -89,12 +89,22 @@ public class BikeableRoute {
         isBikePathShown = true;
     }
 
-    public void removeBikePathFromMap() {
+    public void hideBikePathFromMap() {
         if (!isBikePathPolylinesAdded) {
             return;
         }
         for (Polyline line : bikePathPolyLineInRoute) {
             line.setVisible(false);
+        }
+        isBikePathShown = false;
+    }
+
+    public void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.remove();
         }
         isBikePathShown = false;
     }
