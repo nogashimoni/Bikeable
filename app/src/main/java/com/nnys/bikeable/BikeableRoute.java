@@ -17,8 +17,12 @@ import java.util.ArrayList;
 
 public class BikeableRoute {
 
+    // TODO move to constants file
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
+    public final static int WALKING_SPEED = 5;
+    public final static int BIKIG_SPEED = 16;
+
 
     /* route's DirectionRout object */
     DirectionsRoute directionsRoute;
@@ -27,16 +31,22 @@ public class BikeableRoute {
     PolylineOptions routePolylineOptions;
     Polyline routePolyline;
     EncodedPolyline routeEncodedPolyline;
+    PathElevationScoreCalculator pathElevationScoreCalculator;
 
     /* route distance from source to destination point */
     long distance;
+    int duration;
+
+
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
     ElevationResult[] routeElevationArr;
+    double averageUphillDegree;
     int numOfElevationSamples;
-    double bikePathPercentage;
+    double worstDegree;
 
+    double bikePathPercentage;
     boolean isBikePathPolylinesAdded;
     boolean isBikePathShown;
     ArrayList <PolylineOptions> bikePathInRoute;
@@ -47,10 +57,15 @@ public class BikeableRoute {
         this.directionsRoute = directionsRoute;
 
         distance = calcRouteDistance();
+        duration = calculateEstimatedBikingDuration();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
         routeElevationArr = createGraphElevationArray();
+        pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
+        averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
+        worstDegree = pathElevationScoreCalculator.calcWorstDegree();
+
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
@@ -142,4 +157,28 @@ public class BikeableRoute {
         return isBikePathShown;
     }
 
+    private int calculateEstimatedBikingDuration( ) {
+        //TODO
+        return 7;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public long getDistance() {
+        return distance;
+    }
+
+    public double getAverageUphillDegree() {
+        return averageUphillDegree;
+    }
+
+    public double getBikePathPercentage() {
+        return bikePathPercentage;
+    }
+
+    public double getWorstDegree() {
+        return worstDegree;
+    }
 }
