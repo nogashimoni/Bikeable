@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
+import android.content.IntentSender;
 import android.location.Location;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,13 +16,21 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -58,10 +67,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
-    private ClearableAutoCompleteTextView to, from, to2, from2;
+    private ClearableAutoCompleteTextView to, from;
 
-    private PopupWindow graphPopupWindow;
-    private LayoutInflater layoutInflater;
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -69,6 +76,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
+    boolean isSearchFromCurrentLocation;
+
+    TextView pathDurationTextView;
+    TextView pathPercTextView;
+    TextView pathDistanceTextView;
+    TextView pathUphillAverageTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +101,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 
-        //disableSlidingPanel();
+        disableSlidingPanel();
+
+        pathDurationTextView = (TextView)findViewById(R.id.path_duration);
+        pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
+        pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
+        pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -117,7 +135,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                boolean isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
+                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
                 Log.i("INFO", "in on click of search button");
 
                 if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
@@ -126,7 +144,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
 
-                startNavButton.setVisibility(View.INVISIBLE);
+                startNavButton.setVisibility(View.GONE);
 
                 // hide keyboard on search
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -152,6 +170,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
+                graphDrawer.addSeries(null);
+
+                updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
 
             }
@@ -175,6 +196,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         allRoutes.getSelectedRoute().removeBikePathFromMap();
                         allRoutes.getSelectedRoute().removeSourceTelOFunFromMap();
                         allRoutes.getSelectedRoute().removeDestinationTelOFunFromMap();
+                        allRoutes.getSelectedRoute().hideBikePathFromMap();
                     }
                 }
             }
@@ -199,18 +221,37 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        slidingUpLayout.setEnabled(false);
-        LinearLayout srolling_part = (LinearLayout) findViewById(R.id.scrolling_part);
-        srolling_part.setVisibility(View.INVISIBLE);
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelHeight(0);
     }
 
     private void enableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        slidingUpLayout.setEnabled(true);
-        LinearLayout scrolling_part = (LinearLayout) findViewById(R.id.scrolling_part);
-        scrolling_part.setVisibility(View.VISIBLE);
-        scrolling_part.requestLayout();
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelHeight(80);
+
+    }
+
+    private void updateInfoTable() {
+        BikeableRoute currentRoute = allRoutes.getSelectedRoute();
+        if ( currentRoute == null ) {
+            clearInfoTable();
+            return;
+        }
+
+        clearInfoTable();
+
+        pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
+        pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
+        pathDistanceTextView.setText(String.format("%d", currentRoute.getDistance()));
+        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
+
+    }
+
+    private void clearInfoTable() {
+        pathDurationTextView.setText("");
+        pathPercTextView.setText("");
+        pathDistanceTextView.setText("");
+        pathUphillAverageTextView.setText("");
     }
 
 
@@ -321,8 +362,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
-                        startNavButton.setVisibility(View.VISIBLE);
+                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
+                        updateInfoTable();
+                        if (isSearchFromCurrentLocation) {
+                            startNavButton.setVisibility(View.VISIBLE);
+                        }
+
                     }
                 }
             }
@@ -368,7 +413,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
-//            startLocationUpdates();
+            startLocationUpdates();
         }
     }
 
@@ -391,6 +436,49 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        /* ask to turn on location //TODO: make it appear when needed
+            CREDIT: http://stackoverflow.com/questions/29801368/how-to-show-enable-location-dialog-like-google-maps
+         */
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+        //**************************
+        builder.setAlwaysShow(true); //this is the key ingredient
+        //**************************
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(
+                                   CentralActivity.this, 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
     }
 
     public void updateUI() {

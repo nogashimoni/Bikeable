@@ -37,6 +37,7 @@ public class AllRoutes {
     private void removePolylinesFromMap() {
         for (BikeableRoute bikeableRoute : bikeableRoutes){
             bikeableRoute.routePolyline.remove();
+            bikeableRoute.removeBikePathFromMap();
         }
     }
 
