@@ -2,6 +2,9 @@ package com.nnys.bikeable;
 
 import android.content.Context;
 import android.content.IntentSender;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
 import android.os.Bundle;
@@ -68,6 +71,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
     private ClearableAutoCompleteTextView to, from;
+    private LinearLayout searchLayout;
 
 
     private PathElevationGraphDrawer graphDrawer;
@@ -82,6 +86,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathPercTextView;
     TextView pathDistanceTextView;
     TextView pathUphillAverageTextView;
+
+    MenuItem menuSearch;
 
     private boolean isShowBikeRouteMatchesChecked = false;
 
@@ -131,6 +137,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         searchBtn = (Button) findViewById(R.id.res_button);
         startNavButton = (Button) findViewById(R.id.start_nav_button);
+
+        searchLayout = (LinearLayout) findViewById(R.id.search_layout);
 
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
@@ -208,6 +216,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private void hideSearchView() {
         searchBtn.setVisibility(View.GONE);
+        searchLayout.setVisibility(View.GONE);
+        if (menuSearch != null){
+            menuSearch.setVisible(true);
+            menuSearch.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        }
+
+
+    }
+
+    private void showSearchView() {
+        searchBtn.setVisibility(View.VISIBLE);
+        searchLayout.setVisibility(View.VISIBLE);
+        if (menuSearch != null){
+            menuSearch.setVisible(false);
+        }
 
     }
 
@@ -250,6 +273,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_central, menu);
+
+        menuSearch = menu.findItem(R.id.action_search);
+        menuSearch.setVisible(false);
+
+        Drawable drawable = menuSearch.getIcon();
+        if (drawable != null) {
+//            drawable.mutate();
+            drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY );
+        }
+
         return true;
     }
 
@@ -329,6 +362,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeTelOFunFromMap();
                 }
                 return true;
+            case R.id.action_search:
+                showSearchView();
         }
 
         return super.onOptionsItemSelected(item);
@@ -380,7 +415,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         LatLng placeToFocusOn;
         if ( mCurrentLocation == null ) {
-            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+            placeToFocusOn = TAU_LATLNG;            // focus map on tau
         } else {
             placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         }
