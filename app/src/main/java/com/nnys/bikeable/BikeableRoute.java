@@ -24,7 +24,8 @@ public class BikeableRoute {
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
     public final static int WALKING_SPEED = 5;
-    public final static int BIKIG_SPEED = 16;
+    public final static int BIKIG_SPEED = 15;
+
 
     /* route's DirectionRout object */
     DirectionsRoute directionsRoute;
@@ -37,7 +38,8 @@ public class BikeableRoute {
 
     /* route distance from source to destination point */
     long distance;
-    int duration;
+    long duration;
+    String durationString;
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
@@ -66,6 +68,7 @@ public class BikeableRoute {
 
         distance = calcRouteDistance();
         duration = calculateEstimatedBikingDuration();
+        durationString = updateDurationString();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
@@ -93,9 +96,11 @@ public class BikeableRoute {
     public void addBikePathToMap(GoogleMap mMap) {
         if (isBikePathPolylinesAdded)
             return;
+        Log.i("info:", "inside add function");
         bikePathPolyLineInRoute = new ArrayList<>();
         for (PolylineOptions line : bikePathInRoute) {
             line.visible(false);
+            Log.i("info", "inside add function for");
             bikePathPolyLineInRoute.add(mMap.addPolyline(line));
         }
         isBikePathPolylinesAdded = true;
@@ -239,13 +244,30 @@ public class BikeableRoute {
         return directionsRoute.overviewPolyline.decodePath();
     }
 
-    private int calculateEstimatedBikingDuration( ) {
-        //TODO
-        return 7;
+    private long calculateEstimatedBikingDuration( ) {
+        long walkingDuration = 0;
+        for (DirectionsLeg leg : directionsRoute.legs) {
+            walkingDuration += leg.duration.inSeconds;
+        }
+        duration = Math.round(walkingDuration *  WALKING_SPEED / BIKIG_SPEED) ;
+        return duration; // in seconds
     }
 
-    public int getDuration() {
+    private String updateDurationString( ) {
+        long hours = duration / 3600;
+        long minutes = (duration % 3600) / 60;
+        long seconds = duration % 60;
+
+        durationString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return durationString;
+    }
+    
+    public long getDuration() {
         return duration;
+    }
+
+    public String getDurationString() {
+        return durationString;
     }
 
     public long getDistance() {
