@@ -19,7 +19,7 @@ public class BikeableRoute {
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
     public final static int WALKING_SPEED = 5;
-    public final static int BIKIG_SPEED = 16;
+    public final static int BIKIG_SPEED = 15;
 
 
     /* route's DirectionRout object */
@@ -33,7 +33,8 @@ public class BikeableRoute {
 
     /* route distance from source to destination point */
     long distance;
-    int duration;
+    long duration;
+    String durationString;
 
 
 
@@ -50,12 +51,14 @@ public class BikeableRoute {
     ArrayList <PolylineOptions> bikePathInRoute;
     ArrayList <Polyline> bikePathPolyLineInRoute;
 
+
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
         this.directionsRoute = directionsRoute;
 
         distance = calcRouteDistance();
         duration = calculateEstimatedBikingDuration();
+        durationString = updateDurationString();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
@@ -146,13 +149,30 @@ public class BikeableRoute {
         return isBikePathShown;
     }
 
-    private int calculateEstimatedBikingDuration( ) {
-        //TODO
-        return 7;
+    private long calculateEstimatedBikingDuration( ) {
+        long walkingDuration = 0;
+        for (DirectionsLeg leg : directionsRoute.legs) {
+            walkingDuration += leg.duration.inSeconds;
+        }
+        duration = Math.round(walkingDuration *  WALKING_SPEED / BIKIG_SPEED) ;
+        return duration; // in seconds
     }
 
-    public int getDuration() {
+    private String updateDurationString( ) {
+        long hours = duration / 3600;
+        long minutes = (duration % 3600) / 60;
+        long seconds = duration % 60;
+
+        durationString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return durationString;
+    }
+
+    public long getDuration() {
         return duration;
+    }
+
+    public String getDurationString() {
+        return durationString;
     }
 
     public long getDistance() {
