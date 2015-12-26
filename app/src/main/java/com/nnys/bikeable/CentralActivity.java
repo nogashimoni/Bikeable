@@ -287,7 +287,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
                     }
                 }
