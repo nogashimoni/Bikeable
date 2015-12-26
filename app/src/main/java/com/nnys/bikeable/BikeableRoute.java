@@ -1,7 +1,5 @@
 package com.nnys.bikeable;
 
-import android.renderscript.Sampler;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -92,7 +90,7 @@ public class BikeableRoute {
         }
     }
 
-    public void addBikePathToMap (GoogleMap mMap) {
+    public void addBikePathToMap(GoogleMap mMap) {
         if (isBikePathPolylinesAdded)
             return;
         bikePathPolyLineInRoute = new ArrayList<>();
@@ -215,6 +213,7 @@ public class BikeableRoute {
         for (LatLng point : directionsRoute.overviewPolyline.decodePath()) {
             currPoint = new com.google.android.gms.maps.model.LatLng(point.lat, point.lng);
             line.add(currPoint);
+            line.width(13);
         }
         return line;
     }

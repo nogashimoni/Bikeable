@@ -83,6 +83,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathDistanceTextView;
     TextView pathUphillAverageTextView;
 
+    private boolean isShowBikeRouteMatchesChecked = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,11 +139,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onClick(View v) {
 
                 isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
+
                 Log.i("INFO", "in on click of search button");
 
                 if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
                     return;
                 }
+
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
 
@@ -172,33 +177,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 graphDrawer.addSeries(null);
 
+                if ( isShowBikeRouteMatchesChecked ) {
+                    showBikePathMatchesOnMap();
+                }
                 updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
 
-            }
-        });
-
-
-        singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
-        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                if (allRoutes.getSelectedRouteIndex() != -1){
-                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
-                        Log.i("info:", "bike path shown");
-                        allRoutes.getSelectedRoute().showBikePathOnMap();
-                        allRoutes.getSelectedRoute().showSourceTelOFunOnMap();
-                        allRoutes.getSelectedRoute().showDestinationTelOFunOnMap();
-                    }
-                    else{
-                        Log.i("info:", "bike path not shown");
-                        allRoutes.getSelectedRoute().removeBikePathFromMap();
-                        allRoutes.getSelectedRoute().removeSourceTelOFunFromMap();
-                        allRoutes.getSelectedRoute().removeDestinationTelOFunFromMap();
-                        allRoutes.getSelectedRoute().hideBikePathFromMap();
-                    }
-                }
             }
         });
 
@@ -291,6 +275,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeBikePathFromMap();
                 }
                 return true;
+
+            case R.id.iria_bike_path_mathches:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowBikeRouteMatchesChecked = true;
+                    showBikePathMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowBikeRouteMatchesChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    removeBikePathMatchesFromMap();
+                }
+                return true;
+
             case R.id.iria_telOFun_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -316,6 +325,28 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void removeBikePathMatchesFromMap() {
+        if (allRoutes.bikeableRoutes.isEmpty()) { // no routes on map
+            return;
+        }
+        else {
+            for (BikeableRoute route : allRoutes.bikeableRoutes) {
+                route.hideBikePathFromMap();;
+            }
+        }
+    }
+
+    private void showBikePathMatchesOnMap() {
+        if (allRoutes.bikeableRoutes.isEmpty()) { // no routes on map
+            return;
+        }
+        else {
+            for (BikeableRoute route : allRoutes.bikeableRoutes) {
+                route.showBikePathOnMap();
+            }
+        }
     }
 
     /**
