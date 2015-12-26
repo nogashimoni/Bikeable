@@ -12,6 +12,7 @@ import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BikeableRoute {
 
@@ -34,8 +35,6 @@ public class BikeableRoute {
     /* route distance from source to destination point */
     long distance;
     int duration;
-
-
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
@@ -63,7 +62,6 @@ public class BikeableRoute {
         pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
         averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
         worstDegree = pathElevationScoreCalculator.calcWorstDegree();
-
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
@@ -102,7 +100,7 @@ public class BikeableRoute {
         isBikePathShown = true;
     }
 
-    public void removeBikePathFromMap() {
+    public void hideBikePathFromMap() {
         if (!isBikePathPolylinesAdded) {
             return;
         }
@@ -112,6 +110,15 @@ public class BikeableRoute {
         isBikePathShown = false;
     }
 
+    public void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.remove();
+        }
+        isBikePathShown = false;
+    }
 
     private ElevationResult[] createGraphElevationArray() {
         routeElevationArr = elevationQuerier.getElevationSamples(numOfElevationSamples);
@@ -144,6 +151,10 @@ public class BikeableRoute {
 
     public boolean isBikePathShown (){
         return isBikePathShown;
+    }
+
+    public List<LatLng> getRouteLatLngs(){
+        return directionsRoute.overviewPolyline.decodePath();
     }
 
     private int calculateEstimatedBikingDuration( ) {

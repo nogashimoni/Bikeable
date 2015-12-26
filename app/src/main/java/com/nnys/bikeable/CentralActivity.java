@@ -1,6 +1,9 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
+import android.content.IntentSender;
+import android.location.Location;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +21,16 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -31,13 +44,17 @@ import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
-public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback {
+public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
-            new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
+    private static final LatLngBounds BOUNDS_GREATER_TEL_AVIV = new LatLngBounds(
+            new LatLng(32.009575, 34.662469), new LatLng(32.240376, 35.011864));
+
+    private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
 
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
@@ -45,7 +62,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button searchBtn, singleBikePathButton;
+    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+            startNavButton;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
@@ -55,10 +73,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
 
-    private TextView pathDurationTextView;
-    private TextView pathPercTextView;
-    private TextView pathDistanceTextView;
-    private TextView pathUphillAverageTextView;
+    private Location mCurrentLocation = null;
+    private String mLastUpdateTime;
+    private LocationRequest mLocationRequest;
+    boolean isSearchFromCurrentLocation;
+
+    TextView pathDurationTextView;
+    TextView pathPercTextView;
+    TextView pathDistanceTextView;
+    TextView pathUphillAverageTextView;
 
     private boolean isShowBikeRouteMatchesChecked = false;
 
@@ -74,6 +97,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, 0 /* clientId */, this)
                 .addApi(Places.GEO_DATA_API)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
 
         setContentView(R.layout.central_activity_layout);
@@ -89,13 +115,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
-        from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+        from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
-        to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_SYDNEY,
+        to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
 
         allRoutes = new AllRoutes();
-        graph = (GraphView)findViewById(R.id.altitude_graph);
+        graph = (GraphView) findViewById(R.id.altitude_graph);
 
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
@@ -104,33 +130,47 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
         searchBtn = (Button) findViewById(R.id.res_button);
+        startNavButton = (Button) findViewById(R.id.start_nav_button);
+
+
         searchBtn.setOnClickListener(new View.OnClickListener() {
+
             @Override
-
             public void onClick(View v) {
-                removeBikePathMatchesFromMap(); // todo check if it's ok even if they're not colored
-
                 if (from.getPrediction() == null || to.getPrediction() == null)
                     return;
+                }
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
+
+                startNavButton.setVisibility(View.GONE);
 
                 // hide keyboard on search
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                if ( isSearchFromCurrentLocation ) {
+
+                    Log.i("INFO", "creating from new builder");
+                    com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                    directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
+                     /// currentLocationLatLng
+                } else {
+                    directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                }
+
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute: allRoutes.bikeableRoutes) {
+                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
+                graphDrawer.addSeries(null);
 
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
@@ -141,8 +181,41 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-    }
+        singleBikePathButton = (Button) findViewById(R.id.single_bike_button);
+        singleBikePathButton.setOnClickListener(new View.OnClickListener(){
 
+            @Override
+            public void onClick(View v) {
+                if (allRoutes.getSelectedRouteIndex() != -1){
+                    if (!allRoutes.getSelectedRoute().isBikePathShown()) {
+                        Log.i("info:", "bike path shown");
+                        allRoutes.getSelectedRoute().showBikePathOnMap();
+                    }
+                    else{
+                        Log.i("info:", "bike path not shown");
+                        allRoutes.getSelectedRoute().hideBikePathFromMap();
+                    }
+                }
+            }
+        });
+
+        startNavButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                ArrayList<LatLng> selectedRouteLatLngs = MapUtils.getLstGmsLatLngFromModel(
+                                        allRoutes.getSelectedRoute().getRouteLatLngs());
+                Log.i("INFO:", String.format("route before starting activity!!! %d", selectedRouteLatLngs.size()));
+
+                if (selectedRouteLatLngs != null) {
+                    Intent navIntent = new Intent(CentralActivity.this, NavigationActivity.class);
+                    navIntent.putExtra("routeLatLngs", selectedRouteLatLngs);
+                    startActivity(navIntent);
+                }
+            }
+        });
+
+    }
 
     private void disableSlidingPanel() {
         SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
@@ -194,7 +267,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         switch(item.getItemId()){
             case R.id.action_settings:
                 return true;
-
             case R.id.iria_bike_path_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -310,12 +382,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng tau = new LatLng(32.113523, 34.804399);
+        mMap.setMyLocationEnabled(true);
+
+        LatLng placeToFocusOn;
+        if ( mCurrentLocation == null ) {
+            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+        } else {
+            placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        }
 //        mMap.addMarker(new MarkerOptions()
-//                        .title("Tel-Aviv University")
-//                        .position(tau)
+//                        .title("current location (or tau)")
+//                        .position(placeToFocusOn)
 //        );
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(tau));
+//
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
@@ -326,8 +406,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriosByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
+                        if (isSearchFromCurrentLocation) {
+                            startNavButton.setVisibility(View.VISIBLE);
+                        }
+
                     }
                 }
             }
@@ -356,8 +440,119 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             line.add(currPoint);
         }
         mMap.addPolyline(line);*/
+    }
 
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+//        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+//                mGoogleApiClient);
+//        //mLastLocation.getAltitude();
+//        if (mLastLocation != null) {
+//            Log.i("INFO", String.format("Current loction lat: %f",mLastLocation.getLatitude()));
+//            Log.i("INFO", String.format("Current location lang %f",mLastLocation.getLongitude()));
+//        } else {
+//            Log.i("INFO", "current position is NULL");
+//        }
+        boolean mRequestingLocationUpdates = true;
+        if (mRequestingLocationUpdates) {
+            createLocationRequest();
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        Log.i("INFO", String.format("Current loction lat: %f", mCurrentLocation.getLatitude()));
+        Log.i("INFO", String.format("Current location lang %f", mCurrentLocation.getLongitude()));
+        updateUI();
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        /* ask to turn on location //TODO: make it appear when needed
+            CREDIT: http://stackoverflow.com/questions/29801368/how-to-show-enable-location-dialog-like-google-maps
+         */
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+        //**************************
+        builder.setAlwaysShow(true); //this is the key ingredient
+        //**************************
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(
+                                   CentralActivity.this, 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
+    }
+
+    public void updateUI() {
 
 
     }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+//    }
+
+
+
 }
+
