@@ -270,7 +270,7 @@ public class BikeableRoute {
             distanceString = String.format("%d meters", distance);
         }
         else{
-            distanceString = String.format("%.2f km", distance/1000);
+            distanceString = String.format("%.2f km", (double) distance/1000);
         }
         return distanceString;
     }
