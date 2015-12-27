@@ -1,52 +1,49 @@
 package com.nnys.bikeable;
 
-import android.text.style.CharacterStyle;
-import android.util.Log;
-
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.DirectionsApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
-import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
-import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DirectionsManager {
 
     private GeoApiContext context;
+    private GoogleMap mMap;
     private DirectionsRoute[] calculatedRoutes;
-    private AutocompletePrediction from;
-    private AutocompletePrediction to;
-    private com.google.android.gms.maps.model.LatLng fromLatLng, toLatLng;
-    private PlaceDetails from_placeDetails, to_placeDetails;
     private LatLngBounds.Builder directionBoundsBuilder;
     private LatLngBounds directionBounds;
-    private ArrayList<Marker> directionMarkers;
+    private com.google.android.gms.maps.model.LatLng fromLatLng, toLatLng;
+    private String toTitle, fromTitle;
 
-    public DirectionsManager(GeoApiContext context, AutocompletePrediction from, AutocompletePrediction to){
-        this.from = from;
-        this.to = to;
-        try { //TODO: handle failure here properly
-            from_placeDetails = PlacesApi.placeDetails(context, from.getPlaceId()).await();
-            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
-        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+    private Marker fromMarkerCurr, fromMarkerNew, toMarkerCurr, toMarkerNew;
+
+//    private AutocompletePrediction from;
+//    private AutocompletePrediction to;
+//    private PlaceDetails from_placeDetails, to_placeDetails;
+
+
+    public DirectionsManager(GeoApiContext context, GoogleMap mMap){
+        this.context = context;
+        if (mMap != null)
+            this.mMap = mMap;
+        calculatedRoutes = null;
+        directionBounds = null;
+    }
+
+    public void getDirections(AutocompletePrediction from, AutocompletePrediction to){
         try {
+            PlaceDetails from_placeDetails = PlacesApi.placeDetails(context, from.getPlaceId()).await();
+            PlaceDetails to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
+            fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
+            toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
             calculatedRoutes = DirectionsApi.newRequest(context)
                     .alternatives(true)
                     .mode(TravelMode.WALKING)
@@ -57,30 +54,49 @@ public class DirectionsManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        directionBoundsBuilder = new LatLngBounds.Builder();
-        directionBoundsBuilder.include(fromLatLng);
-        directionBoundsBuilder.include(toLatLng);
-        directionBounds = directionBoundsBuilder.build();
+
+
+        fromTitle = from.getDescription();
+        toTitle = to.getDescription();
+
+        clearMarkersFromMap();
+
+        updateBounds();
+        drawRouteMarkers(false, false);
     }
 
-    public DirectionsManager(GeoApiContext context, com.google.android.gms.maps.model.LatLng cuurentLocationLatLng, AutocompletePrediction to) {
-        this.from = null;
-        this.to = to;
-        try { //TODO: handle failure here properly
-            from_placeDetails = null;
-            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
-            if ( to_placeDetails == null ) {
-                Log.i("INFO", "to place detailes is null!!!!!!!");
-                throw new Exception();
-            }
-            Log.i("INFO", "finished annoying part");
+
+    public void getDirections(AutocompletePrediction from, com.google.android.gms.maps.model.LatLng toLatLng){
+        try {
+            PlaceDetails from_placeDetails = PlacesApi.placeDetails(context, from.getPlaceId()).await();
+            fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
+            this.toLatLng = toLatLng;
+            calculatedRoutes = DirectionsApi.newRequest(context)
+                    .alternatives(true)
+                    .mode(TravelMode.WALKING)
+                    .origin(from_placeDetails.geometry.location)
+                    .destination(MapUtils.getModelLatLngFromGms(toLatLng))
+                    .await();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        fromLatLng = new com.google.android.gms.maps.model.LatLng(cuurentLocationLatLng.latitude, cuurentLocationLatLng.longitude);
 
-        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+
+        fromTitle = from.getDescription();
+        toTitle = "Custom destination";
+
+        clearMarkersFromMap();
+        updateBounds();
+        drawRouteMarkers(false, true);
+    }
+
+
+    public void getDirections(com.google.android.gms.maps.model.LatLng fromLatLng, AutocompletePrediction to, boolean isFromCurr){
         try {
+            this.fromLatLng = fromLatLng;
+            PlaceDetails to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
+            toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
             calculatedRoutes = DirectionsApi.newRequest(context)
                     .alternatives(true)
                     .mode(TravelMode.WALKING)
@@ -91,29 +107,83 @@ public class DirectionsManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        directionBoundsBuilder = new LatLngBounds.Builder();
-        directionBoundsBuilder.include(fromLatLng);
-        directionBoundsBuilder.include(toLatLng);
-        directionBounds = directionBoundsBuilder.build();
+
+
+        toTitle = to.getDescription();
+        fromTitle = isFromCurr ? "Current Location" : "Custom Origin";
+
+        drawRouteMarkers(isFromCurr, false);
+        clearMarkersFromMap();
+        updateBounds();
     }
 
-    protected void drawRouteMarkers(GoogleMap mMap){
-        String fromTitle = ( from == null ? "Current Location": from.getDescription());
-        directionMarkers = new ArrayList<>();
-        MarkerOptions fromMarker = new MarkerOptions()
-                .title(fromTitle)
-                .position(fromLatLng);
-        MarkerOptions toMarker = new MarkerOptions()
-                .title(to.getDescription())
-                .position(toLatLng);
-        directionMarkers.add(mMap.addMarker(fromMarker));
-        directionMarkers.add(mMap.addMarker(toMarker));
+    public void getDirections(com.google.android.gms.maps.model.LatLng fromLatLng,
+                              com.google.android.gms.maps.model.LatLng toLatLng,
+                              boolean useExistingFromMarker,
+                              boolean useExistingToMarker,
+                              String fromTitle, String toTitle){
+
+        this.fromLatLng = fromLatLng;
+        this.toLatLng = toLatLng;
+        try {
+            calculatedRoutes = DirectionsApi.newRequest(context)
+                    .alternatives(true)
+                    .mode(TravelMode.WALKING)
+                    .origin(MapUtils.getModelLatLngFromGms(fromLatLng))
+                    .destination(MapUtils.getModelLatLngFromGms(toLatLng))
+                    .await();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        this.fromTitle = fromTitle; //isFromCurr ? "Current Location" : "Custom Origin";
+        this.toTitle =  toTitle; //"Custom destination";
+
+        drawRouteMarkers(useExistingFromMarker, useExistingToMarker);
+        clearMarkersFromMap();
+        updateBounds();
     }
+
+    protected void drawRouteMarkers(boolean useExistingFromMarker, boolean useExistingToMarker){
+        if (fromMarkerCurr != null){
+            fromMarkerCurr.remove();
+        }
+        if (toMarkerCurr != null){
+            toMarkerCurr.remove();
+        }
+
+        if (useExistingFromMarker){
+            fromMarkerCurr = fromMarkerNew;
+            fromMarkerCurr.setTitle(fromTitle);
+        }
+        else{
+            fromMarkerCurr = mMap.addMarker(
+                    new MarkerOptions()
+                            .title(fromTitle)
+                            .position(fromLatLng)
+            );
+        }
+
+        if (useExistingToMarker){
+            toMarkerCurr = toMarkerNew;
+            toMarkerCurr.setTitle(toTitle);
+        }
+        else {
+            toMarkerCurr = mMap.addMarker(
+                    new MarkerOptions()
+                        .title(toTitle)
+                        .position(toLatLng)
+            );
+
+        }
+     }
 
     protected void clearMarkersFromMap() {
-        for (Marker marker : directionMarkers){
-            marker.remove();
-        }
+        if (fromMarkerCurr != null)
+            fromMarkerCurr.remove();
+        if (toMarkerCurr != null)
+            toMarkerCurr.remove();
     }
 
     public DirectionsRoute[] getCalculatedRoutes(){
@@ -130,5 +200,44 @@ public class DirectionsManager {
 
     public LatLng getToLatLng (){
         return toLatLng;
+    }
+
+    public Marker getFromMarkerCurr() {
+        return fromMarkerCurr;
+    }
+
+    public Marker getToMarkerCurr() {
+        return toMarkerCurr;
+    }
+
+    public void setToMarkerNew(Marker toMarkerNew) {
+        this.toMarkerNew = toMarkerNew;
+    }
+
+    public void setFromMarkerNew(Marker fromMarkerNew) {
+        this.fromMarkerNew = fromMarkerNew;
+    }
+
+    public Marker getFromMarkerNew() {
+        return fromMarkerNew;
+    }
+
+    public Marker getToMarkerNew() {
+        return toMarkerNew;
+    }
+
+    public void setMap(GoogleMap mMap) {
+        this.mMap = mMap;
+    }
+
+    public GoogleMap getMap() {
+        return mMap;
+    }
+
+    private void updateBounds(){
+        directionBoundsBuilder = new LatLngBounds.Builder();
+        directionBoundsBuilder.include(fromLatLng);
+        directionBoundsBuilder.include(toLatLng);
+        directionBounds = directionBoundsBuilder.build();
     }
 }

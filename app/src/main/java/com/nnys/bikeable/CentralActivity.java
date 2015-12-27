@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -35,6 +37,7 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -42,9 +45,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
+import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -72,8 +78,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
+    private Marker tempMarker;
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
+    private LinearLayout markerOptsLayout;
 
 
     private PathElevationGraphDrawer graphDrawer;
@@ -82,6 +90,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
+
+    private SearchType fromSearchType, toSearchType;
     boolean isSearchFromCurrentLocation;
 
     TextView pathDurationTextView;
@@ -128,6 +138,36 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 null));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
+        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position));
+                if (tempMarker != null)
+                    tempMarker.remove();
+                markerOptsLayout.setVisibility(View.GONE);
+                fromSearchType = SearchType.AUTOCOMPLETE;
+                if (directionsManager.getFromMarkerNew() != null){
+                    directionsManager.getFromMarkerNew().remove();
+                    directionsManager.setFromMarkerNew(null);
+                }
+            }
+        });
+
+        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                to.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position));
+                if (tempMarker != null)
+                    tempMarker.remove();
+                markerOptsLayout.setVisibility(View.GONE);
+                toSearchType = SearchType.AUTOCOMPLETE;
+                if (directionsManager.getToMarkerNew() != null){
+                    directionsManager.getToMarkerNew().remove();
+                    directionsManager.setToMarkerNew(null);
+                }
+            }
+        });
+
 
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
@@ -137,6 +177,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mapFragment.getMapAsync(this);
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
+
+        directionsManager = new DirectionsManager(context, mMap);
+
+        initMarkerAddOptions();
 
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
         searchBtn = (ImageButton) findViewById(R.id.res_button);
@@ -148,16 +192,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
-
                 Log.i("INFO", "in on click of search button");
 
-                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
-                    return;
+
+                if (from.getPrediction() == null &&  fromSearchType != SearchType.MARKER){
+                    fromSearchType = SearchType.NONE;
+                    isSearchFromCurrentLocation = true;
                 }
 
-                if (directionsManager != null)
-                    directionsManager.clearMarkersFromMap();
+                if (to.getPrediction() == null && toSearchType != SearchType.MARKER) {
+                    toSearchType = SearchType.NONE;
+                    return;
+                }
 
                 startNavButton.setVisibility(View.GONE);
 
@@ -165,17 +211,57 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                if ( isSearchFromCurrentLocation ) {
-                    Log.i("INFO", "creating from new builder");
-                    com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-                    directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
-                     /// currentLocationLatLng
-                } else {
-                    directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+                // get from latlng and title
+                com.google.android.gms.maps.model.LatLng fromLatLng = null;
+                String fromTitle = null;
+                boolean useExistingFromMarker = false;
+                if ( isSearchFromCurrentLocation) {
+                    fromTitle = "Current Location";
+                    fromLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                }
+                else if (fromSearchType == SearchType.MARKER){
+                    fromTitle = "Custom Origin";
+                    fromLatLng = directionsManager.getFromMarkerNew().getPosition();
+                    useExistingFromMarker = true;
+                }
+                else {
+                    try {
+                        PlaceDetails from_placeDetails = PlacesApi.placeDetails(context, from.getPrediction().getPlaceId()).await();
+                        fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
+                        fromTitle = from.getPrediction().getDescription();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.i("INFO:", String.format("from lat %f lng %f", fromLatLng.latitude, fromLatLng.longitude));
+
+                // get To latlng and title
+                com.google.android.gms.maps.model.LatLng toLatLng = null;
+                String toTitle = null;
+                boolean useExistingToMarker = false;
+                if (toSearchType == SearchType.MARKER){
+                    toTitle = "Custom Origin";
+                    toLatLng = directionsManager.getFromMarkerNew().getPosition();
+                    useExistingToMarker = true;
+                }
+                else {
+                    try {
+                        PlaceDetails to_placeDetails = PlacesApi.placeDetails(context, to.getPrediction().getPlaceId()).await();
+                        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+                        toTitle = to.getPrediction().getDescription();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
+                Log.i("INFO:", String.format("from lat %f lng %f", toLatLng.latitude, toLatLng.longitude));
+
+                directionsManager.getDirections(fromLatLng, toLatLng, useExistingFromMarker, useExistingToMarker, fromTitle, toTitle);
+
+                Log.i("INFO:", String.format("Num calculated routes: %d", directionsManager.getCalculatedRoutes().length));
+
+
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
-                directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
                 allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
@@ -219,6 +305,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         });
 
     }
+
 
     private void hideSearchView() {
         searchLayout.setVisibility(View.GONE);
@@ -441,6 +528,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        if (directionsManager != null && directionsManager.getMap() == null) {
+            directionsManager.setMap(mMap);
+        }
+
         mMap.setMyLocationEnabled(true);
 
         LatLng placeToFocusOn;
@@ -461,6 +553,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
+                markerOptsLayout.setVisibility(View.GONE);
+                if (tempMarker != null)
+                    tempMarker.remove();
+
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
@@ -476,6 +572,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         }
         ));
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+               @Override
+               public void onMapLongClick(LatLng latLng) {
+                   if (tempMarker != null){
+                       tempMarker.remove();
+                   }
+                   tempMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(latLng));
+                   Log.i("INFO:", String.format("Added marker %f", tempMarker.getPosition().longitude));
+                   markerOptsLayout.setVisibility(View.VISIBLE);
+               }
+           }
+        );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
@@ -610,6 +720,54 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //    }
 
 
+    private void initMarkerAddOptions() {
+
+        markerOptsLayout =  (LinearLayout) findViewById(R.id.marker_opts);
+        Button markerOriginBtn = (Button) findViewById(R.id.marker_origin);
+        Button markerDestBtn = (Button) findViewById(R.id.marker_dest);
+        Button markerCancelBtn = (Button) findViewById(R.id.marker_cancel);
+
+        markerOriginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchLayout.setVisibility(View.VISIBLE);
+                from.setText("Custom Origin");
+                from.setPrediction(null);
+                isSearchFromCurrentLocation = false;
+                directionsManager.setFromMarkerNew(tempMarker);
+                tempMarker = null;
+                fromSearchType = SearchType.MARKER;
+            }
+        });
+
+        markerDestBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchLayout.setVisibility(View.VISIBLE);
+                to.setText("Custom Destination");
+                to.setPrediction(null);
+                directionsManager.setToMarkerNew(tempMarker);
+                tempMarker = null;
+                Log.i("INFO:", String.format("to marker lat %f", directionsManager.getFromMarkerNew().getPosition().longitude));
+                toSearchType = SearchType.MARKER;
+            }
+        });
+
+        markerCancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                markerOptsLayout.setVisibility(View.GONE);
+                tempMarker.remove();
+            }
+        });
+
+
+    }
 
 }
 
+enum SearchType {
+    NONE,
+    AUTOCOMPLETE,
+    MARKER
+}
