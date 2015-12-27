@@ -186,7 +186,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     allRoutes.showTelOFunDestinationMatchesOnMap();
                 }
                 updateInfoTable();
-                enableSlidingPanel(); //TODO doesn't work
+                enableSlidingPanel();
             }
         });
 

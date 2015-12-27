@@ -33,6 +33,10 @@ public class AllRoutes {
         removeCurrentRoutes();
         addNewRoutes(directionsRouteArr, mMap);
         bestRouteIndex = calculateBestRouteIndex(); // by now, all routes are already updated
+
+        // mark the best route at the beginning
+        bikeableRoutes.get(bestRouteIndex).routePolyline.setColor(0xFF11b468); // color best route in orange (like golden route)
+        bikeableRoutes.get(bestRouteIndex).routePolyline.setZIndex(1); // be on top of other routes
     }
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
@@ -62,7 +66,10 @@ public class AllRoutes {
                 bikeableRoutes.get(i).routePolyline.setZIndex(1);
             }
             else{
-                bikeableRoutes.get(i).routePolyline.setColor(Color.BLACK);
+                if (i == bestRouteIndex)
+                    bikeableRoutes.get(i).routePolyline.setColor(0xFF11b468);
+                else
+                    bikeableRoutes.get(i).routePolyline.setColor(Color.BLACK);
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
