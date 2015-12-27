@@ -28,45 +28,70 @@
             android:id="@+id/search_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:weightSum="1"
+            android:layout_marginLeft="@dimen/fromto_margin">
+            <!--android:layout_marginRight="@dimen/fromto_margin"-->
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/fromto_margin"
-                android:layout_marginTop="@dimen/fromto_margin"
-                android:layout_marginRight="@dimen/fromto_margin"
-                android:layout_marginLeft="@dimen/fromto_margin">
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="0.75">
 
-                <com.nnys.bikeable.ClearableAutoCompleteTextView
-                    android:id="@+id/from"
-                    android:layout_width="fill_parent"
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:completionThreshold="@integer/auto_complete_thresh"
-                    android:background="@color/whiteColor"
-                    android:hint="@string/from_text"
-                    android:dropDownVerticalOffset="0dp" />
+                    android:layout_marginBottom="@dimen/fromto_margin"
+                    android:layout_marginTop="@dimen/fromto_margin">
 
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/from"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/from_text"
+                        android:dropDownVerticalOffset="0dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/fromto_margin">
+
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/to"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/to_text"
+                        android:dropDownVerticalOffset="0dp"/>
+
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/fromto_margin"
-                android:layout_marginRight="@dimen/fromto_margin"
-                android:layout_marginLeft="@dimen/fromto_margin">
+                android:id="@+id/search_box"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_weight="0.25">
 
-                <com.nnys.bikeable.ClearableAutoCompleteTextView
-                    android:id="@+id/to"
-                    android:layout_width="fill_parent"
+                <ImageButton
+                    android:id="@+id/res_button"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:completionThreshold="@integer/auto_complete_thresh"
-                    android:background="@color/whiteColor"
-                    android:hint="@string/to_text"
-                    android:dropDownVerticalOffset="0dp"/>
-
+                    android:src="@drawable/abc_ic_search_api_mtrl_alpha"
+                    android:color="@android:color/transparent"
+                    android:paddingTop="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="@dimen/activity_horizontal_margin"
+                    android:paddingRight="@dimen/activity_horizontal_margin"
+                    android:paddingLeft="@dimen/activity_horizontal_margin"
+                    android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -83,8 +108,8 @@
                 android:name="com.google.android.gms.maps.MapFragment"
                 android:id="@+id/map"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                map:uiZoomControls="true"/>
+                android:layout_height="wrap_content" />
+            <!--map:uiZoomControls="true"-->
 
             <LinearLayout
                 android:orientation="vertical"
@@ -99,18 +124,11 @@
                     android:gravity="center_horizontal">
 
                     <Button
-                        android:id="@+id/res_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Search" />
-
-
-                    <Button
                         android:id="@+id/start_nav_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:visibility="gone"
-                        android:text="Navigate!" />
+                        android:text="Navigate" />
 
                 </LinearLayout>
             </LinearLayout>

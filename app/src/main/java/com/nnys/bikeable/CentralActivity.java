@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -65,8 +66,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+    private Button clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
             startNavButton;
+    private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
@@ -135,11 +137,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
-        searchBtn = (Button) findViewById(R.id.res_button);
-        startNavButton = (Button) findViewById(R.id.start_nav_button);
-
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
-
+        searchBtn = (ImageButton) findViewById(R.id.res_button);
+        startNavButton = (Button) findViewById(R.id.start_nav_button);
+        searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -215,7 +216,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void hideSearchView() {
-        searchBtn.setVisibility(View.GONE);
         searchLayout.setVisibility(View.GONE);
         if (menuSearch != null){
             menuSearch.setVisible(true);
@@ -226,7 +226,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void showSearchView() {
-        searchBtn.setVisibility(View.VISIBLE);
         searchLayout.setVisibility(View.VISIBLE);
         if (menuSearch != null){
             menuSearch.setVisible(false);
