@@ -48,10 +48,10 @@ public class PathElevationScoreCalculator {
     }
 
     private double calculateDegreeScore(double slop) {
-        if (slop > 30){
+        if (slop > 10){
             return 100;
         }
-        double result = slop/30;
+        double result = slop/10;
         return result*100;
     }
 

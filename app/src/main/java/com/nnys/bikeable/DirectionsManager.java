@@ -123,4 +123,12 @@ public class DirectionsManager {
     public LatLngBounds getDirectionBounds(){
         return directionBounds;
     }
+
+    public LatLng getFromLatLng (){
+        return fromLatLng;
+    }
+
+    public LatLng getToLatLng (){
+        return toLatLng;
+    }
 }

@@ -92,6 +92,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     MenuItem menuSearch;
 
     private boolean isShowBikeRouteMatchesChecked = false;
+    private boolean isShowCloseTelOFunStationsChecked = false;
 
 
     @Override
@@ -165,7 +166,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                 if ( isSearchFromCurrentLocation ) {
-
                     Log.i("INFO", "creating from new builder");
                     com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
@@ -178,6 +178,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
+                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
                 for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
@@ -190,7 +191,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
                 }
+                if (isShowCloseTelOFunStationsChecked){
+                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                }
                 updateInfoTable();
+                enableSlidingPanel();
                 enableSlidingPanel(); //TODO doesn't work
                 hideSearchView();
 
@@ -253,9 +258,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         clearInfoTable();
 
-        pathDurationTextView.setText(String.format("%d", currentRoute.getDuration()));
-        pathPercTextView.setText(String.format("%f", currentRoute.getBikePathPercentage()));
-        pathDistanceTextView.setText(String.format("%d", currentRoute.getDistance()));
+        pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100));
+        pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
 
     }
@@ -363,6 +368,32 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 return true;
             case R.id.action_search:
                 showSearchView();
+
+            case R.id.iria_telOFun_matches:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowCloseTelOFunStationsChecked = true;
+                    allRoutes.showTelOFunSourceMatchesOnMap();
+                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowCloseTelOFunStationsChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    allRoutes.hideTelOFunSourceMatchesOnMap();
+                    allRoutes.hideTelOFunDestinationMatchesOnMap();
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -515,9 +546,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
 
-        //**************************
-        builder.setAlwaysShow(true); //this is the key ingredient
-        //**************************
+        builder.setAlwaysShow(true);
 
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
