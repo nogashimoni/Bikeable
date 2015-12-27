@@ -182,9 +182,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
                 }
+                if (isShowCloseTelOFunStationsChecked){
+                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                }
                 updateInfoTable();
                 enableSlidingPanel(); //TODO doesn't work
-
             }
         });
 

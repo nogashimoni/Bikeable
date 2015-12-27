@@ -44,6 +44,7 @@ public class AllRoutes {
     private void removeCurrentRoutes() {
         selectedRouteIndex = -1;
         removePolylinesFromMap();
+        removeTelOFunMatchesFromMap();
         bikeableRoutes.removeAll(bikeableRoutes);
     }
 
@@ -188,6 +189,20 @@ public class AllRoutes {
             station.setVisible(false);
         }
         isTelOFunDestinantionStationsShown = false;
+    }
+
+    public void removeTelOFunMatchesFromMap() {
+        if (!isTelOFunMarkersAdded) {
+            return;
+        }
+        for (Marker station : telOFunSourceMarkers) {
+            station.remove();
+        }
+        for (Marker station : telOFunDestinationMarkers) {
+            station.remove();
+        }
+        isTelOFunSourceStationsShown = false;
+        isTelOFunMarkersAdded = false;
     }
 
 
