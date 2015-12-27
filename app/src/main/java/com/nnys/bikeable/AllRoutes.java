@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.maps.model.DirectionsRoute;
@@ -11,6 +12,7 @@ public class AllRoutes {
 
     ArrayList<BikeableRoute> bikeableRoutes;
     private int selectedRouteIndex;
+    private int bestRouteIndex;
 
     public AllRoutes() {
         bikeableRoutes = new ArrayList<>();
@@ -20,6 +22,7 @@ public class AllRoutes {
     public void updateBikeableRoutesAndMap(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
         removeCurrentRoutes();
         addNewRoutes(directionsRouteArr, mMap);
+        bestRouteIndex = calculateBestRouteIndex(); // by now, all routes are already updated
     }
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
@@ -52,6 +55,46 @@ public class AllRoutes {
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
+    }
+
+
+
+    private int calculateBestRouteIndex() {
+        // This is a naive implemintation. We need to find a better way to calculate.
+        double maxScore = -1000000; //min int
+        int bestRouteIndex = 0;
+        for (int i=0; i<getNumRoutes(); i++) {
+            double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
+            double rescaledElevationScore = calcRescaledElevationScore(bikeableRoutes.get(i), maxElevationScorePerSearch);
+            double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoutes.get(i));
+            double pathFinalScore = rescaledElevationScore + rescaledBikePathScore;
+            Log.i("INFO", String.format("Final Score: route with index %d has final score of %f", i , pathFinalScore));
+            if (pathFinalScore > maxScore) {
+                maxScore = pathFinalScore;
+                bestRouteIndex = i;
+            }
+        }
+        return bestRouteIndex;
+    }
+
+    private double getMaxElevationScorePerSearch() {
+        double maxElevationScorePerSearch = 0;
+        for ( BikeableRoute route : bikeableRoutes ) {
+            double currMax = route.getPathElevationScore();
+            if ( currMax > maxElevationScorePerSearch ) {
+                maxElevationScorePerSearch = currMax;
+            }
+        }
+        return maxElevationScorePerSearch;
+    }
+
+    private double calcRescaledElevationScore(BikeableRoute route, double maxElevationScorePerSearch) {
+        double ratio = route.getPathElevationScore() / maxElevationScorePerSearch ;
+        return -1 * ratio;  // the bigger the result is, the more easy the route should be, therefore we multiply by -1
+    }
+
+    private double calcRescaledBikePathsScore(BikeableRoute route) {
+        return route.getBikePathPercentage();
     }
 
     public BikeableRoute getSelectedRoute (){
