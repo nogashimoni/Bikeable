@@ -193,6 +193,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 if (isShowCloseTelOFunStationsChecked){
                     allRoutes.showTelOFunDestinationMatchesOnMap();
+                    allRoutes.showTelOFunSourceMatchesOnMap();
                 }
                 updateInfoTable();
                 enableSlidingPanel();
@@ -366,9 +367,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeTelOFunFromMap();
                 }
                 return true;
-            case R.id.action_search:
-                showSearchView();
-
             case R.id.iria_telOFun_matches:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -386,13 +384,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 else{
                     item.setChecked(false);
-                    isShowCloseTelOFunStationsChecked = false;
                     if (!IriaData.isDataReceived){
                         return true;
                     }
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
+                    isShowCloseTelOFunStationsChecked = false;
                 }
+                return true;
+            case R.id.action_search:
+                showSearchView();
                 return true;
         }
 
