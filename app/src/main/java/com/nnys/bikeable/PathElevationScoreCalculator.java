@@ -1,10 +1,8 @@
 package com.nnys.bikeable;
 
 import com.google.maps.model.ElevationResult;
-import com.google.maps.model.EncodedPolyline;
 
 import static java.lang.Math.atan;
-import static java.lang.Math.log;
 
 /**
  * This is a class that calculates a score for a path.
@@ -25,17 +23,17 @@ import static java.lang.Math.log;
 public class PathElevationScoreCalculator {
 
     ElevationResult[] elevationResults;
-    long length;
+    long pathLength;
     int numOfSamples;
     int xDelta;
     double[] degreesArray;
 
 
-    public PathElevationScoreCalculator(ElevationResult[] elevationResults, long length){
+    public PathElevationScoreCalculator(ElevationResult[] elevationResults, long pathLength){
         this.elevationResults = elevationResults;
-        this.length = length;
-        this.xDelta = PathElevationQuerier.getDistanceBetweenSamples(length);
-        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(length, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
+        this.pathLength = pathLength;
+        this.xDelta = PathElevationQuerier.getDistanceBetweenSamples(pathLength);
+        this.numOfSamples = PathElevationQuerier.calcNumOfSamplesForXmetersIntervals(pathLength, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
         this.createDegreesArray();
     }
 
@@ -50,10 +48,10 @@ public class PathElevationScoreCalculator {
     }
 
     private double calculateDegreeScore(double slop) {
-        if (slop > 30){
+        if (slop > 10){
             return 100;
         }
-        double result = slop/30;
+        double result = slop/10;
         return result*100;
     }
 
@@ -71,7 +69,7 @@ public class PathElevationScoreCalculator {
         if (slop < 0){
             return result;
         }
-        result = atan(slop);
+        result = Math.toDegrees(atan(slop));
         return result;
 
     }
@@ -113,6 +111,16 @@ public class PathElevationScoreCalculator {
         result = sum/num;
 
         return result;
+    }
+
+    public double calcWorstDegree(){
+        double max = 0;
+        for (double degree: degreesArray) {
+            if (degree > max) {
+                max = degree;
+            }
+        }
+        return max;
     }
 
 }

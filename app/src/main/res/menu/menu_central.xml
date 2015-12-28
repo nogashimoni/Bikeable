@@ -1,0 +1,38 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+
+    <item android:id="@+id/action_settings" android:title="@string/action_settings"
+        android:orderInCategory="100" app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/abc_ic_search_api_mtrl_alpha"
+        android:title=""
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/iria_bike_path_cb"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_layers"/>
+
+    <item
+        android:id="@+id/iria_bike_path_mathches"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_matches_layer"/>
+
+    <item
+        android:id="@+id/iria_telOFun_cb"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_telOFun"/>
+
+    <item
+        android:id="@+id/iria_telOFun_matches"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_iria_telOFun_matches"/>
+
+</menu>

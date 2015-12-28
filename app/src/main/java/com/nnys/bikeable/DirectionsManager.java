@@ -1,7 +1,11 @@
 package com.nnys.bikeable;
 
+import android.text.style.CharacterStyle;
+import android.util.Log;
+
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -17,6 +21,7 @@ import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DirectionsManager {
 
@@ -58,10 +63,45 @@ public class DirectionsManager {
         directionBounds = directionBoundsBuilder.build();
     }
 
+    public DirectionsManager(GeoApiContext context, com.google.android.gms.maps.model.LatLng cuurentLocationLatLng, AutocompletePrediction to) {
+        this.from = null;
+        this.to = to;
+        try { //TODO: handle failure here properly
+            from_placeDetails = null;
+            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
+            if ( to_placeDetails == null ) {
+                Log.i("INFO", "to place detailes is null!!!!!!!");
+                throw new Exception();
+            }
+            Log.i("INFO", "finished annoying part");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        fromLatLng = new com.google.android.gms.maps.model.LatLng(cuurentLocationLatLng.latitude, cuurentLocationLatLng.longitude);
+
+        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+        try {
+            calculatedRoutes = DirectionsApi.newRequest(context)
+                    .alternatives(true)
+                    .mode(TravelMode.WALKING)
+                    .origin(MapUtils.getModelLatLngFromGms(fromLatLng))
+                    .destination(to_placeDetails.geometry.location)
+                    .await();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        directionBoundsBuilder = new LatLngBounds.Builder();
+        directionBoundsBuilder.include(fromLatLng);
+        directionBoundsBuilder.include(toLatLng);
+        directionBounds = directionBoundsBuilder.build();
+    }
+
     protected void drawRouteMarkers(GoogleMap mMap){
+        String fromTitle = ( from == null ? "Current Location": from.getDescription());
         directionMarkers = new ArrayList<>();
         MarkerOptions fromMarker = new MarkerOptions()
-                .title(from.getDescription())
+                .title(fromTitle)
                 .position(fromLatLng);
         MarkerOptions toMarker = new MarkerOptions()
                 .title(to.getDescription())
@@ -82,5 +122,13 @@ public class DirectionsManager {
 
     public LatLngBounds getDirectionBounds(){
         return directionBounds;
+    }
+
+    public LatLng getFromLatLng (){
+        return fromLatLng;
+    }
+
+    public LatLng getToLatLng (){
+        return toLatLng;
     }
 }

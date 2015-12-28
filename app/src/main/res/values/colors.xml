@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#84e0ff</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#82dbf9</color>
+    <color name="colorPrimaryDark">#308b9f</color>
     <color name="colorAccent">#6ebad4</color>
+    <color name="colorPrimaryLight">#e0f6fc</color>
     <color name="searchBG">#f9ffff</color>
     <color name="whiteColor">#ffffff</color>
-    <!--<color name="buttonBG">#6ebad4</color>-->
-    <!--<color name="buttonText">#f9ffff</color>-->
+    <color name="warningRed">#f59681</color>
+    <color name="Instruction_bg">#CC6ebad4</color>
+    <color name="best_rout_color">#11b468</color>
 </resources>
-    <!--#3F51B5 #d9d9d9  #FF4081-->

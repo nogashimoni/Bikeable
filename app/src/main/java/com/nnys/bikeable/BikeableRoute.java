@@ -1,11 +1,14 @@
 package com.nnys.bikeable;
 
-import android.renderscript.Sampler;
-import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.ElevationResult;
@@ -13,11 +16,16 @@ import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BikeableRoute {
 
+    // TODO move to constants file
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
+    public final static int WALKING_SPEED = 5;
+    public final static int BIKIG_SPEED = 15;
+
 
     /* route's DirectionRout object */
     DirectionsRoute directionsRoute;
@@ -26,28 +34,101 @@ public class BikeableRoute {
     PolylineOptions routePolylineOptions;
     Polyline routePolyline;
     EncodedPolyline routeEncodedPolyline;
+    PathElevationScoreCalculator pathElevationScoreCalculator;
 
     /* route distance from source to destination point */
     long distance;
+    long duration;
+    String durationString;
+    String distanceString;
+
 
     /* route's elevation info */
     PathElevationQuerier elevationQuerier;
     ElevationResult[] routeElevationArr;
+    double averageUphillDegree;
     int numOfElevationSamples;
+    double worstDegree;
+    double pathElevationScore;
+
+    double bikePathPercentage;
+    boolean isBikePathPolylinesAdded;
+    boolean isBikePathShown;
+    ArrayList <PolylineOptions> bikePathInRoute;
+    ArrayList <Polyline> bikePathPolyLineInRoute;
 
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
         this.directionsRoute = directionsRoute;
 
         distance = calcRouteDistance();
+        duration = calculateEstimatedBikingDuration();
+        durationString = updateDurationString();
+        distanceString = updateDistanceString();
 
         elevationQuerier = new PathElevationQuerier(this.directionsRoute.overviewPolyline);
         numOfElevationSamples = calcNumOfSamples();
         routeElevationArr = createGraphElevationArray();
+        pathElevationScoreCalculator = new PathElevationScoreCalculator(routeElevationArr, distance);
+        averageUphillDegree = pathElevationScoreCalculator.getAvregeUphillDegree();
+        worstDegree = pathElevationScoreCalculator.calcWorstDegree();
+        pathElevationScore = pathElevationScoreCalculator.getPathScore();
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
+        if (IriaData.isDataReceived) {
+            BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
+                    directionsRoute);
+            bikePathPercentage = pathCalculator.getBikePathPercentageByRoute();
+            bikePathInRoute = pathCalculator.getBikePaths();
+            addBikePathToMap(mMap);
+        }
     }
+
+    public void addBikePathToMap(GoogleMap mMap) {
+        if (isBikePathPolylinesAdded)
+            return;
+        bikePathPolyLineInRoute = new ArrayList<>();
+        for (PolylineOptions line : bikePathInRoute) {
+            line.visible(false);
+            bikePathPolyLineInRoute.add(mMap.addPolyline(line));
+        }
+        isBikePathPolylinesAdded = true;
+    }
+
+    public void showBikePathOnMap() {
+        if (!isBikePathPolylinesAdded){
+            return;
+        }
+        Log.i("info", "inside show function");
+        for (Polyline line : bikePathPolyLineInRoute){
+            Log.i("info", "inside show function for");
+            line.setVisible(true);
+            line.setZIndex(10);
+        }
+        isBikePathShown = true;
+    }
+
+    public void hideBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.setVisible(false);
+        }
+        isBikePathShown = false;
+    }
+
+    public void removeBikePathFromMap() {
+        if (!isBikePathPolylinesAdded) {
+            return;
+        }
+        for (Polyline line : bikePathPolyLineInRoute) {
+            line.remove();
+        }
+        isBikePathShown = false;
+    }
+
 
 
     private ElevationResult[] createGraphElevationArray() {
@@ -74,8 +155,77 @@ public class BikeableRoute {
         for (LatLng point : directionsRoute.overviewPolyline.decodePath()) {
             currPoint = new com.google.android.gms.maps.model.LatLng(point.lat, point.lng);
             line.add(currPoint);
+            line.width(13);
         }
         return line;
     }
 
+    public boolean isBikePathShown (){
+        return isBikePathShown;
+    }
+
+    public List<LatLng> getRouteLatLngs(){
+        return directionsRoute.overviewPolyline.decodePath();
+    }
+
+    private long calculateEstimatedBikingDuration( ) {
+        long walkingDuration = 0;
+        for (DirectionsLeg leg : directionsRoute.legs) {
+            walkingDuration += leg.duration.inSeconds;
+        }
+        duration = Math.round(walkingDuration *  WALKING_SPEED / BIKIG_SPEED) ;
+        return duration; // in seconds
+    }
+
+    private String updateDurationString( ) {
+        long hours = duration / 3600;
+        long minutes = (duration % 3600) / 60;
+        long seconds = duration % 60;
+
+        durationString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return durationString;
+    }
+
+    private String updateDistanceString() {
+        if (distance < 1000){
+            distanceString = String.format("%d meters", distance);
+        }
+        else{
+            distanceString = String.format("%.2f km", (double) distance/1000);
+        }
+        return distanceString;
+    }
+    
+    public long getDuration() {
+        return duration;
+    }
+
+    public String getDurationString() {
+        return durationString;
+    }
+
+    public long getDistance() {
+        return distance;
+    }
+
+    public String getDistanceString() {
+        return distanceString;
+    }
+
+
+    public double getAverageUphillDegree() {
+        return averageUphillDegree;
+    }
+
+    public double getBikePathPercentage() {
+        return bikePathPercentage;
+    }
+
+    public double getWorstDegree() {
+        return worstDegree;
+    }
+
+    public double getPathElevationScore() {
+        return pathElevationScore;
+    }
 }
