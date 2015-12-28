@@ -80,9 +80,12 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
             LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(j);
             series.setColor(Color.BLACK);
         }
-        graph.removeSeries(graph.getSeries().get(graph.getSeries().size()-1));
-        graph.addSeries(graph.getSeries().get(i));
-        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(graph.getSeries().size()-1);
+
+//        graph.removeSeries(graph.getSeries().get(graph.getSeries().size()-1));
+
+//        graph.addSeries(graph.getSeries().get(i).getValues());
+//        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(graph.getSeries().size()-1);
+        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>) graph.getSeries().get(i);
         series.setColor(Color.BLUE);
         graph.invalidate();
 
