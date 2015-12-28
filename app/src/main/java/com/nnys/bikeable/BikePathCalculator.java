@@ -66,7 +66,7 @@ public class BikePathCalculator {
         boolean isInBikePath;
         ArrayList<LatLng> points = (ArrayList) routePolylineOpt.getPoints();
         PolylineOptions currPolyLineOpt = new PolylineOptions();
-        currPolyLineOpt.width(5);
+        currPolyLineOpt.width(8);
         currPolyLineOpt.color(Color.MAGENTA);
         for (LatLng point : points) {
             isInBikePath = false;
