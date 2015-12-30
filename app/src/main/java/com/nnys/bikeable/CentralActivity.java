@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -16,9 +17,13 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +56,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -66,8 +72,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
-            startNavButton;
+    private Button historyBtn,  startNavButton;
     private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
@@ -93,6 +98,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
+
+    private SearchHistoryCollector searchHistoryCollector;
 
 
     @Override
@@ -120,6 +127,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
+        searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this);
+
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
@@ -142,6 +151,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         searchBtn = (ImageButton) findViewById(R.id.res_button);
         startNavButton = (Button) findViewById(R.id.start_nav_button);
         searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
+        historyBtn = (Button) findViewById(R.id.history_btn);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -173,6 +183,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
                 }
+
+                directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
 
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 directionsManager.drawRouteMarkers(mMap);
@@ -216,6 +228,26 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     navIntent.putExtra("routeLatLngs", selectedRouteLatLngs);
                     startActivity(navIntent);
                 }
+            }
+        });
+
+        historyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<String> searchHistory = searchHistoryCollector.getSearchHistory();
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(CentralActivity.this.getApplicationContext(), R.layout.history_list_item, searchHistory);
+                ListView list = (ListView)findViewById(R.id.history_list);
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        ListView listView = (ListView) parent;
+                        listView.setVisibility(View.GONE);
+                    }
+                });
+                list.setAdapter(adapter);
+                list.setVisibility(View.VISIBLE);
+
+
             }
         });
 

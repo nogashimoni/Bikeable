@@ -97,6 +97,12 @@ public class DirectionsManager {
         directionBounds = directionBoundsBuilder.build();
     }
 
+    public void addCurrentSearchTargetToHistory(SearchHistoryCollector historyCollector) {
+        if ( to_placeDetails != null ) {
+            historyCollector.addPlaceId(to_placeDetails.placeId);
+        }
+    }
+
     protected void drawRouteMarkers(GoogleMap mMap){
         String fromTitle = ( from == null ? "Current Location": from.getDescription());
         directionMarkers = new ArrayList<>();
