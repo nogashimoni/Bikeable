@@ -1,23 +1,27 @@
 package com.nnys.bikeable;
 
 import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.maps.model.ElevationResult;
+
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PathElevationGraphDrawer extends AppCompatActivity {
     GraphView graph;
-    ElevationResult[] elevationResults;
+    List<ElevationResult[]> allElevationResults;
+    int selectedSeriesIndex;
 
     public PathElevationGraphDrawer(GraphView graph) {
         this.graph = graph;
+        selectedSeriesIndex = -1;
+        allElevationResults = new ArrayList<>();
         setGraph(graph);
     }
 
@@ -34,7 +38,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
     }
 
 
-    public void addSeries( ElevationResult[] elevationResults ) {
+    public void addSeries( ElevationResult[] elevationResults, int seriesIndex ) {
         DataPoint[] points;
         if (elevationResults == null){
             points = new DataPoint[1];
@@ -50,7 +54,9 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(points);
         series.setThickness(10);
         series.setColor(Color.BLACK);
+        series.setTitle(String.format("%d", seriesIndex));
 
+        allElevationResults.add(elevationResults);
         graph.addSeries(series);
     }
 
@@ -75,7 +81,9 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     }
 
-    public void colorSeriesByIndex(int i) {
+
+    public void setSelectedSeriesAndColorIt(int i) {
+        selectedSeriesIndex = i;
         for (int j=0; j<graph.getSeries().size(); j++) {
             LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(j);
             series.setColor(Color.BLACK);
@@ -91,4 +99,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     }
 
+    public int getSelectedSeriesIndex() {
+        return selectedSeriesIndex;
+    }
 }

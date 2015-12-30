@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,7 +18,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -181,12 +179,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
+
+                for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
+                    BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results);
+                    graphDrawer.addSeries(results, i);
                 }
-                graphDrawer.addSeries(null);
+                graphDrawer.addSeries(null, -1); // todo check why is this line here
+
+                GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
+                graphToMapConnector.connect();
 
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
@@ -466,7 +469,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
                         if (isSearchFromCurrentLocation) {
                             startNavButton.setVisibility(View.VISIBLE);
