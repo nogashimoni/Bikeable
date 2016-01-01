@@ -1,6 +1,8 @@
 package com.nnys.bikeable;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -568,7 +570,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
                             status.startResolutionForResult(
-                                   CentralActivity.this, 1000);
+                                    CentralActivity.this, 1000);
                         } catch (IntentSender.SendIntentException e) {
                             // Ignore the error.
                         }
@@ -603,6 +605,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         super.onStart();
     }
 
+    @Override
+    public void onBackPressed() {
+//        moveTaskToBack(true);
+        showAlertDialog();
+    }
+
 //    @Override
 //    protected void onPause() {
 //        super.onPause();
@@ -610,6 +618,41 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //    }
 
 
+    void showAlertDialog(){
+
+        /**
+         * CREDIT: http://www.mkyong.com/android/android-alert-dialog-example/
+         * http://developer.android.com/guide/topics/ui/dialogs.html
+         */
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        // set title
+        alertDialogBuilder.setTitle(getString(R.string.exit_central_title));
+
+        alertDialogBuilder
+                .setMessage(getString(R.string.exit_central_q))
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        CentralActivity.super.onBackPressed();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
 
 }
 

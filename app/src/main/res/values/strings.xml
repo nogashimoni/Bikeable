@@ -9,6 +9,8 @@
     <string name="to_text">Choose destination...</string>
     <string name="wait_curr_location">Please wait for navigation to start</string>
     <string name="nav_back_button">Back to Search results</string>
+    <string name="exit_central_title">Exit Bikeable</string>
+    <string name="exit_central_q">Are you sure you want to exit Bikeable?</string>
     <string name="exit_nav_title">Exit Navigation</string>
     <string name="exit_nav_q">Are you sure you want to exit navigation?</string>
     <string name="gps_lost_text">GPS signal lost</string>
