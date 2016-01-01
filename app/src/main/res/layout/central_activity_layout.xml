@@ -142,7 +142,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|top"
-        android:id="@+id/scrolling_part">
+        android:id="@+id/scrolling_part"
+        android:background="@android:color/white">
 
         <TextView
             android:layout_width="match_parent"

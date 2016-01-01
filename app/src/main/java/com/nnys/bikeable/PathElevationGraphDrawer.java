@@ -11,14 +11,16 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 
 public class PathElevationGraphDrawer extends AppCompatActivity {
     GraphView graph;
-    ElevationResult[] elevationResults;
+    ArrayList<LineGraphSeries<DataPoint>> pathsSeries;
 
     public PathElevationGraphDrawer(GraphView graph) {
         this.graph = graph;
         setGraph(graph);
+        pathsSeries = new ArrayList<>();
     }
 
     private void setGraph(GraphView graph) {
@@ -50,7 +52,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(points);
         series.setThickness(10);
         series.setColor(Color.BLACK);
-
+        pathsSeries.add(series);
         graph.addSeries(series);
     }
 
@@ -75,17 +77,24 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     }
 
-    public void colorSeriesByIndex(int i) {
-        for (int j=0; j<graph.getSeries().size(); j++) {
-            LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(j);
-            series.setColor(Color.BLACK);
+    public void colorSeriesByIndex(int index) {
+        // first remove all series
+        graph.removeAllSeries();
+        LineGraphSeries<DataPoint> currSeries;
+        // now add all serieses but index
+        for (int j=0; j < pathsSeries.size(); j++) {
+            if (j == index)
+                continue;
+            currSeries = pathsSeries.get(j);
+            currSeries.setColor(Color.BLACK);
+            graph.addSeries(currSeries);
+            graph.invalidate();
         }
-        graph.removeSeries(graph.getSeries().get(graph.getSeries().size()-1));
-        graph.addSeries(graph.getSeries().get(i));
-        LineGraphSeries<DataPoint> series = (LineGraphSeries<DataPoint>)graph.getSeries().get(graph.getSeries().size()-1);
-        series.setColor(Color.BLUE);
-        graph.invalidate();
 
+        currSeries = pathsSeries.get(index);
+        currSeries.setColor(Color.rgb(48, 139, 159));
+        graph.addSeries(currSeries);
+        graph.invalidate();
     }
 
 }

@@ -188,13 +188,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results);
                 }
-                graphDrawer.addSeries(null);
 
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
                 }
                 if (isShowCloseTelOFunStationsChecked){
                     allRoutes.showTelOFunDestinationMatchesOnMap();
+                    allRoutes.showTelOFunSourceMatchesOnMap();
                 }
                 updateInfoTable();
                 enableSlidingPanel();
@@ -368,9 +368,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeTelOFunFromMap();
                 }
                 return true;
-            case R.id.action_search:
-                showSearchView();
-
             case R.id.iria_telOFun_matches:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -394,7 +391,19 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     }
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
+                    isShowCloseTelOFunStationsChecked = false;
                 }
+                return true;
+            case R.id.action_search:
+                showSearchView();
+                return true;
+            case R.id.action_feedback:
+                Intent Email = new Intent(Intent.ACTION_SEND);
+                Email.setType("text/email");
+                Email.putExtra(Intent.EXTRA_EMAIL, new String[] { getString(R.string.feedback_email) });
+                Email.putExtra(Intent.EXTRA_SUBJECT, "Bikeable Feedback");
+                Email.putExtra(Intent.EXTRA_TEXT, "Dear Bikeable Team," + "");
+                startActivity(Intent.createChooser(Email, "Send Feedback:"));
                 return true;
         }
 
