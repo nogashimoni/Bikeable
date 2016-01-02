@@ -107,7 +107,9 @@ public class AllRoutes {
     }
 
     private double calcRescaledElevationScore(BikeableRoute route, double maxElevationScorePerSearch) {
+        Log.i("INFO", String.format("Elevation score: %f", route.getPathElevationScore()));
         double ratio = route.getPathElevationScore() / maxElevationScorePerSearch ;
+        Log.i("INFO", String.format("Rescaled Elevation score: %f", (-1)*ratio));
         return -1 * ratio;  // the bigger the result is, the more easy the route should be, therefore we multiply by -1
     }
 

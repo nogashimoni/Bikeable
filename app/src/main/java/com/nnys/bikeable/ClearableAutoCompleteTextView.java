@@ -7,12 +7,16 @@ import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * sub class of {@link android.widget.AutoCompleteTextView} that includes a clear (dismiss / close) button with
@@ -96,6 +100,9 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                 }
                 else {
                     currView.showClearButton();
+                    if(s.length() < getResources().getInteger(R.integer.auto_complete_thresh)){
+                        showOnlyFixedResults();
+                    }
                 }
             }
         });
@@ -127,11 +134,14 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
                 ClearableAutoCompleteTextView et = ClearableAutoCompleteTextView.this;
 
-                if (et.getCompoundDrawables()[2] == null)
+                if (et.getCompoundDrawables()[2] == null) {
+                    showOnlyFixedResults();
                     return false;
+                }
 
-                if (event.getAction() != MotionEvent.ACTION_UP)
+                if (event.getAction() != MotionEvent.ACTION_UP) {
                     return false;
+                }
 
                 if (event.getX() > et.getWidth() - et.getPaddingRight() - imgClearButton.getIntrinsicWidth()) {
                     doClear = true;
@@ -140,6 +150,22 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                 return false;
             }
         });
+    }
+
+    private void showOnlyFixedResults() {
+        PlaceAutocompleteAdapter currAdapter = (PlaceAutocompleteAdapter) currView.getAdapter();
+        if (currAdapter.getFixedResults().size() == 0) {
+            Log.i("INFO:", "no fixed results run");
+            // no fixed results
+            return;
+        }
+        currAdapter.setResultsList(new ArrayList<AutocompletePrediction>(currAdapter.getFixedResults()));
+        currView.getHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                currView.showDropDown();
+            }
+        }, 500);
     }
 
     public void setImgClearButton(Drawable imgClearButton) {
