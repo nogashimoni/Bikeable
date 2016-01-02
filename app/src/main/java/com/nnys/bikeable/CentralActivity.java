@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -132,6 +134,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
+        PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
+        fromAdapter.addFixedResult(new CustomAutoCompletePrediction(
+                getResources().getString(R.string.curr_location_primary_text),
+                getResources().getString(R.string.curr_location_secondary_text)));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
 
@@ -154,13 +160,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
-
-                Log.i("INFO", "in on click of search button");
-
-                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
+                if ( (from.getPrediction() == null || to.getPrediction() == null)){
                     return;
                 }
+                isSearchFromCurrentLocation = from.getPrediction()
+                        .getSecondaryText(new StyleSpan(Typeface.BOLD))
+                        .toString()
+                        .equals(getResources().getString(R.string.curr_location_secondary_text));
+
+                Log.i("INFO", "in on click of search button");
 
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();

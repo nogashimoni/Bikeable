@@ -18,9 +18,11 @@ package com.nnys.bikeable;
 
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -77,6 +79,8 @@ public class PlaceAutocompleteAdapter extends ArrayAdapter<AutocompletePredictio
      */
     private AutocompleteFilter mPlaceFilter;
 
+    private ArrayList<CustomAutoCompletePrediction> fixedResults;
+
     /**
      * Initializes with a resource for text rows and autocomplete query bounds.
      *
@@ -88,6 +92,7 @@ public class PlaceAutocompleteAdapter extends ArrayAdapter<AutocompletePredictio
         mGoogleApiClient = googleApiClient;
         mBounds = bounds;
         mPlaceFilter = filter;
+        fixedResults = new ArrayList<>();
     }
 
     /**
@@ -143,15 +148,19 @@ public class PlaceAutocompleteAdapter extends ArrayAdapter<AutocompletePredictio
                 // Skip the autocomplete query if no constraints are given.
                 if (constraint != null) {
                     // Query the autocomplete API for the (constraint) search string.
-                    mResultList = getAutocomplete(constraint);
-                    if (mResultList != null) {
+                    ArrayList<AutocompletePrediction> currFilterResults = getAutocomplete(constraint);
+                    if (currFilterResults != null){
                         // The API successfully returned results.
+                        mResultList = new ArrayList<>();
+                        mResultList.addAll(fixedResults);
+                        mResultList.addAll(currFilterResults);
                         results.values = mResultList;
                         results.count = mResultList.size();
                     }
                 }
                 return results;
             }
+
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
@@ -175,6 +184,12 @@ public class PlaceAutocompleteAdapter extends ArrayAdapter<AutocompletePredictio
                 }
             }
         };
+    }
+
+    public void setResultsList(ArrayList<AutocompletePrediction> newResultsList){
+        this.mResultList = newResultsList;
+        Log.i("INFO:", "before notifyDataSetChanged");
+        notifyDataSetChanged();
     }
 
     /**
@@ -228,5 +243,11 @@ public class PlaceAutocompleteAdapter extends ArrayAdapter<AutocompletePredictio
         return null;
     }
 
+    public void addFixedResult(CustomAutoCompletePrediction fixedResult) {
+        this.fixedResults.add(fixedResult);
+    }
 
+    public ArrayList<CustomAutoCompletePrediction> getFixedResults() {
+        return fixedResults;
+    }
 }
