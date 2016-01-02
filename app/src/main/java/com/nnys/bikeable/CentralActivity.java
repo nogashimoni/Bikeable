@@ -389,7 +389,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 else{
                     item.setChecked(false);
-                    isShowCloseTelOFunStationsChecked = false;
                     if (!IriaData.isDataReceived){
                         return true;
                     }

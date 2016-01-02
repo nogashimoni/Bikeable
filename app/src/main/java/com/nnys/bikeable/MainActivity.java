@@ -66,9 +66,10 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             public void run() {
                 Intent intent = new Intent(MainActivity.this, CentralActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-                    finish();
-                    return;
+                finish();
+                return;
             }
         }, 2000);
     }
