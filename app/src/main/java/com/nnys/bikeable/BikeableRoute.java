@@ -228,4 +228,8 @@ public class BikeableRoute {
     public double getPathElevationScore() {
         return pathElevationScore;
     }
+
+    public double[] getDegreesArray(){
+        return pathElevationScoreCalculator.getDegreesArray();
+    }
 }
