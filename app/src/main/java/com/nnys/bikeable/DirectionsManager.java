@@ -240,4 +240,49 @@ public class DirectionsManager {
         directionBoundsBuilder.include(toLatLng);
         directionBounds = directionBoundsBuilder.build();
     }
+
+    public void setNewMarkerByPlacePrediction(boolean isFrom, AutocompletePrediction prediction) {
+
+        PlaceDetails placeDetails = null;
+        try {
+            placeDetails = PlacesApi.placeDetails(context, prediction.getPlaceId()).await();
+        } catch (Exception e) {
+            e.printStackTrace(); // todo: handle this properly
+        }
+        LatLng markerLatLng = MapUtils.getGmsLatLngFromModel(placeDetails.geometry.location);
+        String markerTitle = prediction.getDescription();
+        Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng).title(markerTitle));
+        if (isFrom){
+            if (this.getFromMarkerNew() != null){
+                this.getFromMarkerNew().remove();
+            }
+            this.setFromMarkerNew(newMarker);
+        }
+        else{
+            if (this.getToMarkerNew() != null){
+                this.getToMarkerNew().remove();
+            }
+            this.setToMarkerNew(newMarker);
+        }
+    }
+
+    public void setNewMarkerByCustomPrediction(boolean isFrom, LatLng markerLatLng, CustomAutoCompletePrediction prediction) {
+
+        Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng));
+        if (isFrom){
+            if (this.getFromMarkerNew() != null){
+                this.getFromMarkerNew().remove();
+            }
+            newMarker.setTitle(prediction.getDescription());
+            this.setFromMarkerNew(newMarker);
+        }
+        else {
+            if (this.getToMarkerNew() != null){
+                this.getToMarkerNew().remove();
+            }
+            newMarker.setTitle("Custom destination");
+            this.setToMarkerNew(newMarker);
+        }
+
+    }
 }

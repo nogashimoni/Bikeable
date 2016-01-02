@@ -192,7 +192,9 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         return prediction;
     }
 
-    public void setPrediction(AutocompletePrediction prediction) {
+    public void setPrediction(AutocompletePrediction prediction, boolean setText) {
         this.prediction = prediction;
+        if (setText)
+            this.setText(prediction.getDescription(), false);
     }
 }

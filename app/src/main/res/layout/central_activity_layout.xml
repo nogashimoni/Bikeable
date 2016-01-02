@@ -127,20 +127,6 @@
                 android:src="@drawable/ic_directions_white_24dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"/>
-        </RelativeLayout>
-
-
-        </android.support.design.widget.CoordinatorLayout>
-
-                    <Button
-                        android:id="@+id/start_nav_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:text="Navigate" />
-
-                </LinearLayout>
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/marker_opts"
@@ -165,8 +151,10 @@
                     android:layout_height="wrap_content"
                     android:text="Cancel"/>
             </LinearLayout>
-
         </RelativeLayout>
+
+
+        </android.support.design.widget.CoordinatorLayout>
 
     </LinearLayout>
     <!--</android.support.design.widget.CoordinatorLayout>-->
