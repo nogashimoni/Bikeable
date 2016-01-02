@@ -404,7 +404,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
             i++;
         }
 
-        for (LatLng stationLatLng: IriaData.getTelOfanStationsList()){
+        for (TelOFunStation station : IriaData.getTelOfanStationsDict().values()){
+            LatLng stationLatLng = station.getCoordinates();
             SKAnnotation annotation = new SKAnnotation(SKAnnotation
                     .SK_ANNOTATION_TYPE_MARKER);
             annotation.setAnnotationType(SKAnnotation.SK_ANNOTATION_TYPE_GREEN);

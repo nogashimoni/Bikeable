@@ -44,6 +44,7 @@ import com.google.maps.model.ElevationResult;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -169,7 +170,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
-                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
+                try {
+                    allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
                 for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {

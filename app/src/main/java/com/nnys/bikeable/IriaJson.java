@@ -5,6 +5,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -20,12 +21,12 @@ public class IriaJson {
         return bikePathPolylineOpts;
     }
 
-    public static ArrayList<LatLng> getStationsFromJsonStr(String jsonStr){
+    public static HashMap <Integer, TelOFunStation> getStationsFromJsonStr(String jsonStr){
         Gson gson = new Gson();
         System.out.println(gson.fromJson(jsonStr, IriaBikeData.class));
         IriaBikeData o = gson.fromJson(jsonStr, IriaBikeData.class);
-        ArrayList<LatLng> stations = getAllStations(o.getFeatures());
-        return stations;
+        HashMap <Integer, TelOFunStation> stationsDict = getAllStations(o.getFeatures());
+        return stationsDict;
     }
 
     public static ArrayList<PolylineOptions> getAllPathsPolylines(List<Feature> features){
@@ -49,11 +50,14 @@ public class IriaJson {
         return result;
     }
 
-    public static ArrayList<LatLng> getAllStations(List<Feature> features){
-        ArrayList<LatLng> result = new ArrayList<>();
+    public static HashMap <Integer, TelOFunStation> getAllStations(List<Feature> features){
+        HashMap <Integer, TelOFunStation> result = new HashMap<>();
         for (Feature feature: features){
-            result.add(new LatLng(
-                    Double.parseDouble(feature.getGeometry().getY()), Double.parseDouble(feature.getGeometry().getX())));
+            LatLng coordinates = new LatLng(Double.parseDouble(feature.getGeometry().getY()), Double.parseDouble(feature.getGeometry().getX()));
+            int stationId = Integer.parseInt(feature.getAttributes().getStationId());
+            int stationOrderId = Integer.parseInt(feature.getAttributes().getStationOid());
+            TelOFunStation station = new TelOFunStation(coordinates, stationId, stationOrderId);
+            result.put(stationId, station);
         }
         System.out.println("hurray!");
         return result;
@@ -91,11 +95,29 @@ class IriaBikeData {
 
 class Feature {
     private Geometry geometry;
+    private Attributes attributes;
 
     public Geometry getGeometry() {
         return geometry;
     }
 
+    public Attributes getAttributes() {
+        return attributes;
+    }
+
+}
+
+class Attributes {
+    private String oid_thana;
+    private String tachana_id;
+
+    public String getStationOid (){
+        return oid_thana;
+    }
+
+    public String getStationId (){
+        return tachana_id;
+    }
 }
 
 class Geometry{
