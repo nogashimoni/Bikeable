@@ -210,7 +210,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Average uphill\ndegree: "/>
+                    android:text="uphill degree:\n(Average) "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
