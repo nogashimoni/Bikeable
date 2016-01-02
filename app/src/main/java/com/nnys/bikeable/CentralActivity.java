@@ -10,9 +10,11 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -22,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +44,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -68,7 +72,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
             startNavButton;
     private ImageButton searchBtn;
 
@@ -142,7 +146,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
         searchBtn = (ImageButton) findViewById(R.id.res_button);
-        startNavButton = (Button) findViewById(R.id.start_nav_button);
+        startNavButton = (FloatingActionButton ) findViewById(R.id.start_nav_button);
         searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
