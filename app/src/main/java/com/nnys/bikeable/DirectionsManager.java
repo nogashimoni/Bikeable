@@ -117,10 +117,11 @@ public class DirectionsManager {
 //        updateBounds();
 //    }
 
-    public void getDirections(com.google.android.gms.maps.model.LatLng fromLatLng,
-                              com.google.android.gms.maps.model.LatLng toLatLng,
-                              String fromTitle,
-                              String toTitle){
+    public void getDirections(){
+//    com.google.android.gms.maps.model.LatLng fromLatLng,
+//                              com.google.android.gms.maps.model.LatLng toLatLng,
+//                              String fromTitle,
+//                              String toTitle){
 
         this.fromLatLng = fromLatLng;
         this.toLatLng = toLatLng;

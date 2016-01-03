@@ -161,7 +161,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     isSearchFromCustom = true;
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
-                    Log.i("INFO from:", directionsManager.getFromMarkerNew().getTitle());
                     isSearchFromCustom = false;
                 }
                 if (tempMarker != null)
@@ -177,7 +176,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     tempMarker.remove();
                 markerOptsLayout.setVisibility(View.GONE);
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
-                Log.i("INFO to:", directionsManager.getToMarkerNew().getTitle());
                 isSearchToCustom = false;
             }
         });
@@ -279,11 +277,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
 //                Log.i("INFO:", String.format("from lat %f lng %f", toLatLng.latitude, toLatLng.longitude));
 
-                directionsManager.getDirections(
-                        directionsManager.getFromMarkerNew().getPosition(),
-                        directionsManager.getToMarkerNew().getPosition(),
-                        directionsManager.getFromMarkerNew().getTitle(),
-                        directionsManager.getToMarkerNew().getTitle());
+                directionsManager.getDirections();
+//                        directionsManager.getFromMarkerNew().getPosition(),
+//                        directionsManager.getToMarkerNew().getPosition(),
+//                        directionsManager.getFromMarkerNew().getTitle(),
+//                        directionsManager.getToMarkerNew().getTitle());
 
                 Log.i("INFO:", String.format("Num calculated routes: %d", directionsManager.getCalculatedRoutes().length));
 
