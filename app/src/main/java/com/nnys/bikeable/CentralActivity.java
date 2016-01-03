@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -155,15 +156,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 markerOptsLayout.setVisibility(View.GONE);
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
-                 if (isSearchFromCurrentLocation()){
-                    directionsManager.setNewMarkerByCustomPrediction(false, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction)from.getPrediction());
+                if (isSearchFromCurrentLocation()) {
+                    directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
                     isSearchFromCustom = true;
+                } else {
+                    directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
+                    Log.i("INFO from:", directionsManager.getFromMarkerNew().getTitle());
+                    isSearchFromCustom = false;
                 }
-                else{
-                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
-                     Log.i("INFO from:", directionsManager.getFromMarkerNew().getTitle());
-                     isSearchFromCustom = false;
-                 }
                 if (tempMarker != null)
                     tempMarker.remove();
             }
@@ -179,6 +179,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
                 Log.i("INFO to:", directionsManager.getToMarkerNew().getTitle());
                 isSearchToCustom = false;
+            }
+        });
+        from.setOnClearExtraListener(new ClearableAutoCompleteTextView.OnClearExtraListener() {
+            @Override
+            public void onClearExtra() {
+                directionsManager.clearNewMarker(true);
+            }
+        });
+        to.setOnClearExtraListener(new ClearableAutoCompleteTextView.OnClearExtraListener() {
+            @Override
+            public void onClearExtra() {
+                directionsManager.clearNewMarker(false);
             }
         });
 
@@ -270,8 +282,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.getDirections(
                         directionsManager.getFromMarkerNew().getPosition(),
                         directionsManager.getToMarkerNew().getPosition(),
-                        true,
-                        true,
                         directionsManager.getFromMarkerNew().getTitle(),
                         directionsManager.getToMarkerNew().getTitle());
 
@@ -607,17 +617,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         ));
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-               @Override
-               public void onMapLongClick(LatLng latLng) {
-                   if (tempMarker != null){
-                       tempMarker.remove();
-                   }
-                   tempMarker = mMap.addMarker(new MarkerOptions()
-                                        .position(latLng));
-                   Log.i("INFO:", String.format("Added marker %f", tempMarker.getPosition().longitude));
-                   markerOptsLayout.setVisibility(View.VISIBLE);
-               }
-           }
+                                           @Override
+                                           public void onMapLongClick(LatLng latLng) {
+                                               if (tempMarker != null) {
+                                                   tempMarker.remove();
+                                               }
+                                               tempMarker = mMap.addMarker(new MarkerOptions()
+                                                       .position(latLng));
+                                               Log.i("INFO:", String.format("Added marker %f", tempMarker.getPosition().longitude));
+                                               markerOptsLayout.setVisibility(View.VISIBLE);
+                                           }
+                                       }
         );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -789,28 +799,28 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         markerOriginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchLayout.setVisibility(View.GONE);
-                CustomAutoCompletePrediction newPrediction = new CustomAutoCompletePrediction("Custom Destination", tempMarker.getPosition().toString());
+                searchLayout.setVisibility(View.VISIBLE);
+                markerOptsLayout.setVisibility(View.GONE);
+                CustomAutoCompletePrediction newPrediction = new CustomAutoCompletePrediction("Custom Origin", tempMarker.getPosition().toString());
                 from.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(true, tempMarker.getPosition(), newPrediction);
                 isSearchFromCustom = true;
                 tempMarker.remove();
                 tempMarker = null;
-                Log.i("INFO:", String.format("from marker ", directionsManager.getFromMarkerNew().getTitle()));
             }
         });
 
         markerDestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchLayout.setVisibility(View.GONE);
+                searchLayout.setVisibility(View.VISIBLE);
+                markerOptsLayout.setVisibility(View.GONE);
                 CustomAutoCompletePrediction newPrediction = new CustomAutoCompletePrediction("Custom Destination", tempMarker.getPosition().toString());
                 to.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), newPrediction);
                 isSearchToCustom = true;
                 tempMarker.remove();
                 tempMarker = null;
-                Log.i("INFO:", String.format("to marker ", directionsManager.getFromMarkerNew().getTitle()));
             }
         });
 
