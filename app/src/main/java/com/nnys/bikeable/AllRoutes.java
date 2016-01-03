@@ -45,7 +45,7 @@ public class AllRoutes {
         }
     }
 
-    private void removeCurrentRoutes() {
+    public void removeCurrentRoutes() {
         selectedRouteIndex = -1;
         removePolylinesFromMap();
         removeTelOFunMatchesFromMap();
@@ -126,9 +126,9 @@ public class AllRoutes {
 
     public void findTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
         ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsSource =
-                findClosestTelOFunStations(directionsManager.getFromLatLng());
+                findClosestTelOFunStations(directionsManager.getFromLatLngCurr());
         ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsDestination =
-                findClosestTelOFunStations(directionsManager.getToLatLng());
+                findClosestTelOFunStations(directionsManager.getToLatLngCurr());
         telOFunSourceMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsSource);
         telOFunDestinationMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsDestination);
     }

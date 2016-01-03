@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.text.style.CharacterStyle;
+import android.util.Log;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
 
@@ -17,6 +18,7 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
     public CustomAutoCompletePrediction(String primaryText, String secondaryText) {
         this.primaryText = primaryText;
         this.secondaryText = secondaryText;
+        Log.i("INFO custom:", this.secondaryText);
     }
 
     @Override
@@ -36,7 +38,12 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     @Override
     public String getDescription() {
-        return this.primaryText;
+        String retString = this.primaryText;
+        if (this.secondaryText != null)
+            retString = String.format("%s\n%s", retString, this.secondaryText);
+        Log.i("INFO retString:", retString);
+        return retString;
+
     }
 
     @Override

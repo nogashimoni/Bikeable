@@ -100,9 +100,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
 
-    boolean isSearchFromCustom, isSearchToCustom;
-    boolean isSearchFromCurrentLocation;
-
     TextView pathDurationTextView;
     TextView pathPercTextView;
     TextView pathDistanceTextView;
@@ -158,13 +155,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
                     directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
-                    isSearchFromCustom = true;
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
-                    isSearchFromCustom = false;
                 }
-                if (tempMarker != null)
-                    tempMarker.remove();
+                updateMapToNewMArkerState();
             }
         });
 
@@ -176,7 +170,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     tempMarker.remove();
                 markerOptsLayout.setVisibility(View.GONE);
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
-                isSearchToCustom = false;
+                updateMapToNewMArkerState();
             }
         });
         from.setOnClearExtraListener(new ClearableAutoCompleteTextView.OnClearExtraListener() {
@@ -222,69 +216,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 startNavButton.setVisibility(View.GONE);
 
-//                if (isSearchFromCurrentLocation()){
-//                    Log.i("INFO:", "Search from current");
-////                    directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), (CustomAutoCompletePrediction)from.getPrediction());
-////                    isSearchFromCustom = true;
-//                }
-
                 // hide keyboard on search
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                // get from latlng and title
-//                com.google.android.gms.maps.model.LatLng fromLatLng = null;
-//                String fromTitle = null;
-//                boolean useExistingFromMarker = false;
-//                if ( isSearchFromCurrentLocation) {
-//                    fromTitle = "Current Location";
-//                    fromLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-//                }
-//                else if (fromSearchType == SearchType.MARKER){
-//                    fromTitle = "Custom Origin";
-//                    fromLatLng = directionsManager.getFromMarkerNew().getPosition();
-//                    useExistingFromMarker = true;
-//                }
-//                else {
-//                    try {
-//                        PlaceDetails from_placeDetails = PlacesApi.placeDetails(context, from.getPrediction().getPlaceId()).await();
-//                        fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
-//                        fromTitle = from.getPrediction().getDescription();
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                Log.i("INFO:", String.format("from lat %f lng %f", fromLatLng.latitude, fromLatLng.longitude));
-//
-//                // get To latlng and title
-//                com.google.android.gms.maps.model.LatLng toLatLng = null;
-//                String toTitle = null;
-//                boolean useExistingToMarker = false;
-//                if (toSearchType == SearchType.MARKER){
-//                    toTitle = "Custom Origin";
-//                    toLatLng = directionsManager.getFromMarkerNew().getPosition();
-//                    useExistingToMarker = true;
-//                }
-//                else {
-//                    try {
-//                        PlaceDetails to_placeDetails = PlacesApi.placeDetails(context, to.getPrediction().getPlaceId()).await();
-//                        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
-//                        toTitle = to.getPrediction().getDescription();
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-
-//                Log.i("INFO:", String.format("from lat %f lng %f", toLatLng.latitude, toLatLng.longitude));
-
                 directionsManager.getDirections();
-//                        directionsManager.getFromMarkerNew().getPosition(),
-//                        directionsManager.getToMarkerNew().getPosition(),
-//                        directionsManager.getFromMarkerNew().getTitle(),
-//                        directionsManager.getToMarkerNew().getTitle());
-
-                Log.i("INFO:", String.format("Num calculated routes: %d", directionsManager.getCalculatedRoutes().length));
-
 
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -604,7 +540,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
-                        if (isSearchFromCurrentLocation) {
+                        if (isSearchFromCurrentLocation()) {
                             startNavButton.setVisibility(View.VISIBLE);
                         }
 
@@ -797,28 +733,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         markerOriginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchLayout.setVisibility(View.VISIBLE);
-                markerOptsLayout.setVisibility(View.GONE);
-                CustomAutoCompletePrediction newPrediction = new CustomAutoCompletePrediction("Custom Origin", tempMarker.getPosition().toString());
+
+                CustomAutoCompletePrediction newPrediction =
+                        new CustomAutoCompletePrediction(
+                                "Custom Origin",
+                                String.format("(%f ,%f)", tempMarker.getPosition()
+                                        .latitude, tempMarker.getPosition().longitude));
+                Log.i("INFO:", String.format("(%f ,%f)", tempMarker.getPosition()
+                        .latitude, tempMarker.getPosition().longitude));
                 from.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(true, tempMarker.getPosition(), newPrediction);
-                isSearchFromCustom = true;
-                tempMarker.remove();
-                tempMarker = null;
+                updateMapToNewMArkerState();
             }
         });
 
         markerDestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchLayout.setVisibility(View.VISIBLE);
-                markerOptsLayout.setVisibility(View.GONE);
-                CustomAutoCompletePrediction newPrediction = new CustomAutoCompletePrediction("Custom Destination", tempMarker.getPosition().toString());
+                CustomAutoCompletePrediction newPrediction =
+                        new CustomAutoCompletePrediction(
+                                "Custom Destination",
+                                String.format("(%f ,%f)", tempMarker.getPosition()
+                                        .latitude, tempMarker.getPosition().longitude));
                 to.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), newPrediction);
-                isSearchToCustom = true;
-                tempMarker.remove();
-                tempMarker = null;
+                updateMapToNewMArkerState();
             }
         });
 
@@ -829,5 +768,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 tempMarker.remove();
             }
         });
+    }
+
+    private void updateMapToNewMArkerState() {
+        startNavButton.setVisibility(View.GONE);
+        searchLayout.setVisibility(View.VISIBLE);
+        markerOptsLayout.setVisibility(View.GONE);
+        allRoutes.removeCurrentRoutes();
+        disableSlidingPanel();
+        if (tempMarker != null) {
+            tempMarker.remove();
+            tempMarker = null;
+        }
     }
 }
