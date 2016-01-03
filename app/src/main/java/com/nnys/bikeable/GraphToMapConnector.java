@@ -1,7 +1,10 @@
 package com.nnys.bikeable;
 
-import android.content.Context;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
@@ -14,7 +17,6 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
 import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by nogal on 30/12/2015.
@@ -70,31 +72,61 @@ public class GraphToMapConnector {
 
 
             // Instantiates a new CircleOptions object and defines the center and radius
+//            CircleOptions circleOptions = new CircleOptions()
+//                    .center(new LatLng(tappedLatLng.lat, tappedLatLng.lng))
+//                    .radius(50) // In meters
+//                    .fillColor(0x30FFFF00)
+//                    .strokeColor(Color.BLACK)
+//                    .strokeWidth(10)
+//                    .zIndex(1000); //todo max Z index
+
+            // Get back the mutable Circle
+
+//            Circle circle = googleMap.addCircle(circleOptions);
+
+//            circle.remove(); // todo remove after a while
+
+            // Instantiates a new CircleOptions object and defines the center and radius
             CircleOptions circleOptions = new CircleOptions()
                     .center(new LatLng(tappedLatLng.lat, tappedLatLng.lng))
-                    .radius(50) // In meters
-                    .fillColor(0x30FFFF00)
+                    .radius(60) // In meters
+                    .fillColor(0x40FFFF00)
                     .strokeColor(Color.BLACK)
-                    .strokeWidth(10)
+                    .strokeWidth(5)
                     .zIndex(1000); //todo max Z index
 
             // Get back the mutable Circle
 
             Circle circle = googleMap.addCircle(circleOptions);
-
-//            circle.remove(); // todo remove after a while
-
-//            double smallSize = circle.getRadius();
-//            sleepForAnimation(1);
-//            circle.setRadius(2 * smallSize);
-//            sleepForAnimation(3);
-//            circle.setRadius(smallSize);
-//            sleepForAnimation(2);
-//            circle.remove();
-
-//            googleMap.addCircle(new CircleOptions().center(MapUtils.getGmsLatLngFromModel(tappedLatLng)).radius(10000));
+            removeCircleAfterSomeTime(circle);
         }
 
 
+    }
+
+    public void removeCircleAfterSomeTime(final Circle circle) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+
+        final long duration = 500;
+
+        final Interpolator interpolator = new LinearInterpolator();
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed
+                        / duration);
+
+
+                if (t < 1.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                } else {
+                    circle.remove();
+                }
+            }
+        });
     }
 }

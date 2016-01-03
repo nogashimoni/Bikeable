@@ -86,7 +86,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     }
 
-    public void colorSeriesByIndex(int index) {
+    public void setSelectedSeriesAndColorIt(int index) {
         selectedSeriesIndex = index;
         // first remove all series
         graph.removeAllSeries();
