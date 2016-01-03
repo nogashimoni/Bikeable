@@ -1,16 +1,23 @@
 package com.nnys.bikeable;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.StyleSpan;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +25,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +46,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -64,7 +74,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
             startNavButton;
     private ImageButton searchBtn;
 
@@ -124,6 +134,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
+        PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
+        fromAdapter.addFixedResult(new CustomAutoCompletePrediction(
+                getResources().getString(R.string.curr_location_primary_text),
+                getResources().getString(R.string.curr_location_secondary_text)));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
 
@@ -138,7 +152,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
         searchBtn = (ImageButton) findViewById(R.id.res_button);
-        startNavButton = (Button) findViewById(R.id.start_nav_button);
+        startNavButton = (FloatingActionButton ) findViewById(R.id.start_nav_button);
         searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
@@ -146,13 +160,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
-
-                Log.i("INFO", "in on click of search button");
-
-                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
+                if ( (from.getPrediction() == null || to.getPrediction() == null)){
                     return;
                 }
+                isSearchFromCurrentLocation = from.getPrediction()
+                        .getSecondaryText(new StyleSpan(Typeface.BOLD))
+                        .toString()
+                        .equals(getResources().getString(R.string.curr_location_secondary_text));
+
+                Log.i("INFO", "in on click of search button");
 
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
@@ -398,6 +414,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             case R.id.action_search:
                 showSearchView();
                 return true;
+            case R.id.action_feedback:
+                Intent Email = new Intent(Intent.ACTION_SEND);
+                Email.setType("text/email");
+                Email.putExtra(Intent.EXTRA_EMAIL, new String[] { getString(R.string.feedback_email) });
+                Email.putExtra(Intent.EXTRA_SUBJECT, "Bikeable Feedback");
+                Email.putExtra(Intent.EXTRA_TEXT, "Dear Bikeable Team," + "");
+                startActivity(Intent.createChooser(Email, "Send Feedback:"));
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -572,7 +596,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
                             status.startResolutionForResult(
-                                   CentralActivity.this, 1000);
+                                    CentralActivity.this, 1000);
                         } catch (IntentSender.SendIntentException e) {
                             // Ignore the error.
                         }
@@ -607,6 +631,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         super.onStart();
     }
 
+    @Override
+    public void onBackPressed() {
+//        moveTaskToBack(true);
+        showAlertDialog();
+    }
+
 //    @Override
 //    protected void onPause() {
 //        super.onPause();
@@ -614,6 +644,41 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //    }
 
 
+    void showAlertDialog(){
+
+        /**
+         * CREDIT: http://www.mkyong.com/android/android-alert-dialog-example/
+         * http://developer.android.com/guide/topics/ui/dialogs.html
+         */
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        // set title
+        alertDialogBuilder.setTitle(getString(R.string.exit_central_title));
+
+        alertDialogBuilder
+                .setMessage(getString(R.string.exit_central_q))
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        CentralActivity.super.onBackPressed();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
 
 }
 
