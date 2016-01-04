@@ -1,17 +1,21 @@
 package com.nnys.bikeable;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
@@ -67,6 +71,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             new LatLng(32.009575, 34.662469), new LatLng(32.240376, 35.011864));
 
     private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
+
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
@@ -180,6 +186,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                 if ( isSearchFromCurrentLocation ) {
+                    if (mCurrentLocation == null){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Current Location Unavailable",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     Log.i("INFO", "creating from new builder");
                     com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
@@ -546,9 +559,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // if sdk is marshmallow
+                if (ContextCompat.checkSelfPermission(CentralActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // permission is not granted
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(CentralActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // if permissions explanation is needed
+                        Toast.makeText(getApplicationContext(),
+                                "GPS permission allows us to access location data." +
+                                " Please allow in App Settings for additional " +
+                                "functionality.",Toast.LENGTH_LONG).show();
+                    } else {
+                        ActivityCompat.requestPermissions(CentralActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSION_REQUEST_CODE_LOCATION);
+                    }
+                    return; // permission is not yet granted
+                }
+            }
+
             startLocationUpdates();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case PERMISSION_REQUEST_CODE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationUpdates();
+                } else {
+                    Toast.makeText(getApplicationContext(),"Permission Denied," +
+                            " You cannot access location data.",Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {
