@@ -3,6 +3,7 @@ package com.nnys.bikeable;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
@@ -18,11 +19,8 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
 import java.util.Iterator;
-import java.util.Map;
 
-/**
- * Created by nogal on 30/12/2015.
- */
+
 public class GraphToMapConnector {
 
     PathElevationGraphDrawer graphDrawer;
@@ -72,22 +70,6 @@ public class GraphToMapConnector {
             ElevationResult tappedElevationResult = graphDrawer.allElevationResults.get(tappedSeriesIndex)[tappedDatePointIndex];
             com.google.maps.model.LatLng tappedLatLng = tappedElevationResult.location;
 
-
-            // Instantiates a new CircleOptions object and defines the center and radius
-//            CircleOptions circleOptions = new CircleOptions()
-//                    .center(new LatLng(tappedLatLng.lat, tappedLatLng.lng))
-//                    .radius(50) // In meters
-//                    .fillColor(0x30FFFF00)
-//                    .strokeColor(Color.BLACK)
-//                    .strokeWidth(10)
-//                    .zIndex(1000); //todo max Z index
-
-            // Get back the mutable Circle
-
-//            Circle circle = googleMap.addCircle(circleOptions);
-
-//            circle.remove(); // todo remove after a while
-
             // Instantiates a new CircleOptions object and defines the center and radius
             CircleOptions circleOptions = new CircleOptions()
                     .center(new LatLng(tappedLatLng.lat, tappedLatLng.lng))
@@ -100,7 +82,11 @@ public class GraphToMapConnector {
             // Get back the mutable Circle
             LatLng gmsLatLng = MapUtils.getGmsLatLngFromModel(tappedLatLng);
             Circle circle = googleMap.addCircle(circleOptions);
-            if (!googleMap.getProjection().getVisibleRegion().latLngBounds.contains(gmsLatLng)) {
+            boolean doesGraphHideCircle = googleMap.getProjection().toScreenLocation(gmsLatLng).y > 1000;
+            if (!googleMap.getProjection().getVisibleRegion().latLngBounds.contains(gmsLatLng) || doesGraphHideCircle) {
+                if (doesGraphHideCircle) {
+                    Log.i("INFO", "graph hides circle so moving");
+                }
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(gmsLatLng));
             }
             removeCircleAfterSomeTime(circle);
