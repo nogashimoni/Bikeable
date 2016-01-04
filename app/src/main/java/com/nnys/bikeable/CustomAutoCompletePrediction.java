@@ -14,11 +14,17 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     String primaryText;
     String secondaryText;
+    String placeId;
 
     public CustomAutoCompletePrediction(String primaryText, String secondaryText) {
         this.primaryText = primaryText;
         this.secondaryText = secondaryText;
-        Log.i("INFO custom:", this.secondaryText);
+    }
+
+    public CustomAutoCompletePrediction(String primaryText, String secondaryText, String placeId) {
+        this.primaryText = primaryText;
+        this.secondaryText = secondaryText;
+        this.placeId = placeId;
     }
 
     @Override
@@ -38,12 +44,7 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     @Override
     public String getDescription() {
-        String retString = this.primaryText;
-        if (this.secondaryText != null)
-            retString = String.format("%s\n%s", retString, this.secondaryText);
-        Log.i("INFO retString:", retString);
-        return retString;
-
+        return this.primaryText;
     }
 
     @Override

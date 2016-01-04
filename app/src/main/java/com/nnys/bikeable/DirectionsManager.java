@@ -202,7 +202,7 @@ public class DirectionsManager {
             if (this.toMarkerCurr != null){
                 this.toMarkerCurr.remove();
             }
-            newMarker.setTitle("Custom destination");
+            newMarker.setTitle(prediction.getDescription());
             this.setToMarkerNew(newMarker);
             this.toLatLngNew = markerLatLng;
             this.toTitleNew = prediction.getDescription();
