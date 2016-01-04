@@ -33,10 +33,8 @@ public class AllRoutes {
         removeCurrentRoutes();
         addNewRoutes(directionsRouteArr, mMap);
         bestRouteIndex = calculateBestRouteIndex(); // by now, all routes are already updated
+        selectAndColorRoute(bestRouteIndex);
 
-        // mark the best route at the beginning
-        bikeableRoutes.get(bestRouteIndex).routePolyline.setColor(0xFF11b468); // color best route in orange (like golden route)
-        bikeableRoutes.get(bestRouteIndex).routePolyline.setZIndex(1); // be on top of other routes
     }
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
@@ -60,6 +58,8 @@ public class AllRoutes {
     }
 
     protected void selectAndColorRoute (int routeInd){
+        this.setSelectedRouteIndex(routeInd);
+
         for (int i = 0; i < getNumRoutes(); i++){
             if (i == routeInd){
                 bikeableRoutes.get(i).routePolyline.setColor(0xFF84E0FF);
@@ -214,6 +214,9 @@ public class AllRoutes {
         isTelOFunMarkersAdded = false;
     }
 
+    public int getBestRouteIndex() {
+        return bestRouteIndex;
+    }
 
     public int getNumRoutes(){
         return bikeableRoutes.size();

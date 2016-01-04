@@ -1,24 +1,29 @@
 package com.nnys.bikeable;
 
 import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.maps.model.ElevationResult;
+
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
 public class PathElevationGraphDrawer extends AppCompatActivity {
     GraphView graph;
+    List<ElevationResult[]> allElevationResults;
+    int selectedSeriesIndex;
     ArrayList<LineGraphSeries<DataPoint>> pathsSeries;
 
     public PathElevationGraphDrawer(GraphView graph) {
         this.graph = graph;
+        allElevationResults = new ArrayList<>();
         setGraph(graph);
         pathsSeries = new ArrayList<>();
     }
@@ -36,7 +41,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
     }
 
 
-    public void addSeries( ElevationResult[] elevationResults ) {
+    public void addSeries( ElevationResult[] elevationResults, int seriesIndex ) {
         DataPoint[] points;
         if (elevationResults == null){
             points = new DataPoint[1];
@@ -52,6 +57,9 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(points);
         series.setThickness(10);
         series.setColor(Color.BLACK);
+        series.setTitle(String.format("%d", seriesIndex));
+
+        allElevationResults.add(elevationResults);
         pathsSeries.add(series);
         graph.addSeries(series);
     }
@@ -77,12 +85,13 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     }
 
-    public void colorSeriesByIndex(int index) {
+    public void setSelectedSeriesAndColorIt(int index) {
+        selectedSeriesIndex = index;
         // first remove all series
         graph.removeAllSeries();
         LineGraphSeries<DataPoint> currSeries;
         // now add all serieses but index
-        for (int j=0; j < pathsSeries.size(); j++) {
+        for (int j = 0; j < pathsSeries.size(); j++) {
             if (j == index)
                 continue;
             currSeries = pathsSeries.get(j);
@@ -97,4 +106,7 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         graph.invalidate();
     }
 
+    public int getSelectedSeriesIndex() {
+        return selectedSeriesIndex;
+    }
 }

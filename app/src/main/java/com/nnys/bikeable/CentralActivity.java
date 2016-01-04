@@ -235,11 +235,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
+
+                for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
+                    BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results);
+                    graphDrawer.addSeries(results, i);
                 }
+
+                graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
+
+                GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
+                graphToMapConnector.connect();
 
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
@@ -549,7 +556,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
                         if (isSearchFromCurrentLocation()) {
                             startNavButton.setVisibility(View.VISIBLE);
