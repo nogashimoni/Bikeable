@@ -23,7 +23,6 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
 
     public PathElevationGraphDrawer(GraphView graph) {
         this.graph = graph;
-        selectedSeriesIndex = -1;
         allElevationResults = new ArrayList<>();
         setGraph(graph);
         pathsSeries = new ArrayList<>();

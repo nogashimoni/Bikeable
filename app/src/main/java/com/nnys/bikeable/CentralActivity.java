@@ -183,6 +183,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     Log.i("INFO", "creating from new builder");
                     com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
+                    startNavButton.setVisibility(View.VISIBLE);
                      /// currentLocationLatLng
                 } else {
                     directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
@@ -202,7 +203,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
                     graphDrawer.addSeries(results, i);
                 }
-                graphDrawer.addSeries(null, -1); // todo check why is this line here
+
+                graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
 
                 GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
                 graphToMapConnector.connect();
