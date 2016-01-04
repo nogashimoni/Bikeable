@@ -60,8 +60,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.maps.GeocodingApi;
 import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
+import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -579,21 +581,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
-               @Override
-               public void onMapLongClick(LatLng markerLatLng) {
-                   if (popupWindow != null && popupWindow.isShowing())
-                       popupWindow.dismiss();
-                   if (tempMarker != null) {
-                       tempMarker.remove();
-                   }
-                   tempMarker = mMap.addMarker(new MarkerOptions()
-                           .position(markerLatLng));
-                   Projection projection = mMap.getProjection();
-                   Point screenPosition = projection.toScreenLocation(markerLatLng);
-                   popupView.setVisibility(View.VISIBLE);
-                   popupWindow.showAsDropDown(markerAnchor, screenPosition.x, screenPosition.y);
-               }
-           }
+                                           @Override
+                                           public void onMapLongClick(LatLng markerLatLng) {
+                                               if (popupWindow != null && popupWindow.isShowing())
+                                                   popupWindow.dismiss();
+                                               if (tempMarker != null) {
+                                                   tempMarker.remove();
+                                               }
+                                               tempMarker = mMap.addMarker(new MarkerOptions()
+                                                       .position(markerLatLng));
+                                               Projection projection = mMap.getProjection();
+                                               Point screenPosition = projection.toScreenLocation(markerLatLng);
+                                               popupView.setVisibility(View.VISIBLE);
+                                               popupWindow.showAsDropDown(markerAnchor, screenPosition.x, screenPosition.y);
+                                           }
+                                       }
         );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -775,14 +777,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         markerOriginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String primaryText;
+                String secondaryText;
+                String placeId = null;
+                try {
+                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
+                    primaryText = results[0].formattedAddress;
+                    secondaryText = "";
+                    placeId = results[0].placeId;
+                } catch (Exception e) {
+                    primaryText = "Custom Origin";
+                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
+                            .latitude, tempMarker.getPosition().longitude);
+                    e.printStackTrace();
+                }
 
                 CustomAutoCompletePrediction newPrediction =
-                        new CustomAutoCompletePrediction(
-                                "Custom Origin",
-                                String.format("(%f ,%f)", tempMarker.getPosition()
-                                        .latitude, tempMarker.getPosition().longitude));
-                Log.i("INFO:", String.format("(%f ,%f)", tempMarker.getPosition()
-                        .latitude, tempMarker.getPosition().longitude));
+                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
                 from.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(true, tempMarker.getPosition(), newPrediction);
                 updateMapToNewMArkerState();
@@ -792,11 +804,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         markerDestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String primaryText;
+                String secondaryText;
+                String placeId = null;
+                try {
+                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
+                    primaryText = results[0].formattedAddress;
+                    secondaryText = "";
+                    placeId = results[0].placeId;
+                } catch (Exception e) {
+                    primaryText = "Custom Origin";
+                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
+                            .latitude, tempMarker.getPosition().longitude);
+                    e.printStackTrace();
+                }
+
                 CustomAutoCompletePrediction newPrediction =
-                        new CustomAutoCompletePrediction(
-                                "Custom Destination",
-                                String.format("(%f ,%f)", tempMarker.getPosition()
-                                        .latitude, tempMarker.getPosition().longitude));
+                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
                 to.setPrediction(newPrediction, true);
                 directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), newPrediction);
                 updateMapToNewMArkerState();
