@@ -6,6 +6,7 @@ import android.os.SystemClock;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -17,6 +18,7 @@ import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by nogal on 30/12/2015.
@@ -96,8 +98,11 @@ public class GraphToMapConnector {
                     .zIndex(1000); //todo max Z index
 
             // Get back the mutable Circle
-
+            LatLng gmsLatLng = MapUtils.getGmsLatLngFromModel(tappedLatLng);
             Circle circle = googleMap.addCircle(circleOptions);
+            if (!googleMap.getProjection().getVisibleRegion().latLngBounds.contains(gmsLatLng)) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(gmsLatLng));
+            }
             removeCircleAfterSomeTime(circle);
         }
 
@@ -118,7 +123,6 @@ public class GraphToMapConnector {
                 long elapsed = SystemClock.uptimeMillis() - start;
                 float t = interpolator.getInterpolation((float) elapsed
                         / duration);
-
 
                 if (t < 1.0) {
                     // Post again 16ms later.
