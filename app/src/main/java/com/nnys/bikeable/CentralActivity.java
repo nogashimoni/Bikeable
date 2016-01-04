@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.graphics.Color;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -18,10 +19,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -49,6 +52,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -90,8 +94,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Marker tempMarker;
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
-    private LinearLayout markerOptsLayout;
-
+    private PopupWindow popupWindow;
+    private View popupView;
+    private LinearLayout markerAnchor;
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -128,7 +133,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .build();
 
         setContentView(R.layout.central_activity_layout);
-
+        markerAnchor = (LinearLayout) findViewById(R.id.marker_anchor);
         disableSlidingPanel();
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
@@ -151,7 +156,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                markerOptsLayout.setVisibility(View.GONE);
+//                markerOptsLayout.setVisibility(View.GONE);
+                popupView.setVisibility(View.GONE);
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
                     directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
@@ -168,7 +174,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 to.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (tempMarker != null)
                     tempMarker.remove();
-                markerOptsLayout.setVisibility(View.GONE);
+//                markerOptsLayout.setVisibility(View.GONE);
+                popupView.setVisibility(View.GONE);
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
                 updateMapToNewMArkerState();
             }
@@ -530,7 +537,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
-                markerOptsLayout.setVisibility(View.GONE);
+//                markerOptsLayout.setVisibility(View.GONE);
+                if (popupWindow != null && popupWindow.isShowing())
+                    popupWindow.dismiss();
+                popupView.setVisibility(View.GONE);
+
                 if (tempMarker != null)
                     tempMarker.remove();
 
@@ -551,17 +562,22 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         ));
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-                                           @Override
-                                           public void onMapLongClick(LatLng latLng) {
-                                               if (tempMarker != null) {
-                                                   tempMarker.remove();
-                                               }
-                                               tempMarker = mMap.addMarker(new MarkerOptions()
-                                                       .position(latLng));
-                                               Log.i("INFO:", String.format("Added marker %f", tempMarker.getPosition().longitude));
-                                               markerOptsLayout.setVisibility(View.VISIBLE);
-                                           }
-                                       }
+
+               @Override
+               public void onMapLongClick(LatLng markerLatLng) {
+                   if (popupWindow != null && popupWindow.isShowing())
+                       popupWindow.dismiss();
+                   if (tempMarker != null) {
+                       tempMarker.remove();
+                   }
+                   tempMarker = mMap.addMarker(new MarkerOptions()
+                           .position(markerLatLng));
+                   Projection projection = mMap.getProjection();
+                   Point screenPosition = projection.toScreenLocation(markerLatLng);
+                   popupView.setVisibility(View.VISIBLE);
+                   popupWindow.showAsDropDown(markerAnchor, screenPosition.x, screenPosition.y);
+               }
+           }
         );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -725,10 +741,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
     private void initMarkerAddOptions() {
 
-        markerOptsLayout =  (LinearLayout) findViewById(R.id.marker_opts);
-        Button markerOriginBtn = (Button) findViewById(R.id.marker_origin);
-        Button markerDestBtn = (Button) findViewById(R.id.marker_dest);
-        Button markerCancelBtn = (Button) findViewById(R.id.marker_cancel);
+        LayoutInflater layoutInflater
+                = (LayoutInflater)getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+        popupView = layoutInflater.inflate(R.layout.marker_popup, (ViewGroup) findViewById(R.id.marker_opts));
+
+        popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+
+//        markerOptsLayout =  (LinearLayout) popupView.findViewById(R.id.marker_opts);
+        TextView markerOriginBtn = (TextView) popupView.findViewById(R.id.marker_origin);
+        TextView markerDestBtn = (TextView) popupView.findViewById(R.id.marker_dest);
+        TextView markerCancelBtn = (TextView) popupView.findViewById(R.id.marker_cancel);
 
         markerOriginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -764,7 +790,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         markerCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                markerOptsLayout.setVisibility(View.GONE);
+//                markerOptsLayout.setVisibility(View.GONE);
+                popupView.setVisibility(View.GONE);
                 tempMarker.remove();
             }
         });
@@ -773,7 +800,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void updateMapToNewMArkerState() {
         startNavButton.setVisibility(View.GONE);
         searchLayout.setVisibility(View.VISIBLE);
-        markerOptsLayout.setVisibility(View.GONE);
+//        markerOptsLayout.setVisibility(View.GONE);
+        popupView.setVisibility(View.GONE);
+
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();
         if (tempMarker != null) {

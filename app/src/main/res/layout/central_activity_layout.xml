@@ -104,7 +104,6 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/centralLayout"
             android:background="@color/searchBG">
             <!--android:background="#b8e7fd"-->
 
@@ -115,6 +114,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <!--map:uiZoomControls="true"-->
+
+            <LinearLayout
+                android:id="@+id/marker_anchor"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"></LinearLayout>
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/start_nav_button"
@@ -128,29 +133,6 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"/>
 
-            <LinearLayout
-                android:id="@+id/marker_opts"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_alignParentBottom="true"
-                android:visibility="gone">
-                <Button
-                    android:id="@+id/marker_origin"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Set origin"/>
-                <Button
-                    android:id="@+id/marker_dest"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Set destination"/>
-                <Button
-                    android:id="@+id/marker_cancel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cancel"/>
-            </LinearLayout>
         </RelativeLayout>
 
 
