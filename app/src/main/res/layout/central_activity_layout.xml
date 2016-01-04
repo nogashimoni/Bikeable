@@ -115,11 +115,11 @@
                 android:layout_height="wrap_content" />
             <!--map:uiZoomControls="true"-->
 
-            <LinearLayout
-                android:id="@+id/marker_anchor"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"></LinearLayout>
+            <!--<LinearLayout-->
+                <!--android:id="@+id/marker_anchor"-->
+                <!--android:orientation="horizontal"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"></LinearLayout>-->
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/start_nav_button"
@@ -132,6 +132,36 @@
                 android:src="@drawable/ic_directions_white_24dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"/>
+
+            <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:background="@color/colorPrimaryLight"
+                android:id="@+id/marker_opts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:isScrollContainer="false"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/marker_origin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Set origin"/>
+                <Button
+                    android:id="@+id/marker_dest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Set destination"/>
+                <Button
+                    android:id="@+id/marker_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel"/>
+            </LinearLayout>
 
         </RelativeLayout>
 
