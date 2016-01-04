@@ -157,13 +157,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 //                markerOptsLayout.setVisibility(View.GONE);
-                popupView.setVisibility(View.GONE);
+
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
+                    if (mCurrentLocation == null) {
+                        Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
                 }
+                popupView.setVisibility(View.GONE);
                 updateMapToNewMArkerState();
             }
         });
@@ -218,6 +223,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onClick(View v) {
 
                 if (from.getPrediction() == null || to.getPrediction() == null){
+                    return;
+                }
+                if (isSearchFromCurrentLocation() && mCurrentLocation == null){
+                    Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
                     return;
                 }
 
