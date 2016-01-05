@@ -36,6 +36,9 @@ public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
     @SuppressLint("InflateParams")
     @Override
     public View getInfoContents(Marker marker) {
+        //if (popup == null) {
+            //popup = inflater.inflate(R.layout.info_window_layout, null);
+        //}
 
         if (marker.getTitle().equals("TelOFun")) {
 
