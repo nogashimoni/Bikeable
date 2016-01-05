@@ -1,21 +1,36 @@
 package com.nnys.bikeable;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.StyleSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +50,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -57,18 +73,22 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
 
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
+
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
     protected DirectionsManager directionsManager = null;
 
     private AllRoutes allRoutes;
 
-    private Button searchBtn, clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
+    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
             startNavButton;
+    private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
     private ClearableAutoCompleteTextView to, from;
+    private LinearLayout searchLayout;
 
 
     private PathElevationGraphDrawer graphDrawer;
@@ -83,6 +103,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathPercTextView;
     TextView pathDistanceTextView;
     TextView pathUphillAverageTextView;
+
+    MenuItem menuSearch;
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
@@ -119,6 +141,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
+        PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
+        fromAdapter.addFixedResult(new CustomAutoCompletePrediction(
+                getResources().getString(R.string.curr_location_primary_text),
+                getResources().getString(R.string.curr_location_secondary_text)));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
 
@@ -131,22 +157,25 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
-        searchBtn = (Button) findViewById(R.id.res_button);
-        startNavButton = (Button) findViewById(R.id.start_nav_button);
-
+        searchLayout = (LinearLayout) findViewById(R.id.search_layout);
+        searchBtn = (ImageButton) findViewById(R.id.res_button);
+        startNavButton = (FloatingActionButton ) findViewById(R.id.start_nav_button);
+        searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
-                isSearchFromCurrentLocation = ( (from.getPrediction() == null) && (to.getPrediction() != null) );
-
-                Log.i("INFO", "in on click of search button");
-
-                if ( (from.getPrediction() == null || to.getPrediction() == null) && !isSearchFromCurrentLocation) {
+                if ( (from.getPrediction() == null || to.getPrediction() == null)){
                     return;
                 }
+                isSearchFromCurrentLocation = from.getPrediction()
+                        .getSecondaryText(new StyleSpan(Typeface.BOLD))
+                        .toString()
+                        .equals(getResources().getString(R.string.curr_location_secondary_text));
+
+                Log.i("INFO", "in on click of search button");
 
                 if (directionsManager != null)
                     directionsManager.clearMarkersFromMap();
@@ -158,9 +187,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                 if ( isSearchFromCurrentLocation ) {
+                    if (mCurrentLocation == null){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Current Location Unavailable",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     Log.i("INFO", "creating from new builder");
                     com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                     directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
+                    startNavButton.setVisibility(View.VISIBLE);
                      /// currentLocationLatLng
                 } else {
                     directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
@@ -178,21 +215,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
+
+                for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
+                    BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
                     ElevationResult[] results = bikeableRoute.elevationQuerier
                             .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results);
+                    graphDrawer.addSeries(results, i);
                 }
-                graphDrawer.addSeries(null);
+
+                graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
+
+                GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
+                graphToMapConnector.connect();
 
                 if ( isShowBikeRouteMatchesChecked ) {
                     showBikePathMatchesOnMap();
                 }
                 if (isShowCloseTelOFunStationsChecked){
                     allRoutes.showTelOFunDestinationMatchesOnMap();
+                    allRoutes.showTelOFunSourceMatchesOnMap();
                 }
                 updateInfoTable();
                 enableSlidingPanel();
+                enableSlidingPanel(); //TODO doesn't work
+                hideSearchView();
+
             }
         });
 
@@ -211,6 +258,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
         });
+
+    }
+
+    private void hideSearchView() {
+        searchLayout.setVisibility(View.GONE);
+        if (menuSearch != null){
+            menuSearch.setVisible(true);
+            menuSearch.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        }
+
+
+    }
+
+    private void showSearchView() {
+        searchLayout.setVisibility(View.VISIBLE);
+        if (menuSearch != null){
+            menuSearch.setVisible(false);
+        }
 
     }
 
@@ -253,6 +318,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_central, menu);
+
+        menuSearch = menu.findItem(R.id.action_search);
+        menuSearch.setVisible(false);
+
+        Drawable drawable = menuSearch.getIcon();
+        if (drawable != null) {
+//            drawable.mutate();
+            drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY );
+        }
+
         return true;
     }
 
@@ -332,7 +407,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     IriaData.removeTelOFunFromMap();
                 }
                 return true;
-
             case R.id.iria_telOFun_matches:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
@@ -350,13 +424,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 else{
                     item.setChecked(false);
-                    isShowCloseTelOFunStationsChecked = false;
                     if (!IriaData.isDataReceived){
                         return true;
                     }
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
+                    isShowCloseTelOFunStationsChecked = false;
                 }
+                return true;
+            case R.id.action_search:
+                showSearchView();
+                return true;
+            case R.id.action_feedback:
+                Intent Email = new Intent(Intent.ACTION_SEND);
+                Email.setType("text/email");
+                Email.putExtra(Intent.EXTRA_EMAIL, new String[] { getString(R.string.feedback_email) });
+                Email.putExtra(Intent.EXTRA_SUBJECT, "Bikeable Feedback");
+                Email.putExtra(Intent.EXTRA_TEXT, "Dear Bikeable Team," + "");
+                startActivity(Intent.createChooser(Email, "Send Feedback:"));
                 return true;
         }
 
@@ -409,7 +494,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         LatLng placeToFocusOn;
         if ( mCurrentLocation == null ) {
-            placeToFocusOn = new LatLng(32.113523, 34.804399);            // focus map on tau
+            placeToFocusOn = TAU_LATLNG;            // focus map on tau
         } else {
             placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         }
@@ -429,7 +514,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
-                        graphDrawer.colorSeriesByIndex(allRoutes.getSelectedRouteIndex());
+                        graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
                         if (isSearchFromCurrentLocation) {
                             startNavButton.setVisibility(View.VISIBLE);
@@ -489,9 +574,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
-            //startLocationUpdates();
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // if sdk is marshmallow
+                if (ContextCompat.checkSelfPermission(CentralActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // permission is not granted
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(CentralActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // if permissions explanation is needed
+                        Toast.makeText(getApplicationContext(),
+                                "GPS permission allows us to access location data." +
+                                " Please allow in App Settings for additional " +
+                                "functionality.",Toast.LENGTH_LONG).show();
+                    } else {
+                        ActivityCompat.requestPermissions(CentralActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSION_REQUEST_CODE_LOCATION);
+                    }
+                    return; // permission is not yet granted
+                }
+            }
+
+            startLocationUpdates();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case PERMISSION_REQUEST_CODE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationUpdates();
+                } else {
+                    Toast.makeText(getApplicationContext(),"Permission Denied," +
+                            " You cannot access location data.",Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {
@@ -541,7 +665,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
                             status.startResolutionForResult(
-                                   CentralActivity.this, 1000);
+                                    CentralActivity.this, 1000);
                         } catch (IntentSender.SendIntentException e) {
                             // Ignore the error.
                         }
@@ -576,6 +700,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         super.onStart();
     }
 
+    @Override
+    public void onBackPressed() {
+//        moveTaskToBack(true);
+        showAlertDialog();
+    }
+
 //    @Override
 //    protected void onPause() {
 //        super.onPause();
@@ -583,6 +713,41 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //    }
 
 
+    void showAlertDialog(){
+
+        /**
+         * CREDIT: http://www.mkyong.com/android/android-alert-dialog-example/
+         * http://developer.android.com/guide/topics/ui/dialogs.html
+         */
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        // set title
+        alertDialogBuilder.setTitle(getString(R.string.exit_central_title));
+
+        alertDialogBuilder
+                .setMessage(getString(R.string.exit_central_q))
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        CentralActivity.super.onBackPressed();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        dialog.cancel();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+    }
 
 }
 

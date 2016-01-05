@@ -421,8 +421,8 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
      * Called when the gps signal was lost
      */
     private void onGPSSignalLost() {
-        waitForLocationTextBox.setText(getString(R.string.gps_lost_text));
-        waitForLocationTextBox.setVisibility(View.VISIBLE);
+//        waitForLocationTextBox.setText(getString(R.string.gps_lost_text));
+//        waitForLocationTextBox.setVisibility(View.VISIBLE);
     }
 
     /**

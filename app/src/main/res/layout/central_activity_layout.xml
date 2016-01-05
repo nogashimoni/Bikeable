@@ -25,49 +25,80 @@
         android:background="@color/colorPrimaryLight">
 
         <LinearLayout
+            android:id="@+id/search_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:weightSum="1"
+            android:layout_marginLeft="@dimen/fromto_margin">
+            <!--android:layout_marginRight="@dimen/fromto_margin"-->
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/fromto_margin"
-                android:layout_marginTop="@dimen/fromto_margin"
-                android:layout_marginRight="@dimen/fromto_margin"
-                android:layout_marginLeft="@dimen/fromto_margin">
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="0.75">
 
-                <com.nnys.bikeable.ClearableAutoCompleteTextView
-                    android:id="@+id/from"
-                    android:layout_width="fill_parent"
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:completionThreshold="@integer/auto_complete_thresh"
-                    android:background="@color/whiteColor"
-                    android:hint="@string/from_text"
-                    android:dropDownVerticalOffset="0dp" />
+                    android:layout_marginBottom="@dimen/fromto_margin"
+                    android:layout_marginTop="@dimen/fromto_margin">
 
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/from"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/from_text"
+                        android:dropDownVerticalOffset="0dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/fromto_margin">
+
+                    <com.nnys.bikeable.ClearableAutoCompleteTextView
+                        android:id="@+id/to"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="@integer/auto_complete_thresh"
+                        android:background="@color/whiteColor"
+                        android:hint="@string/to_text"
+                        android:dropDownVerticalOffset="0dp"/>
+
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/fromto_margin"
-                android:layout_marginRight="@dimen/fromto_margin"
-                android:layout_marginLeft="@dimen/fromto_margin">
+                android:id="@+id/search_box"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_weight="0.25">
 
-                <com.nnys.bikeable.ClearableAutoCompleteTextView
-                    android:id="@+id/to"
-                    android:layout_width="fill_parent"
+                <ImageButton
+                    android:id="@+id/res_button"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:completionThreshold="@integer/auto_complete_thresh"
-                    android:background="@color/whiteColor"
-                    android:hint="@string/to_text"
-                    android:dropDownVerticalOffset="0dp"/>
-
+                    android:src="@drawable/abc_ic_search_api_mtrl_alpha"
+                    android:color="@android:color/transparent"
+                    android:paddingTop="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="@dimen/activity_horizontal_margin"
+                    android:paddingRight="@dimen/activity_horizontal_margin"
+                    android:paddingLeft="@dimen/activity_horizontal_margin"
+                    android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
+        <android.support.design.widget.CoordinatorLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
@@ -82,38 +113,24 @@
                 android:name="com.google.android.gms.maps.MapFragment"
                 android:id="@+id/map"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <!--map:uiZoomControls="true"-->
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/start_nav_button"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                map:uiZoomControls="true"/>
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal">
-
-                    <Button
-                        android:id="@+id/res_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Search" />
-
-
-                    <Button
-                        android:id="@+id/start_nav_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:text="Navigate!" />
-
-                </LinearLayout>
-            </LinearLayout>
+                android:layout_margin="16dp"
+                android:clickable="true"
+                android:visibility="invisible"
+                app:backgroundTint="@color/colorPrimary"
+                android:src="@drawable/ic_directions_white_24dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"/>
         </RelativeLayout>
+
+
+        </android.support.design.widget.CoordinatorLayout>
 
     </LinearLayout>
     <!--</android.support.design.widget.CoordinatorLayout>-->
@@ -123,19 +140,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|top"
-        android:id="@+id/scrolling_part">
+        android:id="@+id/scrolling_part"
+        android:background="@android:color/white">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center|top"
             android:text="Scroll up for info"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorPrimaryDark"
             android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:background="@color/searchBG"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -146,6 +167,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textStyle="bold"
                     android:text="Duration: "/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -161,6 +183,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textStyle="bold"
                     android:text="Distance: "/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -173,6 +196,9 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:background="@color/searchBG"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -183,7 +209,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Average uphill degree: "/>
+                    android:textStyle="bold"
+                    android:text="uphill degree:\n(Average) "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -198,6 +225,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textStyle="bold"
                     android:text="% Bike path: "/>
                 <TextView
                     android:layout_width="wrap_content"
