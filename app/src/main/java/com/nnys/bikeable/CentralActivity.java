@@ -1,9 +1,11 @@
 package com.nnys.bikeable;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -12,8 +14,10 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
@@ -68,6 +72,7 @@ import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -80,6 +85,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             new LatLng(32.009575, 34.662469), new LatLng(32.240376, 35.011864));
 
     private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
+
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
@@ -119,7 +126,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private boolean isShowCloseTelOFunStationsChecked = false;
 
     private boolean isSlidingPanelEnabled = false;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -245,7 +251,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
-                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
+                //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
+                try {
+                    allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 graphDrawer = new PathElevationGraphDrawer(graph);
 
@@ -583,6 +594,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         ));
 
+        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater()));
+
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
                @Override
@@ -607,6 +620,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                if (marker.getTitle().equals("TelOFun")) {
+                    try {
+                        IriaData.updateTelOFunBikesAvailability();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 marker.showInfoWindow();
                 return true;
             }
@@ -628,9 +648,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // if sdk is marshmallow
+                if (ContextCompat.checkSelfPermission(CentralActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // permission is not granted
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(CentralActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // if permissions explanation is needed
+                        Toast.makeText(getApplicationContext(),
+                                "GPS permission allows us to access location data." +
+                                " Please allow in App Settings for additional " +
+                                "functionality.",Toast.LENGTH_LONG).show();
+                    } else {
+                        ActivityCompat.requestPermissions(CentralActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSION_REQUEST_CODE_LOCATION);
+                    }
+                    return; // permission is not yet granted
+                }
+            }
+
             startLocationUpdates();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case PERMISSION_REQUEST_CODE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationUpdates();
+                } else {
+                    Toast.makeText(getApplicationContext(),"Permission Denied," +
+                            " You cannot access location data.",Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {
