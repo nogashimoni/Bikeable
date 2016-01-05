@@ -12,6 +12,7 @@ public class TelOFunStation {
     private int numOfStands;
     private int numOfBikesAvailable;
     private int numOfStandsAvailable;
+    private String stationName;
 
     public TelOFunStation(LatLng coordinatesOfStation, int stationId, int stationOrderId){
         coordinates = coordinatesOfStation;
@@ -43,6 +44,10 @@ public class TelOFunStation {
         return numOfBikesAvailable;
     }
 
+    public String getStationName () {
+        return stationName;
+    }
+
     public void setNumOfStands (int stands){
         numOfStands = stands;
     }
@@ -53,5 +58,9 @@ public class TelOFunStation {
 
     public void setNumOfBikesAvailable (int bikesAvailable){
         numOfBikesAvailable = bikesAvailable;
+    }
+
+    public void setStationName (String name){
+        stationName = name;
     }
 }

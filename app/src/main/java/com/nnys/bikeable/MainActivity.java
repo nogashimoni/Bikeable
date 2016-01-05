@@ -27,10 +27,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageView img = (ImageView)findViewById(R.id.bike_animation_image);
-        img.setBackgroundResource(R.drawable.bike_anim);
-        AnimationDrawable frameAnimation = (AnimationDrawable) img.getBackground();
-        frameAnimation.start();
+        //ImageView img = (ImageView)findViewById(R.id.bike_animation_image);
+        //img.setBackgroundResource(R.drawable.bike_anim);
+        //AnimationDrawable frameAnimation = (AnimationDrawable) img.getBackground();
+        //frameAnimation.start();
 
         // to enable getting data from Tel Aviv muni website
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();

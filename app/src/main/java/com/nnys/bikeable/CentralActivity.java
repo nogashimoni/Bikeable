@@ -170,6 +170,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.drawRouteMarkers(mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                         .getInteger(R.integer.bound_padding)));
+                //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
                 try {
                     allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
                 } catch (IOException e) {
@@ -440,9 +441,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         ));
 
+        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater()));
+
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                if (marker.getTitle().equals("TelOFun")) {
+                    try {
+                        IriaData.updateTelOFunBikesAvailability();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 marker.showInfoWindow();
                 return true;
             }
@@ -479,7 +489,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
-            startLocationUpdates();
+            //startLocationUpdates();
         }
     }
 

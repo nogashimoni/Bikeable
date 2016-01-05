@@ -88,6 +88,7 @@ public class IriaData {
         for (TelOFunStation station : telOFunStationsDict.values()) {
             telOFunMarkers.add(
                     mMap.addMarker(new MarkerOptions()
+                            .title("TelOFun").snippet(Integer.toString(station.getId()))
                             .position(station.getCoordinates())
                             .icon(BitmapDescriptorFactory
                                     .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
@@ -153,7 +154,7 @@ public class IriaData {
     }
 
     public static void updateTelOFunBikesAvailability() throws IOException {
-        URL telOFunStationsURL = new URL("https://www.tel-o-fun.co.il/%D7%AA%D7%97%D7%A0%D7%95%D7%AA%D7%AA%D7%9C%D7%90%D7%95%D7%A4%D7%9F.aspx");
+        URL telOFunStationsURL = new URL("https://www.tel-o-fun.co.il/en/TelOFunLocations.aspx");
         String urlResponse = UrlManager.getUrlResponse(telOFunStationsURL);
         int indexOfSectionStart = urlResponse.indexOf("setMarker") + "setMarker".length();
         int indexOfSectionEnd = urlResponse.indexOf("</script>", indexOfSectionStart);
@@ -165,14 +166,18 @@ public class IriaData {
     }
 
     public static void updateStationData (String stationData){
-        String[] stationDataArr = stationData.split(",");
-        int numOfStands = Integer.parseInt(makeJustDigitsStr(stationDataArr[5]));
-        int numOfFreeStandsInStation = Integer.parseInt(makeJustDigitsStr (stationDataArr[6]));
-        int stationId = Integer.parseInt(makeJustDigitsStr (stationDataArr[2]));
+        String[] stationTwoPartArray = stationData.split("(?<=[0-9],')");
+        String[] StationNumbersArray = stationTwoPartArray[0].split(",");
+        int stationId = Integer.parseInt(StationNumbersArray[2]);
+        String[] stationStringsArray = stationTwoPartArray[1].split("',[ ']");
+        int numOfStands = Integer.parseInt(makeJustDigitsStr(stationStringsArray[2]));
+        int numOfFreeStandsInStation = Integer.parseInt(makeJustDigitsStr(stationStringsArray[3]));
+        String stationName = stationStringsArray[0];
         if (telOFunStationsDict.containsKey(stationId)){
             telOFunStationsDict.get(stationId).setNumOfStands(numOfStands);
             telOFunStationsDict.get(stationId).setNumOfStandsAvailable(numOfFreeStandsInStation);
             telOFunStationsDict.get(stationId).setNumOfBikesAvailable(numOfStands - numOfFreeStandsInStation);
+            telOFunStationsDict.get(stationId).setStationName(stationName);
         }
     }
 

@@ -129,7 +129,6 @@ public class AllRoutes {
     public void calculateClosestTelOFunStationsData (GoogleMap mMap, DirectionsManager directionsManager) throws IOException {
         chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
         IriaData.updateTelOFunBikesAvailability();
-        System.out.println("data: " + closestTelOFunStationsSource.get(0).getNumOfBikesAvailable());
     }
 
     public void chooseTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
@@ -144,6 +143,7 @@ public class AllRoutes {
         for (TelOFunStation station : stations) {
             telOFunMarkers.add(
                     mMap.addMarker(new MarkerOptions()
+                            .title("TelOFun").snippet(Integer.toString(station.getId()))
                             .position(station.getCoordinates())
                             .icon(BitmapDescriptorFactory
                                     .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
