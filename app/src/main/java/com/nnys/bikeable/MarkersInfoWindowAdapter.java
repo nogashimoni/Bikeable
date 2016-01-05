@@ -27,35 +27,34 @@ public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
     @SuppressLint("InflateParams")
     @Override
     public View getInfoContents(Marker marker) {
-        //if (popup == null) {
-            //popup = inflater.inflate(R.layout.info_window_layout, null);
-        //}
+
+        if (popup == null) {
+            popup = inflater.inflate(R.layout.info_window_layout, null);
+        }
+
+        TextView tvTitle = (TextView) popup.findViewById(R.id.title);;
+        TextView tvBike =  (TextView) popup.findViewById(R.id.bike_data);
+        TextView tvStands =  (TextView) popup.findViewById(R.id.stands_data);
+
 
         if (marker.getTitle().equals("TelOFun")) {
-            if (popup == null) {
-                popup = inflater.inflate(R.layout.info_window_layout, null);
-            }
-            TextView tvBike;
+
             int stationId = Integer.parseInt(marker.getSnippet());
             TelOFunStation station = IriaData.getTelOfanStationsDict().get(stationId);
             int bikesAvailable = station.getNumOfBikesAvailable();
             int standsAvailable = station.getNumOfStandsAvailable();
             String stationName = station.getStationName();
 
-            tvBike = (TextView) popup.findViewById(R.id.title);
-            tvBike.setText(stationName);
-            tvBike = (TextView) popup.findViewById(R.id.bike_data);
+            tvTitle.setText(stationName);
+            tvBike.setVisibility(View.VISIBLE);
             tvBike.setText("bikes available: " + bikesAvailable);
-            tvBike = (TextView) popup.findViewById(R.id.stands_data);
-            tvBike.setText("stands available: " + standsAvailable);
+            tvStands.setVisibility(View.VISIBLE);
+            tvStands.setText("stands available: " + standsAvailable);
         }
         else {
-            if (popup == null) {
-                popup = inflater.inflate(R.layout.info_window_place, null);
-            }
-            TextView tvPlace;
-            tvPlace = (TextView) popup.findViewById(R.id.title);
-            tvPlace.setText(marker.getTitle());
+            tvTitle.setText(marker.getTitle());
+            tvBike.setVisibility(View.GONE);
+            tvStands.setVisibility(View.GONE);
         }
 
         return (popup);
