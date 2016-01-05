@@ -607,6 +607,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                    }
                    tempMarker = mMap.addMarker(new MarkerOptions()
                            .position(markerLatLng));
+                   tempMarker.setTitle("Temp Marker");
                    markerOptsLayout.setVisibility(View.VISIBLE);
                    if (isSlidingPanelEnabled) { enableSlidingPanel(); }
 //                   Projection projection = mMap.getProjection();

@@ -134,13 +134,8 @@ public class AllRoutes {
     }
 
     public void chooseTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
-        closestTelOFunStationsSource = findClosestTelOFunStations(directionsManager.getFromLatLng());
-        closestTelOFunStationsDestination = findClosestTelOFunStations(directionsManager.getToLatLng());
-    public void findTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
-        ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsSource =
-                findClosestTelOFunStations(directionsManager.getFromLatLngCurr());
-        ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsDestination =
-                findClosestTelOFunStations(directionsManager.getToLatLngCurr());
+        closestTelOFunStationsSource = findClosestTelOFunStations(directionsManager.getFromLatLngCurr());
+        closestTelOFunStationsDestination = findClosestTelOFunStations(directionsManager.getToLatLngCurr());
         telOFunSourceMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsSource);
         telOFunDestinationMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsDestination);
     }

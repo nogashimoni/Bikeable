@@ -98,9 +98,7 @@ public class DirectionsManager {
         return directionBounds;
     }
 
-    public LatLng getFromLatLngCurr(){
-        return fromLatLngCurr;
-    }
+    public LatLng getFromLatLngCurr(){ return fromLatLngCurr; }
 
     public LatLng getToLatLngCurr(){
         return toLatLngCurr;
