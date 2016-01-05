@@ -30,6 +30,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     boolean doClear = false;
     AutocompletePrediction prediction;
     ClearableAutoCompleteTextView currView = this;
+    Context context;
 
     // if not set otherwise, the default clear listener clears the text in the
     // text view
@@ -59,6 +60,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     /* Required methods, not used in this implementation */
     public ClearableAutoCompleteTextView(Context context) {
         super(context);
+        this.context = context;
         init();
     }
 

@@ -66,14 +66,11 @@ public class AllRoutes {
 
         for (int i = 0; i < getNumRoutes(); i++){
             if (i == routeInd){
-                bikeableRoutes.get(i).routePolyline.setColor(0xFF84E0FF);
+                bikeableRoutes.get(i).routePolyline.setColor(0xFF6ebad4);
                 bikeableRoutes.get(i).routePolyline.setZIndex(1);
             }
             else{
-                if (i == bestRouteIndex)
-                    bikeableRoutes.get(i).routePolyline.setColor(0xFF11b468);
-                else
-                    bikeableRoutes.get(i).routePolyline.setColor(Color.BLACK);
+                bikeableRoutes.get(i).routePolyline.setColor(Color.GRAY);
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
@@ -161,7 +158,7 @@ public class AllRoutes {
         PolylineOptions onePointPolyLine = new PolylineOptions();
         onePointPolyLine.add(point);
         for (TelOFunStation station: allStations.values()){
-            if (PolyUtil.isLocationOnPath(station.getCoordinates(), onePointPolyLine.getPoints(), true, 200)){
+            if (PolyUtil.isLocationOnPath(station.getCoordinates(), onePointPolyLine.getPoints(), true, 1000)){
                 closestStations.add(station);
             }
         }

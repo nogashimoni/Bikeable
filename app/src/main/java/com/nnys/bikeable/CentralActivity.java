@@ -300,10 +300,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100));
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100) + " %");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
-
     }
 
     private void clearInfoTable() {
