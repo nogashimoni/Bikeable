@@ -82,7 +82,7 @@ public class GraphToMapConnector {
             // Get back the mutable Circle
             LatLng gmsLatLng = MapUtils.getGmsLatLngFromModel(tappedLatLng);
             Circle circle = googleMap.addCircle(circleOptions);
-            boolean doesGraphHideCircle = googleMap.getProjection().toScreenLocation(gmsLatLng).y > 1000;
+            boolean doesGraphHideCircle = googleMap.getProjection().toScreenLocation(gmsLatLng).y > PhoneUtils.getScreenHeight()/2;
             if (!googleMap.getProjection().getVisibleRegion().latLngBounds.contains(gmsLatLng) || doesGraphHideCircle) {
                 if (doesGraphHideCircle) {
                     Log.i("INFO", "graph hides circle so moving");

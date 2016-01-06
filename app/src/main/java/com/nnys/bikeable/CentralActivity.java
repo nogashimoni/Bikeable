@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
@@ -14,6 +15,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -247,6 +249,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                 directionsManager.getDirections();
+                BackgroundTask searchTask = new BackgroundTask(CentralActivity.this);
+                searchTask.execute();
 
                 allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -352,10 +356,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100));
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100) + " %");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
-
     }
 
     private void clearInfoTable() {
@@ -822,6 +825,119 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         // show it
         alertDialog.show();
+    }
+
+
+
+
+    // put as a private class inside the activity class
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+        CentralActivity activity;
+        ProgressDialog ringProgressDialog;
+
+        public BackgroundTask(CentralActivity activity) {
+            ringProgressDialog = new ProgressDialog(activity);
+            this.activity = activity;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            ringProgressDialog.setTitle("Calculating routes");
+            ringProgressDialog.setMessage("Please wait...");
+            ringProgressDialog.setIndeterminate(true);
+            ringProgressDialog.setCancelable(false);
+            ringProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            ringProgressDialog.show();
+
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+            // put here the search code
+
+            isSearchFromCurrentLocation = from.getPrediction()
+                    .getSecondaryText(new StyleSpan(Typeface.BOLD))
+                    .toString()
+                    .equals(getResources().getString(R.string.curr_location_secondary_text));
+
+            Log.i("INFO", "in on click of search button");
+
+            if (directionsManager != null)
+                directionsManager.clearMarkersFromMap();
+
+            startNavButton.setVisibility(View.GONE);
+
+            if ( isSearchFromCurrentLocation ) {
+                if (mCurrentLocation == null){
+                    Toast.makeText(
+                            CentralActivity.this,
+                            "Current Location Unavailable",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Log.i("INFO", "creating from new builder");
+                com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
+                startNavButton.setVisibility(View.VISIBLE);
+                /// currentLocationLatLng
+            } else {
+                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
+            }
+
+            allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
+            directionsManager.drawRouteMarkers(mMap);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
+                    .getInteger(R.integer.bound_padding)));
+            //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
+            try {
+                allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            graphDrawer = new PathElevationGraphDrawer(graph);
+
+            for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
+                BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
+                ElevationResult[] results = bikeableRoute.elevationQuerier
+                        .getElevationSamples(bikeableRoute.numOfElevationSamples);
+                graphDrawer.addSeries(results, i);
+            }
+
+            graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
+
+            GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
+            graphToMapConnector.connect();
+
+            if ( isShowBikeRouteMatchesChecked ) {
+                showBikePathMatchesOnMap();
+            }
+            if (isShowCloseTelOFunStationsChecked){
+                allRoutes.showTelOFunDestinationMatchesOnMap();
+                allRoutes.showTelOFunSourceMatchesOnMap();
+            }
+            updateInfoTable();
+            enableSlidingPanel();
+            hideSearchView();
+
+
+            if (ringProgressDialog.isShowing()) {
+                ringProgressDialog.dismiss();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
     }
     private void initMarkerAddOptions() {
 

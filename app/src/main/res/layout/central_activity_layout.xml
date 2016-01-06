@@ -246,7 +246,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="uphill degree:\n(Average) "/>
+                    android:text="uphill degree (Avg): "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -262,7 +262,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="% Bike path: "/>
+                    android:text="Bike path: "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
