@@ -1,5 +1,6 @@
 package com.nnys.bikeable;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 
@@ -36,8 +37,8 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(80); //has to divide by for in order that x-axis legand will show integers
         graph.setBackgroundColor(Color.rgb(249, 255, 255));
+        graph.getLayoutParams().height = PhoneUtils.getScreenHeight()/4;
         formatXAxix(graph);
-
     }
 
 

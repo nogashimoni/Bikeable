@@ -1,27 +1,38 @@
 package com.nnys.bikeable;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -42,23 +53,32 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.maps.GeocodingApi;
+import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
+import com.google.maps.model.GeocodingResult;
+import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -67,6 +87,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             new LatLng(32.009575, 34.662469), new LatLng(32.240376, 35.011864));
 
     private static final LatLng TAU_LATLNG = new LatLng(32.113496, 34.804388);
+
+    private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     protected GoogleApiClient mGoogleApiClient;
     protected GeoApiContext context;
@@ -80,8 +102,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
+    private Marker tempMarker;
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
+    private LinearLayout markerOptsLayout;
+    private SlidingUpPanelLayout slidingUpLayout;
 
 
     private PathElevationGraphDrawer graphDrawer;
@@ -90,7 +115,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
-    boolean isSearchFromCurrentLocation;
 
     TextView pathDurationTextView;
     TextView pathPercTextView;
@@ -102,6 +126,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
 
+    private boolean isSlidingPanelEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,12 +146,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 
-        disableSlidingPanel();
-
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+
+        disableSlidingPanel();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -140,6 +166,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 getResources().getString(R.string.curr_location_secondary_text)));
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
+        from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
+                if (isSearchFromCurrentLocation()) {
+                    if (mCurrentLocation == null) {
+                        Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
+                } else {
+                    directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
+                }
+                markerOptsLayout.setVisibility(View.GONE);
+                updateMapToNewMArkerState();
+            }
+        });
+
+        to.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                to.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
+                if (tempMarker != null)
+                    tempMarker.remove();
+                markerOptsLayout.setVisibility(View.GONE);
+                directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
+                updateMapToNewMArkerState();
+            }
+        });
+        from.setOnClearExtraListener(new ClearableAutoCompleteTextView.OnClearExtraListener() {
+            @Override
+            public void onClearExtra() {
+                directionsManager.clearNewMarker(true);
+            }
+        });
+        to.setOnClearExtraListener(new ClearableAutoCompleteTextView.OnClearExtraListener() {
+            @Override
+            public void onClearExtra() {
+                directionsManager.clearNewMarker(false);
+            }
+        });
+
 
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
@@ -149,6 +217,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mapFragment.getMapAsync(this);
 
         context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
+
+        directionsManager = new DirectionsManager(context, mMap);
+
+        initMarkerAddOptions();
 
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
         searchBtn = (ImageButton) findViewById(R.id.res_button);
@@ -160,66 +232,24 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                if ( (from.getPrediction() == null || to.getPrediction() == null)){
+                if (from.getPrediction() == null || to.getPrediction() == null){
                     return;
                 }
-                isSearchFromCurrentLocation = from.getPrediction()
-                        .getSecondaryText(new StyleSpan(Typeface.BOLD))
-                        .toString()
-                        .equals(getResources().getString(R.string.curr_location_secondary_text));
-
-                Log.i("INFO", "in on click of search button");
-
-                if (directionsManager != null)
-                    directionsManager.clearMarkersFromMap();
+                if (isSearchFromCurrentLocation() && mCurrentLocation == null){
+                    Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 startNavButton.setVisibility(View.GONE);
 
                 // hide keyboard on search
-                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                hideKeyboard();
+//                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                if ( isSearchFromCurrentLocation ) {
-                    Log.i("INFO", "creating from new builder");
-                    com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-                    directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
-                    startNavButton.setVisibility(View.VISIBLE);
-                     /// currentLocationLatLng
-                } else {
-                    directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
-                }
-
-                allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
-                directionsManager.drawRouteMarkers(mMap);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
-                        .getInteger(R.integer.bound_padding)));
-                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
-
-                graphDrawer = new PathElevationGraphDrawer(graph);
-
-                for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
-                    BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
-                    ElevationResult[] results = bikeableRoute.elevationQuerier
-                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results, i);
-                }
-
-                graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
-
-                GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
-                graphToMapConnector.connect();
-
-                if ( isShowBikeRouteMatchesChecked ) {
-                    showBikePathMatchesOnMap();
-                }
-                if (isShowCloseTelOFunStationsChecked){
-                    allRoutes.showTelOFunDestinationMatchesOnMap();
-                    allRoutes.showTelOFunSourceMatchesOnMap();
-                }
-                updateInfoTable();
-                enableSlidingPanel();
-                enableSlidingPanel(); //TODO doesn't work
-                hideSearchView();
+                //put in the search button onClick:
+                BackgroundTask task = new BackgroundTask(CentralActivity.this);
+                task.execute();
 
             }
         });
@@ -242,6 +272,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
+    private boolean isSearchFromCurrentLocation() {
+        if (from.getPrediction() == null) {
+            return false;
+        }
+        return from.getPrediction()
+                .getSecondaryText(new StyleSpan(Typeface.BOLD))
+                .toString()
+                .equals(getResources().getString(R.string.curr_location_secondary_text));
+    }
+
     private void hideSearchView() {
         searchLayout.setVisibility(View.GONE);
         if (menuSearch != null){
@@ -261,14 +301,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(0);
+        isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(80);
-
+        isSlidingPanelEnabled = true;
     }
 
     private void updateInfoTable() {
@@ -281,10 +322,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100));
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
-
     }
 
     private void clearInfoTable() {
@@ -405,6 +445,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 else{
                     item.setChecked(false);
+                    isShowCloseTelOFunStationsChecked = false;
                     if (!IriaData.isDataReceived){
                         return true;
                     }
@@ -471,12 +512,19 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        if (directionsManager != null && directionsManager.getMap() == null) {
+            directionsManager.setMap(mMap);
+        }
+
         mMap.setMyLocationEnabled(true);
 
         LatLng placeToFocusOn;
         if ( mCurrentLocation == null ) {
+            Log.i("INFO:", "set focus on tlv");
             placeToFocusOn = TAU_LATLNG;            // focus map on tau
         } else {
+            Log.i("INFO:", "set focus on current location");
             placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         }
 //        mMap.addMarker(new MarkerOptions()
@@ -491,44 +539,56 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
+                markerOptsLayout.setVisibility(View.GONE);
+                if (tempMarker != null)
+                    tempMarker.remove();
+
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
                     MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
-                        if (isSearchFromCurrentLocation) {
-                            startNavButton.setVisibility(View.VISIBLE);
-                        }
-
                     }
                 }
             }
         }
         ));
 
+        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater()));
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+
+               @Override
+               public void onMapLongClick(LatLng markerLatLng) {
+                   if (tempMarker != null) {
+                       tempMarker.remove();
+                   }
+                   tempMarker = mMap.addMarker(new MarkerOptions()
+                           .position(markerLatLng));
+                   tempMarker.setTitle("Temp Marker");
+                   markerOptsLayout.setVisibility(View.VISIBLE);
+                   if (isSlidingPanelEnabled) {
+                       enableSlidingPanel();
+                   }
+               }
+           }
+        );
+
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                if (marker.getTitle().equals("TelOFun")) {
+                    try {
+                        IriaData.updateTelOFunBikesAvailability();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 marker.showInfoWindow();
                 return true;
             }
         });
-
-
-        /*double[][] arr2 =  {{32.141237, 34.800872}, {32.141489, 34.800135}, {32.141641, 34.799725}, {32.141962, 34.798795},
-                {32.142071, 34.798485}, {32.142149, 34.798263}, {32.142359, 34.797588}, {32.142451, 34.797285}};
-        ArrayList<com.google.android.gms.maps.model.LatLng> points = new ArrayList<>();
-        for (int i = 0; i < 8; i++){
-            points.add(new LatLng(arr2[i][0], arr2[i][1]));
-        }
-        PolylineOptions line = new PolylineOptions();
-        com.google.android.gms.maps.model.LatLng currPoint;
-        for (com.google.android.gms.maps.model.LatLng point : points) {
-            currPoint = new com.google.android.gms.maps.model.LatLng(point.latitude, point.longitude);
-            line.add(currPoint);
-        }
-        mMap.addPolyline(line);*/
     }
 
 
@@ -546,9 +606,48 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         boolean mRequestingLocationUpdates = true;
         if (mRequestingLocationUpdates) {
             createLocationRequest();
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // if sdk is marshmallow
+                if (ContextCompat.checkSelfPermission(CentralActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // permission is not granted
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(CentralActivity.this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // if permissions explanation is needed
+                        Toast.makeText(getApplicationContext(),
+                                "GPS permission allows us to access location data." +
+                                " Please allow in App Settings for additional " +
+                                "functionality.",Toast.LENGTH_LONG).show();
+                    } else {
+                        ActivityCompat.requestPermissions(CentralActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSION_REQUEST_CODE_LOCATION);
+                    }
+                    return; // permission is not yet granted
+                }
+            }
+
             startLocationUpdates();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case PERMISSION_REQUEST_CODE_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationUpdates();
+                } else {
+                    Toast.makeText(getApplicationContext(),"Permission Denied," +
+                            " You cannot access location data.",Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {
@@ -682,5 +781,183 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         alertDialog.show();
     }
 
-}
 
+
+
+    // put as a private class inside the activity class
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+        CentralActivity activity;
+        ProgressDialog ringProgressDialog;
+
+        public BackgroundTask(CentralActivity activity) {
+            ringProgressDialog = new ProgressDialog(activity);
+            this.activity = activity;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            ringProgressDialog.setTitle("Calculating routes");
+            ringProgressDialog.setMessage("Please wait...");
+            ringProgressDialog.setIndeterminate(true);
+            ringProgressDialog.setCancelable(false);
+            ringProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            ringProgressDialog.show();
+
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+            // put here the search code
+            disableSlidingPanel();
+
+            directionsManager.getDirections();
+
+            allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
+                    .getInteger(R.integer.bound_padding)));
+            //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
+            try {
+                allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            graphDrawer = new PathElevationGraphDrawer(graph);
+
+            for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
+                BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
+                ElevationResult[] results = bikeableRoute.elevationQuerier
+                        .getElevationSamples(bikeableRoute.numOfElevationSamples);
+                graphDrawer.addSeries(results, i);
+            }
+
+            graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
+
+            GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
+            graphToMapConnector.connect();
+
+            if ( isShowBikeRouteMatchesChecked ) {
+                showBikePathMatchesOnMap();
+            }
+            if (isShowCloseTelOFunStationsChecked){
+                allRoutes.showTelOFunDestinationMatchesOnMap();
+                allRoutes.showTelOFunSourceMatchesOnMap();
+            }
+            updateInfoTable();
+            enableSlidingPanel();
+            hideSearchView();
+            if (isSearchFromCurrentLocation()) {
+                startNavButton.setVisibility(View.VISIBLE);
+            }
+
+            if (ringProgressDialog.isShowing()) {
+                ringProgressDialog.dismiss();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+    }
+
+    private void initMarkerAddOptions() {
+
+        markerOptsLayout =  (LinearLayout) findViewById(R.id.marker_opts);
+        Button markerOriginBtn = (Button) findViewById(R.id.marker_origin);
+        Button markerDestBtn = (Button) findViewById(R.id.marker_dest);
+        Button markerCancelBtn = (Button) findViewById(R.id.marker_cancel);
+
+        markerOriginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String primaryText;
+                String secondaryText;
+                String placeId = null;
+                try {
+                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
+                    primaryText = results[0].formattedAddress;
+                    secondaryText = "";
+                    placeId = results[0].placeId;
+                } catch (Exception e) {
+                    primaryText = "Custom Origin";
+                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
+                            .latitude, tempMarker.getPosition().longitude);
+                    e.printStackTrace();
+                }
+
+                CustomAutoCompletePrediction newPrediction =
+                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
+                from.setPrediction(newPrediction, true);
+                directionsManager.setNewMarkerByCustomPrediction(true, tempMarker.getPosition(), newPrediction);
+                updateMapToNewMArkerState();
+            }
+        });
+
+        markerDestBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String primaryText;
+                String secondaryText;
+                String placeId = null;
+                try {
+                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
+                    primaryText = results[0].formattedAddress;
+                    secondaryText = "";
+                    placeId = results[0].placeId;
+                } catch (Exception e) {
+                    primaryText = "Custom Origin";
+                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
+                            .latitude, tempMarker.getPosition().longitude);
+                    e.printStackTrace();
+                }
+
+                CustomAutoCompletePrediction newPrediction =
+                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
+                to.setPrediction(newPrediction, true);
+                directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), newPrediction);
+                updateMapToNewMArkerState();
+            }
+        });
+
+        markerCancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                markerOptsLayout.setVisibility(View.GONE);
+                tempMarker.remove();
+            }
+        });
+    }
+
+    private void updateMapToNewMArkerState() {
+        Log.i("Info:","updateMapToNewMArkerState");
+        startNavButton.setVisibility(View.GONE);
+        searchLayout.setVisibility(View.VISIBLE);
+        markerOptsLayout.setVisibility(View.GONE);
+
+        allRoutes.removeCurrentRoutes();
+        disableSlidingPanel();
+
+        hideKeyboard();
+
+        if (tempMarker != null) {
+            tempMarker.remove();
+        }
+    }
+
+    private void hideKeyboard(){
+        // hide keyboard on search
+        InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
+    }
+}

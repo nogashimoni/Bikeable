@@ -30,6 +30,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     boolean doClear = false;
     AutocompletePrediction prediction;
     ClearableAutoCompleteTextView currView = this;
+    Context context;
 
     // if not set otherwise, the default clear listener clears the text in the
     // text view
@@ -47,6 +48,8 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
     public OnClearListener onClearListener = defaultClearListener;
 
+    public OnClearExtraListener onClearExtraListener;
+
     /* The image we defined for the clear button */
     public Drawable imgClearButton = ContextCompat.getDrawable(getContext(),
             R.drawable.abc_ic_clear_mtrl_alpha);
@@ -56,9 +59,14 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         void onClear();
     }
 
+    public interface OnClearExtraListener {
+        void onClearExtra();
+    }
+
     /* Required methods, not used in this implementation */
     public ClearableAutoCompleteTextView(Context context) {
         super(context);
+        this.context = context;
         init();
     }
 
@@ -144,6 +152,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                 }
 
                 if (event.getX() > et.getWidth() - et.getPaddingRight() - imgClearButton.getIntrinsicWidth()) {
+                    currView.onClearExtraListener.onClearExtra();
                     doClear = true;
                     currView.setText("");
                 }
@@ -180,6 +189,10 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         this.onClearListener = clearListener;
     }
 
+    public void setOnClearExtraListener(final OnClearExtraListener extraListener){
+        this.onClearExtraListener = extraListener;
+    }
+
     public void hideClearButton() {
         this.setCompoundDrawables(null, null, null, null);
     }
@@ -192,7 +205,10 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         return prediction;
     }
 
-    public void setPrediction(AutocompletePrediction prediction) {
+    public void setPrediction(AutocompletePrediction prediction, boolean setText) {
         this.prediction = prediction;
+        if (setText)
+            this.setText(prediction.getDescription(), false);
     }
+
 }

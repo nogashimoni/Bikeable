@@ -1,119 +1,93 @@
 package com.nnys.bikeable;
 
-import android.text.style.CharacterStyle;
-import android.util.Log;
-
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.DirectionsApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
-import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
-import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DirectionsManager {
 
     private GeoApiContext context;
+    private GoogleMap mMap;
     private DirectionsRoute[] calculatedRoutes;
-    private AutocompletePrediction from;
-    private AutocompletePrediction to;
-    private com.google.android.gms.maps.model.LatLng fromLatLng, toLatLng;
-    private PlaceDetails from_placeDetails, to_placeDetails;
     private LatLngBounds.Builder directionBoundsBuilder;
     private LatLngBounds directionBounds;
-    private ArrayList<Marker> directionMarkers;
+    private com.google.android.gms.maps.model.LatLng fromLatLngCurr, toLatLngCurr, fromLatLngNew, toLatLngNew;
+    private String fromTitleCurr, toTitleCurr, fromTitleNew, toTitleNew;
 
-    public DirectionsManager(GeoApiContext context, AutocompletePrediction from, AutocompletePrediction to){
-        this.from = from;
-        this.to = to;
-        try { //TODO: handle failure here properly
-            from_placeDetails = PlacesApi.placeDetails(context, from.getPlaceId()).await();
-            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        fromLatLng = MapUtils.getGmsLatLngFromModel(from_placeDetails.geometry.location);
-        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
+    private Marker fromMarkerCurr, fromMarkerNew, toMarkerCurr, toMarkerNew;
+
+//    private AutocompletePrediction from;
+//    private AutocompletePrediction to;
+//    private PlaceDetails from_placeDetails, to_placeDetails;
+
+
+    public DirectionsManager(GeoApiContext context, GoogleMap mMap){
+        this.context = context;
+        if (mMap != null)
+            this.mMap = mMap;
+        calculatedRoutes = null;
+        directionBounds = null;
+    }
+
+    public void getDirections(){
+
+        this.fromLatLngCurr = fromLatLngNew;
+        this.toLatLngCurr = toLatLngNew;
+        this.fromTitleCurr = fromTitleNew;
+        this.toTitleCurr = toTitleNew;
+
         try {
             calculatedRoutes = DirectionsApi.newRequest(context)
                     .alternatives(true)
                     .mode(TravelMode.WALKING)
-                    .origin(from_placeDetails.geometry.location)
-                    .destination(to_placeDetails.geometry.location)
+                    .origin(MapUtils.getModelLatLngFromGms(fromLatLngCurr))
+                    .destination(MapUtils.getModelLatLngFromGms(toLatLngCurr))
                     .await();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        directionBoundsBuilder = new LatLngBounds.Builder();
-        directionBoundsBuilder.include(fromLatLng);
-        directionBoundsBuilder.include(toLatLng);
-        directionBounds = directionBoundsBuilder.build();
+
+        clearMarkersFromMap();
+        drawRouteMarkers();
+        updateBounds();
     }
 
-    public DirectionsManager(GeoApiContext context, com.google.android.gms.maps.model.LatLng cuurentLocationLatLng, AutocompletePrediction to) {
-        this.from = null;
-        this.to = to;
-        try { //TODO: handle failure here properly
-            from_placeDetails = null;
-            to_placeDetails = PlacesApi.placeDetails(context, to.getPlaceId()).await();
-            if ( to_placeDetails == null ) {
-                Log.i("INFO", "to place detailes is null!!!!!!!");
-                throw new Exception();
-            }
-            Log.i("INFO", "finished annoying part");
-        } catch (Exception e) {
-            e.printStackTrace();
+    protected void drawRouteMarkers(){
+        if (fromMarkerCurr != null){
+            fromMarkerCurr.remove();
         }
-        fromLatLng = new com.google.android.gms.maps.model.LatLng(cuurentLocationLatLng.latitude, cuurentLocationLatLng.longitude);
-
-        toLatLng = MapUtils.getGmsLatLngFromModel(to_placeDetails.geometry.location);
-        try {
-            calculatedRoutes = DirectionsApi.newRequest(context)
-                    .alternatives(true)
-                    .mode(TravelMode.WALKING)
-                    .origin(MapUtils.getModelLatLngFromGms(fromLatLng))
-                    .destination(to_placeDetails.geometry.location)
-                    .await();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (toMarkerCurr != null){
+            toMarkerCurr.remove();
         }
-        directionBoundsBuilder = new LatLngBounds.Builder();
-        directionBoundsBuilder.include(fromLatLng);
-        directionBoundsBuilder.include(toLatLng);
-        directionBounds = directionBoundsBuilder.build();
-    }
 
-    protected void drawRouteMarkers(GoogleMap mMap){
-        String fromTitle = ( from == null ? "Current Location": from.getDescription());
-        directionMarkers = new ArrayList<>();
-        MarkerOptions fromMarker = new MarkerOptions()
-                .title(fromTitle)
-                .position(fromLatLng);
-        MarkerOptions toMarker = new MarkerOptions()
-                .title(to.getDescription())
-                .position(toLatLng);
-        directionMarkers.add(mMap.addMarker(fromMarker));
-        directionMarkers.add(mMap.addMarker(toMarker));
-    }
+        fromMarkerCurr = mMap.addMarker(
+                    new MarkerOptions()
+                            .title(fromTitleCurr)
+                            .position(fromLatLngCurr)
+        );
+
+        toMarkerCurr = mMap.addMarker(
+                    new MarkerOptions()
+                        .title(toTitleCurr)
+                        .position(toLatLngCurr)
+        );
+     }
 
     protected void clearMarkersFromMap() {
-        for (Marker marker : directionMarkers){
-            marker.remove();
-        }
+        if (fromMarkerNew != null)
+            fromMarkerNew.remove();
+        if (toMarkerNew != null)
+            toMarkerNew.remove();
     }
 
     public DirectionsRoute[] getCalculatedRoutes(){
@@ -124,11 +98,124 @@ public class DirectionsManager {
         return directionBounds;
     }
 
-    public LatLng getFromLatLng (){
-        return fromLatLng;
+    public LatLng getFromLatLngCurr(){ return fromLatLngCurr; }
+
+    public LatLng getToLatLngCurr(){
+        return toLatLngCurr;
     }
 
-    public LatLng getToLatLng (){
-        return toLatLng;
+    public Marker getFromMarkerCurr() {
+        return fromMarkerCurr;
+    }
+
+    public Marker getToMarkerCurr() {
+        return toMarkerCurr;
+    }
+
+    public void setToMarkerNew(Marker toMarkerNew) {
+        this.toMarkerNew = toMarkerNew;
+    }
+
+    public void setFromMarkerNew(Marker fromMarkerNew) {
+        this.fromMarkerNew = fromMarkerNew;
+    }
+
+    public Marker getFromMarkerNew() {
+        return fromMarkerNew;
+    }
+
+    public Marker getToMarkerNew() {
+        return toMarkerNew;
+    }
+
+    public void setMap(GoogleMap mMap) {
+        this.mMap = mMap;
+    }
+
+    public GoogleMap getMap() {
+        return mMap;
+    }
+
+    private void updateBounds(){
+        directionBoundsBuilder = new LatLngBounds.Builder();
+        directionBoundsBuilder.include(fromLatLngCurr);
+        directionBoundsBuilder.include(toLatLngCurr);
+        directionBounds = directionBoundsBuilder.build();
+    }
+
+    public void setNewMarkerByPlacePrediction(boolean isFrom, AutocompletePrediction prediction) {
+
+        PlaceDetails placeDetails = null;
+        try {
+            placeDetails = PlacesApi.placeDetails(context, prediction.getPlaceId()).await();
+        } catch (Exception e) {
+            e.printStackTrace(); // todo: handle this properly
+        }
+        LatLng markerLatLng = MapUtils.getGmsLatLngFromModel(placeDetails.geometry.location);
+        String markerTitle = prediction.getDescription();
+        Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng).title(markerTitle));
+        if (isFrom){
+            if (this.getFromMarkerNew() != null){
+                this.getFromMarkerNew().remove();
+            }
+            if (this.fromMarkerCurr != null){
+                this.fromMarkerCurr.remove();
+            }
+            this.setFromMarkerNew(newMarker);
+            this.fromLatLngNew = markerLatLng;
+            this.fromTitleNew = prediction.getDescription();
+        }
+        else{ // isTo
+            if (this.getToMarkerNew() != null){
+                this.getToMarkerNew().remove();
+            }
+            if (this.toMarkerCurr != null){
+                this.toMarkerCurr.remove();
+            }
+            this.setToMarkerNew(newMarker);
+            this.toLatLngNew = markerLatLng;
+            this.toTitleNew = prediction.getDescription();
+        }
+    }
+
+    public void setNewMarkerByCustomPrediction(boolean isFrom, LatLng markerLatLng, CustomAutoCompletePrediction prediction) {
+
+        Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng));
+        if (isFrom){
+            if (this.fromMarkerNew != null){
+                this.fromMarkerNew.remove();
+            }
+            if (this.fromMarkerCurr != null){
+                this.fromMarkerCurr.remove();
+            }
+            newMarker.setTitle(prediction.getDescription());
+            this.setFromMarkerNew(newMarker);
+            this.fromLatLngNew = markerLatLng;
+            this.fromTitleNew = prediction.getDescription();
+        }
+        else {  // isTo
+            if (this.toMarkerNew != null){
+                this.toMarkerNew.remove();
+            }
+            if (this.toMarkerCurr != null){
+                this.toMarkerCurr.remove();
+            }
+            newMarker.setTitle(prediction.getDescription());
+            this.setToMarkerNew(newMarker);
+            this.toLatLngNew = markerLatLng;
+            this.toTitleNew = prediction.getDescription();
+        }
+
+    }
+
+    public void clearNewMarker(boolean isFrom) {
+        if (isFrom && fromMarkerNew != null){
+            fromMarkerNew.remove();
+            fromMarkerNew = null;
+        }
+        else if (!isFrom && toMarkerNew != null){
+            toMarkerNew.remove();
+            toMarkerNew = null;
+        }
     }
 }

@@ -11,7 +11,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsRoute;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AllRoutes {
 
@@ -21,6 +23,8 @@ public class AllRoutes {
     private boolean isTelOFunMarkersAdded;
     private boolean isTelOFunSourceStationsShown;
     private boolean isTelOFunDestinantionStationsShown;
+    ArrayList <TelOFunStation> closestTelOFunStationsSource;
+    ArrayList <TelOFunStation> closestTelOFunStationsDestination;
     ArrayList <Marker> telOFunSourceMarkers;
     ArrayList <Marker> telOFunDestinationMarkers;
 
@@ -43,7 +47,7 @@ public class AllRoutes {
         }
     }
 
-    private void removeCurrentRoutes() {
+    public void removeCurrentRoutes() {
         selectedRouteIndex = -1;
         removePolylinesFromMap();
         removeTelOFunMatchesFromMap();
@@ -62,14 +66,11 @@ public class AllRoutes {
 
         for (int i = 0; i < getNumRoutes(); i++){
             if (i == routeInd){
-                bikeableRoutes.get(i).routePolyline.setColor(0xFF84E0FF);
+                bikeableRoutes.get(i).routePolyline.setColor(0xFF6ebad4);
                 bikeableRoutes.get(i).routePolyline.setZIndex(1);
             }
             else{
-                if (i == bestRouteIndex)
-                    bikeableRoutes.get(i).routePolyline.setColor(0xFF11b468);
-                else
-                    bikeableRoutes.get(i).routePolyline.setColor(Color.BLACK);
+                bikeableRoutes.get(i).routePolyline.setColor(Color.GRAY);
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
@@ -124,21 +125,25 @@ public class AllRoutes {
         return bikeableRoutes.get(selectedRouteIndex);
     }
 
-    public void findTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
-        ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsSource =
-                findClosestTelOFunStations(directionsManager.getFromLatLng());
-        ArrayList <com.google.android.gms.maps.model.LatLng> closestTelOFunStationsDestination =
-                findClosestTelOFunStations(directionsManager.getToLatLng());
+    public void calculateClosestTelOFunStationsData (GoogleMap mMap, DirectionsManager directionsManager) throws IOException {
+        chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
+        IriaData.updateTelOFunBikesAvailability();
+    }
+
+    public void chooseTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){
+        closestTelOFunStationsSource = findClosestTelOFunStations(directionsManager.getFromLatLngCurr());
+        closestTelOFunStationsDestination = findClosestTelOFunStations(directionsManager.getToLatLngCurr());
         telOFunSourceMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsSource);
         telOFunDestinationMarkers = addClosestTelOFunToMap(mMap, closestTelOFunStationsDestination);
     }
 
-    public ArrayList <Marker> addClosestTelOFunToMap (GoogleMap mMap, ArrayList <com.google.android.gms.maps.model.LatLng> stations) {
+    public ArrayList <Marker> addClosestTelOFunToMap (GoogleMap mMap, ArrayList <TelOFunStation> stations) {
         ArrayList <Marker> telOFunMarkers = new ArrayList<>();
-        for (com.google.android.gms.maps.model.LatLng station : stations) {
+        for (TelOFunStation station : stations) {
             telOFunMarkers.add(
                     mMap.addMarker(new MarkerOptions()
-                            .position(station)
+                            .title("TelOFun").snippet(Integer.toString(station.getId()))
+                            .position(station.getCoordinates())
                             .icon(BitmapDescriptorFactory
                                     .defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                             .visible(false)));
@@ -147,13 +152,13 @@ public class AllRoutes {
         return telOFunMarkers;
     }
 
-    private ArrayList<com.google.android.gms.maps.model.LatLng> findClosestTelOFunStations (com.google.android.gms.maps.model.LatLng point){
-        ArrayList <com.google.android.gms.maps.model.LatLng> closestStations = new ArrayList<>();
-        ArrayList <com.google.android.gms.maps.model.LatLng> allStations = IriaData.getTelOfanStationsList();
+    private ArrayList<TelOFunStation> findClosestTelOFunStations (com.google.android.gms.maps.model.LatLng point){
+        ArrayList <TelOFunStation> closestStations = new ArrayList<>();
+        HashMap <Integer, TelOFunStation> allStations = IriaData.getTelOfanStationsDict();
         PolylineOptions onePointPolyLine = new PolylineOptions();
         onePointPolyLine.add(point);
-        for (com.google.android.gms.maps.model.LatLng station : allStations){
-            if (PolyUtil.isLocationOnPath(station, onePointPolyLine.getPoints(), true, 200)){
+        for (TelOFunStation station: allStations.values()){
+            if (PolyUtil.isLocationOnPath(station.getCoordinates(), onePointPolyLine.getPoints(), true, 500)){
                 closestStations.add(station);
             }
         }

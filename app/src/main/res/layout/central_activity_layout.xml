@@ -104,7 +104,6 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/centralLayout"
             android:background="@color/searchBG">
             <!--android:background="#b8e7fd"-->
 
@@ -115,6 +114,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <!--map:uiZoomControls="true"-->
+
+            <!--<LinearLayout-->
+                <!--android:id="@+id/marker_anchor"-->
+                <!--android:orientation="horizontal"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"></LinearLayout>-->
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/start_nav_button"
@@ -127,6 +132,40 @@
                 android:src="@drawable/ic_directions_white_24dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"/>
+
+            <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:background="@android:color/transparent"
+                android:id="@+id/marker_opts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:isScrollContainer="false"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/marker_origin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Set origin"
+                    android:textColor="@android:color/white" />
+                <Button
+                    android:id="@+id/marker_dest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Set destination"
+                    android:textColor="@android:color/white"/>
+                <Button
+                    android:id="@+id/marker_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel"
+                    android:textColor="@android:color/white"/>
+            </LinearLayout>
+
         </RelativeLayout>
 
 
@@ -210,7 +249,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="uphill degree:\n(Average) "/>
+                    android:text="uphill degree (Avg): "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -226,7 +265,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="% Bike path: "/>
+                    android:text="Bike path: "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
