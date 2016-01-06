@@ -24,13 +24,13 @@
         android:layout_margin="@dimen/fromto_margin"
         android:text="Set destination"/>
 
-    <TextView
-        android:id="@+id/marker_cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:layout_margin="@dimen/fromto_margin"
-        android:text="Cancel"/>
+    <!--<TextView-->
+        <!--android:id="@+id/marker_cancel"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:clickable="true"-->
+        <!--android:layout_margin="@dimen/fromto_margin"-->
+        <!--android:text="Cancel"/>-->
     <!--<Button-->
         <!--android:id="@+id/marker_origin"-->
         <!--android:layout_width="wrap_content"-->
