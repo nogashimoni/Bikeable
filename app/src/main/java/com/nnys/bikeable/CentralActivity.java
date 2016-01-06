@@ -301,14 +301,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(0);
         isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(80);
         isSlidingPanelEnabled = true;
-
     }
 
     private void updateInfoTable() {
@@ -808,6 +809,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPostExecute(Void result) {
 
             // put here the search code
+            disableSlidingPanel();
 
             directionsManager.getDirections();
 
