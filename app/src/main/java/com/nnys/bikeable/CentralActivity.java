@@ -248,44 +248,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                directionsManager.getDirections();
-                BackgroundTask searchTask = new BackgroundTask(CentralActivity.this);
-                searchTask.execute();
-
-                allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
-                        .getInteger(R.integer.bound_padding)));
-                //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
-                try {
-                    allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                graphDrawer = new PathElevationGraphDrawer(graph);
-
-                for (int i = 0; i < allRoutes.bikeableRoutes.size(); i++ ) {
-                    BikeableRoute bikeableRoute = allRoutes.bikeableRoutes.get(i);
-                    ElevationResult[] results = bikeableRoute.elevationQuerier
-                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results, i);
-                }
-
-                graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
-
-                GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
-                graphToMapConnector.connect();
-
-                if ( isShowBikeRouteMatchesChecked ) {
-                    showBikePathMatchesOnMap();
-                }
-                if (isShowCloseTelOFunStationsChecked){
-                    allRoutes.showTelOFunDestinationMatchesOnMap();
-                    allRoutes.showTelOFunSourceMatchesOnMap();
-                }
-                updateInfoTable();
-                enableSlidingPanel();
-                hideSearchView();
+                //put in the search button onClick:
+                BackgroundTask task = new BackgroundTask(CentralActivity.this);
+                task.execute();
 
             }
         });
@@ -601,24 +566,26 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
-               @Override
-               public void onMapLongClick(LatLng markerLatLng) {
-                   if (popupWindow != null && popupWindow.isShowing())
-                       popupWindow.dismiss();
-                   if (tempMarker != null) {
-                       tempMarker.remove();
-                   }
-                   tempMarker = mMap.addMarker(new MarkerOptions()
-                           .position(markerLatLng));
-                   tempMarker.setTitle("Temp Marker");
-                   markerOptsLayout.setVisibility(View.VISIBLE);
-                   if (isSlidingPanelEnabled) { enableSlidingPanel(); }
+                                           @Override
+                                           public void onMapLongClick(LatLng markerLatLng) {
+                                               if (popupWindow != null && popupWindow.isShowing())
+                                                   popupWindow.dismiss();
+                                               if (tempMarker != null) {
+                                                   tempMarker.remove();
+                                               }
+                                               tempMarker = mMap.addMarker(new MarkerOptions()
+                                                       .position(markerLatLng));
+                                               tempMarker.setTitle("Temp Marker");
+                                               markerOptsLayout.setVisibility(View.VISIBLE);
+                                               if (isSlidingPanelEnabled) {
+                                                   enableSlidingPanel();
+                                               }
 //                   Projection projection = mMap.getProjection();
 //                   Point screenPosition = projection.toScreenLocation(markerLatLng);
 //                   popupView.setVisibility(View.VISIBLE);
 //                   popupWindow.showAsDropDown(markerAnchor, screenPosition.x, screenPosition.y);
-               }
-           }
+                                           }
+                                       }
         );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -856,37 +823,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             // put here the search code
 
-            isSearchFromCurrentLocation = from.getPrediction()
-                    .getSecondaryText(new StyleSpan(Typeface.BOLD))
-                    .toString()
-                    .equals(getResources().getString(R.string.curr_location_secondary_text));
-
-            Log.i("INFO", "in on click of search button");
-
-            if (directionsManager != null)
-                directionsManager.clearMarkersFromMap();
-
-            startNavButton.setVisibility(View.GONE);
-
-            if ( isSearchFromCurrentLocation ) {
-                if (mCurrentLocation == null){
-                    Toast.makeText(
-                            CentralActivity.this,
-                            "Current Location Unavailable",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Log.i("INFO", "creating from new builder");
-                com.google.android.gms.maps.model.LatLng currentLocationLatLng = new com.google.android.gms.maps.model.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-                directionsManager = new DirectionsManager(context, currentLocationLatLng, to.getPrediction());
-                startNavButton.setVisibility(View.VISIBLE);
-                /// currentLocationLatLng
-            } else {
-                directionsManager = new DirectionsManager(context, from.getPrediction(), to.getPrediction());
-            }
+            directionsManager.getDirections();
+            BackgroundTask searchTask = new BackgroundTask(CentralActivity.this);
+            searchTask.execute();
 
             allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
-            directionsManager.drawRouteMarkers(mMap);
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                     .getInteger(R.integer.bound_padding)));
             //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
@@ -920,6 +861,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             updateInfoTable();
             enableSlidingPanel();
             hideSearchView();
+
 
 
             if (ringProgressDialog.isShowing()) {
