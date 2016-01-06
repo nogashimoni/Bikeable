@@ -7,12 +7,16 @@ import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * sub class of {@link android.widget.AutoCompleteTextView} that includes a clear (dismiss / close) button with
@@ -26,6 +30,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     boolean doClear = false;
     AutocompletePrediction prediction;
     ClearableAutoCompleteTextView currView = this;
+    Context context;
 
     // if not set otherwise, the default clear listener clears the text in the
     // text view
@@ -43,6 +48,8 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
     public OnClearListener onClearListener = defaultClearListener;
 
+    public OnClearExtraListener onClearExtraListener;
+
     /* The image we defined for the clear button */
     public Drawable imgClearButton = ContextCompat.getDrawable(getContext(),
             R.drawable.abc_ic_clear_mtrl_alpha);
@@ -52,9 +59,14 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         void onClear();
     }
 
+    public interface OnClearExtraListener {
+        void onClearExtra();
+    }
+
     /* Required methods, not used in this implementation */
     public ClearableAutoCompleteTextView(Context context) {
         super(context);
+        this.context = context;
         init();
     }
 
@@ -96,6 +108,9 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                 }
                 else {
                     currView.showClearButton();
+                    if(s.length() < getResources().getInteger(R.integer.auto_complete_thresh)){
+                        showOnlyFixedResults();
+                    }
                 }
             }
         });
@@ -127,19 +142,39 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
                 ClearableAutoCompleteTextView et = ClearableAutoCompleteTextView.this;
 
-                if (et.getCompoundDrawables()[2] == null)
+                if (et.getCompoundDrawables()[2] == null) {
+                    showOnlyFixedResults();
                     return false;
+                }
 
-                if (event.getAction() != MotionEvent.ACTION_UP)
+                if (event.getAction() != MotionEvent.ACTION_UP) {
                     return false;
+                }
 
                 if (event.getX() > et.getWidth() - et.getPaddingRight() - imgClearButton.getIntrinsicWidth()) {
+                    currView.onClearExtraListener.onClearExtra();
                     doClear = true;
                     currView.setText("");
                 }
                 return false;
             }
         });
+    }
+
+    private void showOnlyFixedResults() {
+        PlaceAutocompleteAdapter currAdapter = (PlaceAutocompleteAdapter) currView.getAdapter();
+        if (currAdapter.getFixedResults().size() == 0) {
+            Log.i("INFO:", "no fixed results run");
+            // no fixed results
+            return;
+        }
+        currAdapter.setResultsList(new ArrayList<AutocompletePrediction>(currAdapter.getFixedResults()));
+        currView.getHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                currView.showDropDown();
+            }
+        }, 500);
     }
 
     public void setImgClearButton(Drawable imgClearButton) {
@@ -154,6 +189,10 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         this.onClearListener = clearListener;
     }
 
+    public void setOnClearExtraListener(final OnClearExtraListener extraListener){
+        this.onClearExtraListener = extraListener;
+    }
+
     public void hideClearButton() {
         this.setCompoundDrawables(null, null, null, null);
     }
@@ -166,7 +205,10 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         return prediction;
     }
 
-    public void setPrediction(AutocompletePrediction prediction) {
+    public void setPrediction(AutocompletePrediction prediction, boolean setText) {
         this.prediction = prediction;
+        if (setText)
+            this.setText(prediction.getDescription(), false);
     }
+
 }

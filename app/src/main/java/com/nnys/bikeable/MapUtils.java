@@ -1,5 +1,7 @@
 package com.nnys.bikeable;
 
+import android.location.Location;
+
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.LatLng;
 import com.skobbler.ngx.SKCoordinate;
@@ -44,7 +46,6 @@ public class MapUtils {
             // TODO: change 100 to constant value
             BikeableRoute route = allRoutes.getAllRoutes().get(i);
             if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 100)){
-                allRoutes.setSelectedRouteIndex(i);
                 allRoutes.selectAndColorRoute(i);
                 break;
             }
@@ -57,6 +58,10 @@ public class MapUtils {
             result.add(getSKLatLngFromGms(gmsLatLng));
         }
         return result;
+    }
+
+    public static com.google.android.gms.maps.model.LatLng getGMSFromLocation(Location location){
+        return new com.google.android.gms.maps.model.LatLng(location.getLatitude(), location.getLongitude());
     }
 
 }

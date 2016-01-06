@@ -24,7 +24,6 @@
         android:orientation="vertical"
         android:background="@color/colorPrimaryLight">
 
-
         <LinearLayout
             android:id="@+id/search_layout"
             android:layout_width="fill_parent"
@@ -108,12 +107,16 @@
                     android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
+        <android.support.design.widget.CoordinatorLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/centralLayout"
             android:background="@color/searchBG">
             <!--android:background="#b8e7fd"-->
 
@@ -125,18 +128,55 @@
                 android:layout_height="wrap_content" />
             <!--map:uiZoomControls="true"-->
 
+            <!--<LinearLayout-->
+                <!--android:id="@+id/marker_anchor"-->
+                <!--android:orientation="horizontal"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"></LinearLayout>-->
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/start_nav_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:clickable="true"
+                android:visibility="invisible"
+                app:backgroundTint="@color/colorPrimary"
+                android:src="@drawable/ic_directions_white_24dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"/>
+
             <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:background="@android:color/transparent"
+                android:id="@+id/marker_opts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:isScrollContainer="false"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone">
 
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/marker_origin"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal">
-
+                    android:text="Set origin"
+                    android:textColor="@android:color/white" />
+                <Button
+                    android:id="@+id/marker_dest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Set destination"
+                    android:textColor="@android:color/white"/>
+                <Button
+                    android:id="@+id/marker_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancel"
+                    android:textColor="@android:color/white"/>
                     <Button
                     android:id="@+id/start_nav_button"
                     android:layout_width="wrap_content"
@@ -153,7 +193,11 @@
 
                 </LinearLayout>
             </LinearLayout>
+
         </RelativeLayout>
+
+
+        </android.support.design.widget.CoordinatorLayout>
 
     </LinearLayout>
     <!--</android.support.design.widget.CoordinatorLayout>-->
@@ -163,7 +207,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|top"
-        android:id="@+id/scrolling_part">
+        android:id="@+id/scrolling_part"
+        android:background="@android:color/white">
 
         <TextView
             android:layout_width="match_parent"
@@ -232,7 +277,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Average uphill\ndegree: "/>
+                    android:text="uphill degree (Avg): "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -248,7 +293,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="% Bike path: "/>
+                    android:text="Bike path: "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
