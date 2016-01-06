@@ -158,7 +158,7 @@ public class AllRoutes {
         PolylineOptions onePointPolyLine = new PolylineOptions();
         onePointPolyLine.add(point);
         for (TelOFunStation station: allStations.values()){
-            if (PolyUtil.isLocationOnPath(station.getCoordinates(), onePointPolyLine.getPoints(), true, 1000)){
+            if (PolyUtil.isLocationOnPath(station.getCoordinates(), onePointPolyLine.getPoints(), true, 500)){
                 closestStations.add(station);
             }
         }
