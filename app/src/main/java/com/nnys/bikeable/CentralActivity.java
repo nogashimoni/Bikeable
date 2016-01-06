@@ -240,7 +240,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100) + " %");
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
     }
@@ -455,10 +455,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
-                        if (isSearchFromCurrentLocation) {
-                            startNavButton.setVisibility(View.VISIBLE);
-                        }
-
                     }
                 }
             }
@@ -782,6 +778,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             enableSlidingPanel();
             hideSearchView();
 
+            if (isSearchFromCurrentLocation) {
+                startNavButton.setVisibility(View.VISIBLE);
+            }
 
             if (ringProgressDialog.isShowing()) {
                 ringProgressDialog.dismiss();
