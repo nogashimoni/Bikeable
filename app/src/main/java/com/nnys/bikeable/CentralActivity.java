@@ -145,7 +145,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .build();
 
         setContentView(R.layout.central_activity_layout);
-//        markerAnchor = (LinearLayout) findViewById(R.id.marker_anchor);
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
@@ -322,7 +321,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage()*100) + " %");
+        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
         pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
     }
