@@ -3,12 +3,8 @@ package com.nnys.bikeable;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.ElevationResult;
@@ -56,6 +52,7 @@ public class BikeableRoute {
     boolean isBikePathShown;
     ArrayList <PolylineOptions> bikePathInRoute;
     ArrayList <Polyline> bikePathPolyLineInRoute;
+    ColorizeUphillSections colorizeUphillSections;
 
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
@@ -83,6 +80,7 @@ public class BikeableRoute {
             bikePathInRoute = pathCalculator.getBikePaths();
             addBikePathToMap(mMap);
         }
+        colorizeUphillSections = new ColorizeUphillSections(this);
     }
 
     public void addBikePathToMap(GoogleMap mMap) {
@@ -93,6 +91,7 @@ public class BikeableRoute {
             line.visible(false);
             bikePathPolyLineInRoute.add(mMap.addPolyline(line));
         }
+        colorizeUphillSections.addUphillSectionsToMap(mMap);
         isBikePathPolylinesAdded = true;
     }
 
@@ -106,6 +105,7 @@ public class BikeableRoute {
             line.setVisible(true);
             line.setZIndex(10);
         }
+        colorizeUphillSections.showUphillSectionsToMap();
         isBikePathShown = true;
     }
 
@@ -116,6 +116,7 @@ public class BikeableRoute {
         for (Polyline line : bikePathPolyLineInRoute) {
             line.setVisible(false);
         }
+        colorizeUphillSections.hideUphillSectionsFromMap();
         isBikePathShown = false;
     }
 
@@ -126,6 +127,7 @@ public class BikeableRoute {
         for (Polyline line : bikePathPolyLineInRoute) {
             line.remove();
         }
+        colorizeUphillSections.removeUphillSectionsFromMap();
         isBikePathShown = false;
     }
 
@@ -231,5 +233,9 @@ public class BikeableRoute {
 
     public double[] getDegreesArray(){
         return pathElevationScoreCalculator.getDegreesArray();
+    }
+
+    public ElevationResult[] getRouteElevationArr() {
+        return routeElevationArr;
     }
 }
