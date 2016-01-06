@@ -105,10 +105,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Marker tempMarker;
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
-    private PopupWindow popupWindow;
     private LinearLayout markerOptsLayout;
-//    private View popupView;
-//    private LinearLayout markerAnchor;
+    private SlidingUpPanelLayout slidingUpLayout;
+
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -147,12 +146,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         setContentView(R.layout.central_activity_layout);
 //        markerAnchor = (LinearLayout) findViewById(R.id.marker_anchor);
-        disableSlidingPanel();
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
+        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+
+        disableSlidingPanel();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -179,7 +180,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
                 }
-//                popupView.setVisibility(View.GONE);
                 markerOptsLayout.setVisibility(View.GONE);
                 updateMapToNewMArkerState();
             }
@@ -192,7 +192,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (tempMarker != null)
                     tempMarker.remove();
                 markerOptsLayout.setVisibility(View.GONE);
-//                popupView.setVisibility(View.GONE);
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
                 updateMapToNewMArkerState();
             }
@@ -245,8 +244,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 startNavButton.setVisibility(View.GONE);
 
                 // hide keyboard on search
-                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                hideKeyboard();
+//                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                 //put in the search button onClick:
                 BackgroundTask task = new BackgroundTask(CentralActivity.this);
@@ -274,6 +274,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private boolean isSearchFromCurrentLocation() {
+        if (from.getPrediction() == null) {
+            return false;
+        }
         return from.getPrediction()
                 .getSecondaryText(new StyleSpan(Typeface.BOLD))
                 .toString()
@@ -299,13 +302,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(0);
         isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
-        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(80);
         isSlidingPanelEnabled = true;
 
@@ -539,10 +540,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onMapClick(LatLng clickLatLng) {
                 Log.i("inside listener begin", "inside listener begin2");
                 markerOptsLayout.setVisibility(View.GONE);
-//                if (popupWindow != null && popupWindow.isShowing())
-//                    popupWindow.dismiss();
-//                popupView.setVisibility(View.GONE);
-
                 if (tempMarker != null)
                     tempMarker.remove();
 
@@ -552,10 +549,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     if (allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
-                        if (isSearchFromCurrentLocation()) {
-                            startNavButton.setVisibility(View.VISIBLE);
-                        }
-
                     }
                 }
             }
@@ -566,26 +559,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
-                                           @Override
-                                           public void onMapLongClick(LatLng markerLatLng) {
-                                               if (popupWindow != null && popupWindow.isShowing())
-                                                   popupWindow.dismiss();
-                                               if (tempMarker != null) {
-                                                   tempMarker.remove();
-                                               }
-                                               tempMarker = mMap.addMarker(new MarkerOptions()
-                                                       .position(markerLatLng));
-                                               tempMarker.setTitle("Temp Marker");
-                                               markerOptsLayout.setVisibility(View.VISIBLE);
-                                               if (isSlidingPanelEnabled) {
-                                                   enableSlidingPanel();
-                                               }
-//                   Projection projection = mMap.getProjection();
-//                   Point screenPosition = projection.toScreenLocation(markerLatLng);
-//                   popupView.setVisibility(View.VISIBLE);
-//                   popupWindow.showAsDropDown(markerAnchor, screenPosition.x, screenPosition.y);
-                                           }
-                                       }
+               @Override
+               public void onMapLongClick(LatLng markerLatLng) {
+                   if (tempMarker != null) {
+                       tempMarker.remove();
+                   }
+                   tempMarker = mMap.addMarker(new MarkerOptions()
+                           .position(markerLatLng));
+                   tempMarker.setTitle("Temp Marker");
+                   markerOptsLayout.setVisibility(View.VISIBLE);
+                   if (isSlidingPanelEnabled) {
+                       enableSlidingPanel();
+                   }
+               }
+           }
         );
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -824,8 +811,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             // put here the search code
 
             directionsManager.getDirections();
-            BackgroundTask searchTask = new BackgroundTask(CentralActivity.this);
-            searchTask.execute();
 
             allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
@@ -861,8 +846,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             updateInfoTable();
             enableSlidingPanel();
             hideSearchView();
-
-
+            if (isSearchFromCurrentLocation()) {
+                startNavButton.setVisibility(View.VISIBLE);
+            }
 
             if (ringProgressDialog.isShowing()) {
                 ringProgressDialog.dismiss();
@@ -881,17 +867,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
 
     }
-    private void initMarkerAddOptions() {
 
-//        LayoutInflater layoutInflater
-//                = (LayoutInflater)getBaseContext()
-//                .getSystemService(LAYOUT_INFLATER_SERVICE);
-//        popupView = layoutInflater.inflate(R.layout.marker_popup, (ViewGroup) findViewById(R.id.marker_opts));
-//
-//        popupWindow = new PopupWindow(
-//                popupView,
-//                ViewGroup.LayoutParams.WRAP_CONTENT,
-//                ViewGroup.LayoutParams.WRAP_CONTENT);
+    private void initMarkerAddOptions() {
 
         markerOptsLayout =  (LinearLayout) findViewById(R.id.marker_opts);
         Button markerOriginBtn = (Button) findViewById(R.id.marker_origin);
@@ -956,23 +933,30 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
                 markerOptsLayout.setVisibility(View.GONE);
-//                popupView.setVisibility(View.GONE);
                 tempMarker.remove();
             }
         });
     }
 
     private void updateMapToNewMArkerState() {
+        Log.i("Info:","updateMapToNewMArkerState");
         startNavButton.setVisibility(View.GONE);
         searchLayout.setVisibility(View.VISIBLE);
         markerOptsLayout.setVisibility(View.GONE);
-//        popupView.setVisibility(View.GONE);
 
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();
+
+        hideKeyboard();
+
         if (tempMarker != null) {
             tempMarker.remove();
-            tempMarker = null;
         }
+    }
+
+    private void hideKeyboard(){
+        // hide keyboard on search
+        InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
     }
 }
