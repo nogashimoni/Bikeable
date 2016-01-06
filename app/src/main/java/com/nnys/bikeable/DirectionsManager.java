@@ -13,6 +13,8 @@ import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
 
+import java.util.ArrayList;
+
 public class DirectionsManager {
 
     private GeoApiContext context;
@@ -25,6 +27,8 @@ public class DirectionsManager {
 
     private Marker fromMarkerCurr, fromMarkerNew, toMarkerCurr, toMarkerNew;
 
+    private AutocompletePrediction predictionFrom, predictionTo;
+
 //    private AutocompletePrediction from;
 //    private AutocompletePrediction to;
 //    private PlaceDetails from_placeDetails, to_placeDetails;
@@ -36,9 +40,11 @@ public class DirectionsManager {
             this.mMap = mMap;
         calculatedRoutes = null;
         directionBounds = null;
+        predictionFrom = null;
+        predictionTo = null;
     }
 
-    public void getDirections(){
+    public void getDirections() {
 
         this.fromLatLngCurr = fromLatLngNew;
         this.toLatLngCurr = toLatLngNew;
@@ -60,24 +66,27 @@ public class DirectionsManager {
         clearMarkersFromMap();
         drawRouteMarkers();
         updateBounds();
-    public void addCurrentSearchTargetToHistory(SearchHistoryCollector historyCollector) {
+
+    }
+
+    private void addCurrentSearchTargetToHistory(SearchHistoryCollector historyCollector) {
         if ( to_placeDetails != null ) {
             historyCollector.addPlaceId(to_placeDetails.placeId);
         }
     }
 
-    protected void drawRouteMarkers(GoogleMap mMap){
-        String fromTitle = ( from == null ? "Current Location": from.getDescription());
-        directionMarkers = new ArrayList<>();
-        MarkerOptions fromMarker = new MarkerOptions()
-                .title(fromTitle)
-                .position(fromLatLng);
-        MarkerOptions toMarker = new MarkerOptions()
-                .title(to.getDescription())
-                .position(toLatLng);
-        directionMarkers.add(mMap.addMarker(fromMarker));
-        directionMarkers.add(mMap.addMarker(toMarker));
-    }
+//    protected void drawRouteMarkers(GoogleMap mMap){
+//        String fromTitle = ( from == null ? "Current Location": from.getDescription());
+//        directionMarkers = new ArrayList<>();
+//        MarkerOptions fromMarker = new MarkerOptions()
+//                .title(fromTitle)
+//                .position(fromLatLng);
+//        MarkerOptions toMarker = new MarkerOptions()
+//                .title(to.getDescription())
+//                .position(toLatLng);
+//        directionMarkers.add(mMap.addMarker(fromMarker));
+//        directionMarkers.add(mMap.addMarker(toMarker));
+//    }
 
     protected void drawRouteMarkers(){
         if (fromMarkerCurr != null){
@@ -181,6 +190,7 @@ public class DirectionsManager {
             this.setFromMarkerNew(newMarker);
             this.fromLatLngNew = markerLatLng;
             this.fromTitleNew = prediction.getDescription();
+            predictionFrom = prediction;
         }
         else{ // isTo
             if (this.getToMarkerNew() != null){
@@ -192,11 +202,12 @@ public class DirectionsManager {
             this.setToMarkerNew(newMarker);
             this.toLatLngNew = markerLatLng;
             this.toTitleNew = prediction.getDescription();
+            predictionTo = prediction;
         }
     }
 
     public void setNewMarkerByCustomPrediction(boolean isFrom, LatLng markerLatLng, CustomAutoCompletePrediction prediction) {
-
+        // for markers selected on map and for current location
         Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng));
         if (isFrom){
             if (this.fromMarkerNew != null){
@@ -209,6 +220,7 @@ public class DirectionsManager {
             this.setFromMarkerNew(newMarker);
             this.fromLatLngNew = markerLatLng;
             this.fromTitleNew = prediction.getDescription();
+            predictionFrom = prediction;
         }
         else {  // isTo
             if (this.toMarkerNew != null){
@@ -221,6 +233,7 @@ public class DirectionsManager {
             this.setToMarkerNew(newMarker);
             this.toLatLngNew = markerLatLng;
             this.toTitleNew = prediction.getDescription();
+            predictionTo = prediction;
         }
 
     }

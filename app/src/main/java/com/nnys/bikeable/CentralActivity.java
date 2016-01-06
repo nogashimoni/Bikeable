@@ -102,8 +102,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private Button clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
-            startNavButton;
+    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton, startNavButton;
+    private Button historyBtn;
     private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
@@ -262,34 +262,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 BackgroundTask task = new BackgroundTask(CentralActivity.this);
                 task.execute();
 
-                directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
-
-                allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
-                directionsManager.drawRouteMarkers(mMap);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
-                        .getInteger(R.integer.bound_padding)));
-                allRoutes.findTelOFunMatchesToSourceAndDestination(mMap, directionsManager);
-
-                graphDrawer = new PathElevationGraphDrawer(graph);
-                for (BikeableRoute bikeableRoute : allRoutes.bikeableRoutes) {
-                    ElevationResult[] results = bikeableRoute.elevationQuerier
-                            .getElevationSamples(bikeableRoute.numOfElevationSamples);
-                    graphDrawer.addSeries(results);
-                }
-                graphDrawer.addSeries(null);
-
-                if ( isShowBikeRouteMatchesChecked ) {
-                    showBikePathMatchesOnMap();
-                }
-                if (isShowCloseTelOFunStationsChecked){
-                    allRoutes.showTelOFunDestinationMatchesOnMap();
-                    allRoutes.showTelOFunSourceMatchesOnMap();
-                }
-                updateInfoTable();
-                enableSlidingPanel();
-                enableSlidingPanel(); //TODO doesn't work
-                hideSearchView();
-
             }
         });
 
@@ -309,25 +281,25 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-        historyBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<String> searchHistory = searchHistoryCollector.getSearchHistory();
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(CentralActivity.this.getApplicationContext(), R.layout.history_list_item, searchHistory);
-                ListView list = (ListView)findViewById(R.id.history_list);
-                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        ListView listView = (ListView) parent;
-                        listView.setVisibility(View.GONE);
-                    }
-                });
-                list.setAdapter(adapter);
-                list.setVisibility(View.VISIBLE);
-
-
-            }
-        });
+//        historyBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                List<String> searchHistory = searchHistoryCollector.getSearchHistory();
+//                ArrayAdapter<String> adapter = new ArrayAdapter<String>(CentralActivity.this.getApplicationContext(), R.layout.history_list_item, searchHistory);
+//                ListView list = (ListView)findViewById(R.id.history_list);
+//                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                    @Override
+//                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                        ListView listView = (ListView) parent;
+//                        listView.setVisibility(View.GONE);
+//                    }
+//                });
+//                list.setAdapter(adapter);
+//                list.setVisibility(View.VISIBLE);
+//
+//
+//            }
+//        });
 
     }
 

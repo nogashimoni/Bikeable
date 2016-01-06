@@ -11,13 +11,6 @@
     sothree:umanoShadowHeight="4dp"
     sothree:umanoFadeColor="@android:color/transparent">
 
-    <!--<android.support.design.widget.CoordinatorLayout-->
-        <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
-        <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-        <!--xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent" android:fitsSystemWindows="true"-->
-        <!--tools:context=".CentralActivity">-->
-        <!--&lt;!&ndash;android:background="#d9d9d9"&ndash;&gt;-->
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -106,7 +99,9 @@
                     android:paddingLeft="@dimen/activity_horizontal_margin"
                     android:layout_gravity="center"/>
             </LinearLayout>
+
         </LinearLayout>
+
         <android.support.design.widget.CoordinatorLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -126,13 +121,6 @@
                 android:id="@+id/map"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-            <!--map:uiZoomControls="true"-->
-
-            <!--<LinearLayout-->
-                <!--android:id="@+id/marker_anchor"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"></LinearLayout>-->
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/start_nav_button"
@@ -145,6 +133,12 @@
                 android:src="@drawable/ic_directions_white_24dp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"/>
+
+            <Button
+                android:id="@+id/history_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="History" />
 
             <LinearLayout
                 xmlns:android="http://schemas.android.com/apk/res/android"
@@ -177,22 +171,8 @@
                     android:layout_height="wrap_content"
                     android:text="Cancel"
                     android:textColor="@android:color/white"/>
-                    <Button
-                    android:id="@+id/start_nav_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="Navigate" />
-
-                    <Button
-                        android:id="@+id/history_btn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="History" />
-
 
                 </LinearLayout>
-            </LinearLayout>
 
         </RelativeLayout>
 
@@ -200,7 +180,10 @@
         </android.support.design.widget.CoordinatorLayout>
 
     </LinearLayout>
-    <!--</android.support.design.widget.CoordinatorLayout>-->
+
+
+
+
 
     <LinearLayout
         android:orientation="vertical"
@@ -303,10 +286,6 @@
 
         </LinearLayout>
 
-        <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content" >-->
-
         <com.jjoe64.graphview.helper.GraphViewXML
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/altitude_graph"
@@ -317,11 +296,10 @@
             app:seriesType="line"
             app:seriesColor="#000000"
             android:background="#969686" />
-            <!--app:theme="@style/AppTheme.PopupOverlay"-->
-
-        <!--</RelativeLayout>-->
 
     </LinearLayout>
 
 
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+
