@@ -29,11 +29,12 @@ public class ResearchPerformer extends AppCompatActivity {
     int randomRoutesMeters;
     List<DirectionsRoute> directionsRoutes;
     int sampleSize;
-    private final int ALLOWED_MISTAKE = 40; // if we want teo lat langs with a distance of 500 meters route, we can get also 540 or 460
+    private final int ALLOWED_MISTAKE = 60; // if we want teo lat langs with a distance of 500 meters route, we can get also 540 or 460
 
     public ResearchPerformer() {
-        this.sampleSize = 300;
-        this.context = new GeoApiContext().setApiKey("AIzaSyBq4x4t8-j30Vbo5jrax_jIMkkMTlZdp1k");;
+        this.sampleSize = 100;
+        this.randomRoutesMeters = 1300 ;// meters
+        this.context = new GeoApiContext().setApiKey("AIzaSyBCRcbSVolZ34CkIlUfwtcAld4uYXitR50");//("AIzaSyBq4x4t8-j30Vbo5jrax_jIMkkMTlZdp1k");;
         this.directionsRoutes = generateRandomRoutes();
         this.RandomElevationScoress = calculateTheSampleElevationScores();
     }
@@ -60,7 +61,7 @@ public class ResearchPerformer extends AppCompatActivity {
 
         while (directionsRoutes.size() < sampleSize) {
             LatLng fromLatLng = createRandomLatLngInTLV();
-            LatLng toLatLng = getLatLngInTLVWithinXDistanceXMeters(randomRoutesMeters, fromLatLng); // will take time to calculate
+            LatLng toLatLng = getLatLngInTLVWithinXDistanceXMeters(randomRoutesMeters - 400, fromLatLng); // will take time to calculate
             if (fromLatLng.longitude == toLatLng.longitude && fromLatLng.latitude == toLatLng.latitude) {
                 continue;
             }
@@ -80,7 +81,12 @@ public class ResearchPerformer extends AppCompatActivity {
 
             if ( calculatedRoutes != null ) {
                 for ( DirectionsRoute calculatedRoute : calculatedRoutes) {
-                    directionsRoutes.add(calculatedRoute);
+                    long routeLength = calcPathLength(calculatedRoute);
+                    Log.i("INFO", String.format("Found one route that doesn't match, length: %d", routeLength));
+                    if ( (routeLength < this.randomRoutesMeters + ALLOWED_MISTAKE) && (routeLength > this.randomRoutesMeters - ALLOWED_MISTAKE) ) {
+                        Log.i("INFO", String.format("Found one route that matches! length: %d", routeLength));
+                        directionsRoutes.add(calculatedRoute);
+                    }
                 }
             }
         }
@@ -106,9 +112,8 @@ public class ResearchPerformer extends AppCompatActivity {
             loc2.setLongitude(randomLatLng.longitude);
 
             float distanceInMeters = loc1.distanceTo(loc2);
-            if (  (distanceInMeters > desiredMeters - ALLOWED_MISTAKE ) && (distanceInMeters < desiredMeters + ALLOWED_MISTAKE) ) {
+            if (  (distanceInMeters > desiredMeters - 1.5*ALLOWED_MISTAKE ) && (distanceInMeters < desiredMeters + 1.5*ALLOWED_MISTAKE) ) {
                 result = new LatLng(randomLatLng.latitude, randomLatLng.longitude);
-                Log.e("INFO", String.format("Found 2 lat langs that with distance of %f",distanceInMeters));
                 return result;
             }
         }
@@ -117,8 +122,11 @@ public class ResearchPerformer extends AppCompatActivity {
 
     public void printResults() {
 
-        for (double score : RandomElevationScoress) {
-            Log.d("DEBUG", String.format("SCORE: %f \n", score));
+        for (int i=0; i<RandomElevationScoress.size(); i++) {
+            double score = RandomElevationScoress.get(i);
+            String summary = directionsRoutes.get(i).summary;
+            long length = calcPathLength(directionsRoutes.get(i));
+            Log.d("DEBUG", String.format("SCORE: %f LENGTH: %d SUMMARY: %s", score, length, summary));
         }
     }
 
