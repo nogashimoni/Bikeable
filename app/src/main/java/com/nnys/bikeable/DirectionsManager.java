@@ -1,5 +1,7 @@
 package com.nnys.bikeable;
 
+import android.util.Log;
+
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -69,9 +71,9 @@ public class DirectionsManager {
 
     }
 
-    private void addCurrentSearchTargetToHistory(SearchHistoryCollector historyCollector) {
-        if ( to_placeDetails != null ) {
-            historyCollector.addPlaceId(to_placeDetails.placeId);
+    public void addCurrentSearchTargetToHistory(SearchHistoryCollector historyCollector) {
+        if ( predictionTo != null ) {
+            historyCollector.addPredictionToHistory(predictionTo);
         }
     }
 
@@ -173,6 +175,7 @@ public class DirectionsManager {
 
         PlaceDetails placeDetails = null;
         try {
+            Log.i("INFO:", String.format("attemp to get place details: place ID: %s", prediction.getPlaceId()));
             placeDetails = PlacesApi.placeDetails(context, prediction.getPlaceId()).await();
         } catch (Exception e) {
             e.printStackTrace(); // todo: handle this properly

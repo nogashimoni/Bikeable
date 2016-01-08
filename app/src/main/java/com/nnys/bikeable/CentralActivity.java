@@ -1,6 +1,5 @@
 package com.nnys.bikeable;
 
-import android.app.Activity;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -9,8 +8,6 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -25,24 +22,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,8 +50,6 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -72,10 +57,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.GeocodingApi;
-import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
 import com.google.maps.model.GeocodingResult;
-import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -83,8 +66,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -97,7 +78,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     protected GoogleApiClient mGoogleApiClient;
-    protected GeoApiContext context;
+    protected GeoApiContext geoApiContext;
     protected DirectionsManager directionsManager = null;
 
     private AllRoutes allRoutes;
@@ -139,6 +120,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.central_activity_layout);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -152,7 +134,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        setContentView(R.layout.central_activity_layout);
+        geoApiContext = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
@@ -160,14 +142,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
         slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
 
-        searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this);
-
-        disableSlidingPanel();
+        searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        to.setSearchHistoryCollector(searchHistoryCollector);
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
         PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
@@ -226,9 +207,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
-
-        directionsManager = new DirectionsManager(context, mMap);
+        directionsManager = new DirectionsManager(geoApiContext, mMap);
 
         initMarkerAddOptions();
 
@@ -236,7 +215,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         searchBtn = (ImageButton) findViewById(R.id.res_button);
         startNavButton = (FloatingActionButton ) findViewById(R.id.start_nav_button);
         searchBtn.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
-        historyBtn = (Button) findViewById(R.id.history_btn);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -281,25 +259,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-//        historyBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                List<String> searchHistory = searchHistoryCollector.getSearchHistory();
-//                ArrayAdapter<String> adapter = new ArrayAdapter<String>(CentralActivity.this.getApplicationContext(), R.layout.history_list_item, searchHistory);
-//                ListView list = (ListView)findViewById(R.id.history_list);
-//                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                    @Override
-//                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                        ListView listView = (ListView) parent;
-//                        listView.setVisibility(View.GONE);
-//                    }
-//                });
-//                list.setAdapter(adapter);
-//                list.setVisibility(View.VISIBLE);
-//
-//
-//            }
-//        });
+        disableSlidingPanel();
 
     }
 
@@ -569,6 +529,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng clickLatLng) {
+                hideKeyboard();
                 Log.i("inside listener begin", "inside listener begin2");
                 markerOptsLayout.setVisibility(View.GONE);
                 if (tempMarker != null)
@@ -592,6 +553,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                @Override
                public void onMapLongClick(LatLng markerLatLng) {
+                   hideKeyboard();
                    if (tempMarker != null) {
                        tempMarker.remove();
                    }
@@ -875,9 +837,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
+
+            directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             updateInfoTable();
             enableSlidingPanel();
             hideSearchView();
+
             if (isSearchFromCurrentLocation()) {
                 startNavButton.setVisibility(View.VISIBLE);
             }
@@ -914,7 +879,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 String secondaryText;
                 String placeId = null;
                 try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
                             .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
                     primaryText = results[0].formattedAddress;
                     secondaryText = "";
@@ -941,7 +906,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 String secondaryText;
                 String placeId = null;
                 try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
                             .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
                     primaryText = results[0].formattedAddress;
                     secondaryText = "";

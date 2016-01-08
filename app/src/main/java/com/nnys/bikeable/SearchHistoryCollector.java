@@ -1,13 +1,18 @@
 package com.nnys.bikeable;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PlacesApi;
+import com.google.maps.model.PlaceDetails;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -17,21 +22,31 @@ import java.util.List;
 
 public class SearchHistoryCollector {
 
-    final int MAX_HISTORY_RECORDS = 10;
-    File historyFile;
-    String historyFileName;
-    Context context;
-    LinkedList<AutocompletePrediction> onlineHistory;
+    private final int MAX_HISTORY_RECORDS = 10;
+    private File historyFile;
+    private String historyFileName;
+    private Context appContext;
+    private GeoApiContext geoApiContext;
+    private LinkedList<AutocompletePrediction> onlineHistory;
 
 
-    public SearchHistoryCollector(Context context) {
+    public SearchHistoryCollector(Context appContext, GeoApiContext geoApiContext) {
 
         historyFileName = "Bikeable_History";
-        this.context = context;
+        this.appContext = appContext;
+        this.geoApiContext = geoApiContext;
         onlineHistory = new LinkedList<>();
-        ArrayList<AutocompletePrediction> list = new ArrayList<>();
+        historyFile = new File(appContext.getFilesDir(), historyFileName);
 
-        historyFile = new File(context.getFilesDir(), historyFileName);
+        // create a new file if it doesn't exist
+        try {
+            historyFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.i("INFO:", String.format("Before load history size %d", onlineHistory.size()));
+        loadSearchHistory();
+        Log.i("INFO:", String.format("After load history size %d", onlineHistory.size()));
     }
 
     public void addPredictionToHistory(AutocompletePrediction prediction){
@@ -51,7 +66,6 @@ public class SearchHistoryCollector {
     }
 
     private void addPredictionToOnlineHistory(AutocompletePrediction prediction){
-
         onlineHistory.addFirst(prediction);
         if (onlineHistory.size() > MAX_HISTORY_RECORDS){
             onlineHistory.removeLast();
@@ -60,6 +74,7 @@ public class SearchHistoryCollector {
     }
 
     private boolean isPredictionInOnlineHistory(AutocompletePrediction prediction){
+        Log.i("INFO:", String.format("online history size: %d", onlineHistory.size()));
         for (AutocompletePrediction onlinePrediction: onlineHistory){
             if (onlinePrediction.getPlaceId().equals(prediction.getPlaceId())){
                 return true;
@@ -78,7 +93,7 @@ public class SearchHistoryCollector {
             writer.print("");
             writer.close();
 
-            outputStream = context.openFileOutput(historyFileName, Context.MODE_APPEND); //todo MODE_PRIVATE ?
+            outputStream = appContext.openFileOutput(historyFileName, Context.MODE_APPEND); //todo MODE_PRIVATE ?
             for (AutocompletePrediction prediction : onlineHistory){
                 outputStream.write(prediction.getPlaceId().concat("\n").getBytes());
             }
@@ -89,22 +104,29 @@ public class SearchHistoryCollector {
         }
     }
 
-    public List<CustomAutoCompletePrediction> loadSearchHistory() {
+    private void loadSearchHistory() {
+        String line, placeId;
+        PlaceDetails placeDetails;
 
         try {
-            FileInputStream fis = context.openFileInput(historyFileName);
+            FileInputStream fis = appContext.openFileInput(historyFileName);
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader bufferedReader = new BufferedReader(isr);
-//            StringBuilder sb = new StringBuilder();
-            String line;
+
+
             while ((line = bufferedReader.readLine()) != null) {
-                result.add(line.replaceAll("\n",""));
+                placeId = line.replaceAll("\n", "");
+                Log.i("INFO line:", placeId);
+                placeDetails = PlacesApi.placeDetails(geoApiContext, placeId).await();
+                onlineHistory.add(new CustomAutoCompletePrediction(
+                        placeDetails.name, "loaded from history", placeId));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
     }
 
-
+    public LinkedList<AutocompletePrediction> getOnlineHistory() {
+        return onlineHistory;
+    }
 }
