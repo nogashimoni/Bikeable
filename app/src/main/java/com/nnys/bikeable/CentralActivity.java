@@ -93,8 +93,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
     private LinearLayout markerOptsLayout;
-    private SlidingUpPanelLayout slidingUpLayout;
-
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -140,7 +138,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
 
         searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
 
@@ -163,7 +160,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
                     if (mCurrentLocation == null) {
-                        Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
@@ -198,7 +195,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 directionsManager.clearNewMarker(false);
             }
         });
-
 
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
@@ -239,6 +235,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 //put in the search button onClick:
                 BackgroundTask task = new BackgroundTask(CentralActivity.this);
                 task.execute();
+
+                enableSlidingPanel();
 
             }
         });
@@ -292,11 +290,15 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingUpLayout.setPanelHeight(0);
         isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingUpLayout.setPanelHeight(80);
         isSlidingPanelEnabled = true;
     }
@@ -553,6 +555,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                public void onMapLongClick(LatLng markerLatLng) {
                    hideKeyboard();
                    if (isSlidingPanelEnabled) {
+                       Log.i("INFO:", "isSlidingPanelEnabled");
                        enableSlidingPanel();
                    }
                    if (tempMarker != null) {
@@ -788,6 +791,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+//            disableSlidingPanel();
             ringProgressDialog.setTitle("Calculating routes");
             ringProgressDialog.setMessage("Please wait...");
             ringProgressDialog.setIndeterminate(true);
@@ -801,7 +805,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPostExecute(Void result) {
 
             // put here the search code
-            disableSlidingPanel();
 
             directionsManager.getDirections();
 
@@ -839,8 +842,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             updateInfoTable();
-            enableSlidingPanel();
             hideSearchView();
+//            enableSlidingPanel();
+
 
             if (isSearchFromCurrentLocation()) {
                 startNavButton.setVisibility(View.VISIBLE);
@@ -854,7 +858,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
