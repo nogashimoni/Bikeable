@@ -33,9 +33,11 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -360,6 +362,68 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         switch(item.getItemId()){
             case R.id.action_settings:
                 return true;
+            case R.id.elevations:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowCloseTelOFunStationsChecked = true;
+                    allRoutes.showTelOFunSourceMatchesOnMap();
+                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowCloseTelOFunStationsChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    allRoutes.hideTelOFunSourceMatchesOnMap();
+                    allRoutes.hideTelOFunDestinationMatchesOnMap();
+                    isShowCloseTelOFunStationsChecked = false;
+                }
+                return true;
+
+            case R.id.paths:
+                if (!item.isChecked()){
+                    if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    item.setChecked(true);
+                    isShowBikeRouteMatchesChecked = true;
+                    showBikePathMatchesOnMap();
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowBikeRouteMatchesChecked = false;
+                    if (!IriaData.isDataReceived){
+                        return true;
+                    }
+                    removeBikePathMatchesFromMap();
+                }
+                return true;
+
+
+
+
+
+
+
+
+
+
+
+
             case R.id.iria_bike_path_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){

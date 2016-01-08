@@ -26,8 +26,20 @@
         android:actionViewClass="android.widget.CheckBox"
         android:title="@string/action_iria_telOFun_matches"/>
 
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        app:showAsAction="never" android:enabled="false"/>
+    <item android:id="@+id/action_settings"
+          android:title="@string/action_settings"
+          app:showAsAction="never" >
+        <menu>
+            <item android:id="@+id/elevations"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="choose route only by uphills" />
+            <item android:id="@+id/paths"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="choose route only by bike paths" />
+        </menu>
+    </item>
 
     <item android:id="@+id/action_feedback" android:title="@string/action_feedback"
         app:showAsAction="never" />
