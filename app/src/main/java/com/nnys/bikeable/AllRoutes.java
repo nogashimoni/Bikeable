@@ -27,6 +27,7 @@ public class AllRoutes {
     ArrayList <TelOFunStation> closestTelOFunStationsDestination;
     ArrayList <Marker> telOFunSourceMarkers;
     ArrayList <Marker> telOFunDestinationMarkers;
+    ArrayList<ColorizeUphillSections> colorizeUphillSectionsForAllRoutes;
 
     public AllRoutes() {
         bikeableRoutes = new ArrayList<>();
@@ -43,7 +44,10 @@ public class AllRoutes {
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
         for (DirectionsRoute directionsRoute: directionsRouteArr){
-            bikeableRoutes.add(new BikeableRoute(directionsRoute, mMap));
+            BikeableRoute currBikeableRoute = new BikeableRoute(directionsRoute, mMap);
+            bikeableRoutes.add(currBikeableRoute);
+            ColorizeUphillSections currColorizeUphillSections = new ColorizeUphillSections(currBikeableRoute);
+            colorizeUphillSectionsForAllRoutes.add(currColorizeUphillSections);
         }
     }
 
@@ -52,12 +56,20 @@ public class AllRoutes {
         removePolylinesFromMap();
         removeTelOFunMatchesFromMap();
         bikeableRoutes.removeAll(bikeableRoutes);
+        if (colorizeUphillSectionsForAllRoutes != null) {
+            colorizeUphillSectionsForAllRoutes.removeAll(colorizeUphillSectionsForAllRoutes);
+        }
     }
 
     private void removePolylinesFromMap() {
         for (BikeableRoute bikeableRoute : bikeableRoutes){
             bikeableRoute.routePolyline.remove();
             bikeableRoute.removeBikePathFromMap();
+        }
+        if (colorizeUphillSectionsForAllRoutes != null){
+            for (ColorizeUphillSections colorizeUphillSections : colorizeUphillSectionsForAllRoutes) {
+                colorizeUphillSections.removeUphillSectionsFromMap();
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.nnys.bikeable;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -22,17 +23,18 @@ public class ColorizeUphillSections {
     ElevationResult[] routeElevationArr;
 
 
-    static ArrayList<Polyline> bikePathsPolylines;
+    static ArrayList<Polyline> uphillPolylines;
     static boolean isBikePathPolylinesAdded;
 
     public ColorizeUphillSections(BikeableRoute bikeableRoute){
+        Log.i("Info:", "ColorizeUphillSections");
         this.bikeableRoute = bikeableRoute;
-        this.uphillSections = getUphillSectionsAsBikeableRoutePolylineOptions();
         this.routeElevationArr = bikeableRoute.getRouteElevationArr();
+        this.uphillSections = getUphillSectionsAsBikeableRoutePolylineOptions();
     }
 
     private ArrayList<ArrayList<PolylineOptions>> getUphillSectionsAsBikeableRoutePolylineOptions() {
-
+        Log.i("Info:", "getUphillSectionsAsBikeableRoutePolylineOptions");
         ArrayList<ArrayList<PolylineOptions>> uphillSections = new ArrayList<>();
         double[] degreesArray = this.bikeableRoute.getDegreesArray();
         for (int i=0; i < degreesArray.length ; i++) {
@@ -44,6 +46,7 @@ public class ColorizeUphillSections {
     }
 
     private void addUphillSectionToSections(int i) {
+        Log.i("Info:", "addUphillSectionToSections");
         ArrayList<PolylineOptions> significantUphillSection = new ArrayList<>();
         PolylineOptions currPathPolylineOpts = new PolylineOptions();
         currPathPolylineOpts.color(Color.RED);
@@ -54,35 +57,46 @@ public class ColorizeUphillSections {
     }
 
     public void addUphillSectionsToMap(GoogleMap mMap) {
+        Log.i("Info:", "addUphillSectionsToMap");
         if (isBikePathPolylinesAdded)
             return;
-        bikePathsPolylines = new ArrayList<>();
+        uphillPolylines = new ArrayList<>();
         for (ArrayList<PolylineOptions> uphillSection: uphillSections) {
             for (PolylineOptions line : uphillSection) {
                 line.zIndex(10); // TODO: not hard coded
 //                line.width(5); // TODO: not hard coded
-                line.visible(false);
-                bikePathsPolylines.add(mMap.addPolyline(line));
+                line.visible(true);
+                uphillPolylines.add(mMap.addPolyline(line));
             }
         }
         isBikePathPolylinesAdded = true;
     }
 
-    public void showUphillSectionsToMap(){
-        for (Polyline line : bikePathsPolylines){
-            line.setVisible(true);
-        }
-    }
+//    public void showUphillSectionsToMap(){
+//        if (!isBikePathPolylinesAdded){
+//            return;
+//        }
+//        for (Polyline line : uphillPolylines){
+//            line.setVisible(true);
+//        }
+//    }
 
     public void removeUphillSectionsFromMap(){
-        for (Polyline line : bikePathsPolylines) {
+        Log.i("Info:", "removeUphillSectionsFromMap");
+        if (!isBikePathPolylinesAdded){
+            return;
+        }
+        for (Polyline line : uphillPolylines) {
             line.remove();
         }
     }
 
-    public void hideUphillSectionsFromMap(){
-        for (Polyline line : bikePathsPolylines) {
-            line.setVisible(false);
-        }
-    }
+//    public void hideUphillSectionsFromMap(){
+//        if (!isBikePathPolylinesAdded){
+//            return;
+//        }
+//        for (Polyline line : uphillPolylines) {
+//            line.setVisible(false);
+//        }
+//    }
 }

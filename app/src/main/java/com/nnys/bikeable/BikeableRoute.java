@@ -73,6 +73,7 @@ public class BikeableRoute {
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
+        colorizeUphillSections = new ColorizeUphillSections(this);
         if (IriaData.isDataReceived) {
             BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
                     directionsRoute);
@@ -80,7 +81,6 @@ public class BikeableRoute {
             bikePathInRoute = pathCalculator.getBikePaths();
             addBikePathToMap(mMap);
         }
-        colorizeUphillSections = new ColorizeUphillSections(this);
     }
 
     public void addBikePathToMap(GoogleMap mMap) {
@@ -91,7 +91,6 @@ public class BikeableRoute {
             line.visible(false);
             bikePathPolyLineInRoute.add(mMap.addPolyline(line));
         }
-        colorizeUphillSections.addUphillSectionsToMap(mMap);
         isBikePathPolylinesAdded = true;
     }
 
@@ -105,7 +104,6 @@ public class BikeableRoute {
             line.setVisible(true);
             line.setZIndex(10);
         }
-        colorizeUphillSections.showUphillSectionsToMap();
         isBikePathShown = true;
     }
 
@@ -116,7 +114,6 @@ public class BikeableRoute {
         for (Polyline line : bikePathPolyLineInRoute) {
             line.setVisible(false);
         }
-        colorizeUphillSections.hideUphillSectionsFromMap();
         isBikePathShown = false;
     }
 
@@ -127,7 +124,6 @@ public class BikeableRoute {
         for (Polyline line : bikePathPolyLineInRoute) {
             line.remove();
         }
-        colorizeUphillSections.removeUphillSectionsFromMap();
         isBikePathShown = false;
     }
 
