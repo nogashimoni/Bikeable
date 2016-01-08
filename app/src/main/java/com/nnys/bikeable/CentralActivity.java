@@ -221,11 +221,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                if (from.getPrediction() == null || to.getPrediction() == null){
+                if (from.getPrediction() == null || to.getPrediction() == null) {
                     return;
                 }
-                if (isSearchFromCurrentLocation() && mCurrentLocation == null){
-                    Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                if (isSearchFromCurrentLocation() && mCurrentLocation == null) {
+                    Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -292,13 +292,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(0);
         isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelHeight(80);
         isSlidingPanelEnabled = true;
     }
@@ -554,6 +552,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                @Override
                public void onMapLongClick(LatLng markerLatLng) {
                    hideKeyboard();
+                   if (isSlidingPanelEnabled) {
+                       enableSlidingPanel();
+                   }
                    if (tempMarker != null) {
                        tempMarker.remove();
                    }
@@ -561,9 +562,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                            .position(markerLatLng));
                    tempMarker.setTitle("Temp Marker");
                    markerOptsLayout.setVisibility(View.VISIBLE);
-                   if (isSlidingPanelEnabled) {
-                       enableSlidingPanel();
-                   }
+
                }
            }
         );
@@ -954,6 +953,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void hideKeyboard(){
         // hide keyboard on search
         InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
+        if (CentralActivity.this.getCurrentFocus() != null) {
+            in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
+        }
     }
 }

@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:gravity="bottom"
     sothree:umanoAnchorPoint="0.169"
-    sothree:umanoPanelHeight="68dp"
     sothree:umanoShadowHeight="4dp"
     sothree:umanoFadeColor="@android:color/transparent">
 
@@ -171,8 +170,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|top"
-        android:id="@+id/scrolling_part"
         android:background="@android:color/white">
+        <!--android:id="@+id/scrolling_part"-->
+
 
         <TextView
             android:layout_width="match_parent"
