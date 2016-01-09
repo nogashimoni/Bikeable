@@ -130,6 +130,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private boolean isPreferBikePathChecked = true;
 
     private SearchHistoryCollector searchHistoryCollector;
+    private UserPreferences userPreferences;
     private boolean isSlidingPanelEnabled = false;
 
 
@@ -158,6 +159,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
         searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
+        userPreferences = new UserPreferences();
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
@@ -854,7 +856,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
             directionsManager.getDirections();
 
-            allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap);
+            userPreferences.update(isAvoidUphillsChecked, isPreferBikePathChecked);
+
+            allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap, userPreferences);
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                     .getInteger(R.integer.bound_padding)));
             //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);

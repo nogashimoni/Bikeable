@@ -22,4 +22,9 @@ public class UserPreferences {
     public void setUserPreferesBikingRoutes(boolean userPreferesBikingRoutes) {
         this.userPreferesBikingRoutes = userPreferesBikingRoutes;
     }
+
+    public void update(boolean isAvoidUphillsChecked, boolean isPreferBikePathChecked) {
+        setUserAvoidsUphills(isAvoidUphillsChecked);
+        setUserPreferesBikingRoutes(isPreferBikePathChecked);
+    }
 }

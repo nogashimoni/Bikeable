@@ -105,8 +105,8 @@ public class AllRoutes {
                     bikingRouteContribution = rescaledBikePathScore;
                 }
 
-                Log.i("INFO",String.format("User checked at least one box. Biking routes " +
-                        "contribution = %f, Elevation contribution = %f ",elevationsContribution,
+                Log.i("INFO",String.format("User checked at least one box. Elevation routes " +
+                        "contribution = %f, Biking route contribution = %f ",elevationsContribution,
                         bikingRouteContribution) );
 
                 pathFinalScore = elevationsContribution + bikingRouteContribution;
