@@ -74,7 +74,8 @@ public class BikeableRoute {
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
         colorizeUphillSections = new ColorizeUphillSections(this);
-//        colorizeUphillSections.addUphillSectionsToMap(mMap);
+        colorizeUphillSections.addUphillSectionsToMap(mMap);
+//        colorizeUphillSections.showUphillSectionsToMap();
         if (IriaData.isDataReceived) {
             BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
                     directionsRoute);

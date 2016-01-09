@@ -64,20 +64,22 @@ public class ColorizeUphillSections {
         Log.i("Info:", "addUphillSectionsToMap");
         uphillPolylines = new ArrayList<>();
         for (PolylineOptions line : uphillSections) {
-            line.zIndex(10); // TODO: not hard coded
+//            line.zIndex(10); // TODO: not hard coded
 //                line.width(5); // TODO: not hard coded
             line.visible(false);
             uphillPolylines.add(mMap.addPolyline(line));
-            Log.i("Info:", "add to map");
         }
     }
 
     public void showUphillSectionsToMap(){
-        if (!isUphillPolylinesAdded){
-            return;
-        }
+        Log.i("Info:", "showUphillSectionsToMap");
+//        if (!isUphillPolylinesAdded){
+//            return;
+//        }
         for (Polyline line : uphillPolylines){
+//            Log.i("info", "inside show function for");
             line.setVisible(true);
+            line.setZIndex(10);
         }
         isUphillPolylinesAdded = true;
     }
