@@ -17,59 +17,56 @@ import java.util.ArrayList;
  */
 public class ColorizeUphillSections {
 
-    public final static int SIGNIFICANT_UPHILL_DEGREE = 5;
+    public final static int SIGNIFICANT_UPHILL_DEGREE = 1;
     BikeableRoute bikeableRoute;
-    ArrayList<ArrayList<PolylineOptions>> uphillSections;
     ElevationResult[] routeElevationArr;
-
-
+    ArrayList<PolylineOptions> uphillSections;
     static ArrayList<Polyline> uphillPolylines;
-    static boolean isBikePathPolylinesAdded;
 
     public ColorizeUphillSections(BikeableRoute bikeableRoute){
-        Log.i("Info:", "ColorizeUphillSections");
+        Log.i("Info:", "Init ColorizeUphillSections");
         this.bikeableRoute = bikeableRoute;
         this.routeElevationArr = bikeableRoute.getRouteElevationArr();
         this.uphillSections = getUphillSectionsAsBikeableRoutePolylineOptions();
     }
 
-    private ArrayList<ArrayList<PolylineOptions>> getUphillSectionsAsBikeableRoutePolylineOptions() {
-        Log.i("Info:", "getUphillSectionsAsBikeableRoutePolylineOptions");
-        ArrayList<ArrayList<PolylineOptions>> uphillSections = new ArrayList<>();
+    private ArrayList<PolylineOptions> getUphillSectionsAsBikeableRoutePolylineOptions() {
+        Log.i("Info:", "PolylineOptions");
+        ArrayList<PolylineOptions> uphillSections = new ArrayList<>();
         double[] degreesArray = this.bikeableRoute.getDegreesArray();
         for (int i=0; i < degreesArray.length ; i++) {
             if (degreesArray[i] >= SIGNIFICANT_UPHILL_DEGREE){
-                addUphillSectionToSections(i);
+                Log.i("INFO:", String.format("currPathPolylineOpts!!! %f", degreesArray[i]));
+                addUphillSectionToSections(i, uphillSections);
             }
         }
         return uphillSections;
     }
 
-    private void addUphillSectionToSections(int i) {
+    private void addUphillSectionToSections(int i, ArrayList<PolylineOptions> uphillSections) {
         Log.i("Info:", "addUphillSectionToSections");
-        ArrayList<PolylineOptions> significantUphillSection = new ArrayList<>();
+        //ArrayList<PolylineOptions> significantUphillSection = new ArrayList<>();
         PolylineOptions currPathPolylineOpts = new PolylineOptions();
         currPathPolylineOpts.color(Color.RED);
         currPathPolylineOpts.add(new LatLng(routeElevationArr[i].location.lat, routeElevationArr[i].location.lng));
-        currPathPolylineOpts.add(new LatLng(routeElevationArr[i+1].location.lat, routeElevationArr[i+1].location.lng));
-        significantUphillSection.add(currPathPolylineOpts);
-        uphillSections.add(significantUphillSection);
+        currPathPolylineOpts.add(new LatLng(routeElevationArr[i + 1].location.lat, routeElevationArr[i + 1].location.lng));
+        this.uphillSections.add(currPathPolylineOpts);
+
+//        if (significantUphillSection != null) {
+//            uphillSections.add(significantUphillSection);
+//        }
+//        return uphillSections;
     }
 
     public void addUphillSectionsToMap(GoogleMap mMap) {
         Log.i("Info:", "addUphillSectionsToMap");
-        if (isBikePathPolylinesAdded)
-            return;
         uphillPolylines = new ArrayList<>();
-        for (ArrayList<PolylineOptions> uphillSection: uphillSections) {
-            for (PolylineOptions line : uphillSection) {
-                line.zIndex(10); // TODO: not hard coded
+        for (PolylineOptions line : uphillSections) {
+            line.zIndex(10); // TODO: not hard coded
 //                line.width(5); // TODO: not hard coded
-                line.visible(true);
-                uphillPolylines.add(mMap.addPolyline(line));
-            }
+            line.visible(true);
+            uphillPolylines.add(mMap.addPolyline(line));
         }
-        isBikePathPolylinesAdded = true;
     }
 
 //    public void showUphillSectionsToMap(){
@@ -83,9 +80,6 @@ public class ColorizeUphillSections {
 
     public void removeUphillSectionsFromMap(){
         Log.i("Info:", "removeUphillSectionsFromMap");
-        if (!isBikePathPolylinesAdded){
-            return;
-        }
         for (Polyline line : uphillPolylines) {
             line.remove();
         }
