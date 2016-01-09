@@ -2,44 +2,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
 
-    <item
-        android:id="@+id/iria_bike_path_cb"
+
+    <item android:id="@+id/elevations"
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_iria_layers"/>
+        android:title="Avoid steep uphills" />
 
-    <item
-        android:id="@+id/iria_bike_path_mathches"
+    <item android:id="@+id/bike_paths"
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_iria_matches_layer"/>
-
-    <item
-        android:id="@+id/iria_telOFun_cb"
-        android:checkable="true"
-        android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_iria_telOFun"/>
-
-    <item
-        android:id="@+id/iria_telOFun_matches"
-        android:checkable="true"
-        android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_iria_telOFun_matches"/>
-
-    <item android:id="@+id/action_settings"
-          android:title="@string/action_settings"
-          app:showAsAction="never" >
-        <menu>
-            <item android:id="@+id/elevations"
-                android:checkable="true"
-                android:actionViewClass="android.widget.CheckBox"
-                android:title="choose route only by uphills" />
-            <item android:id="@+id/paths"
-                android:checkable="true"
-                android:actionViewClass="android.widget.CheckBox"
-                android:title="choose route only by bike paths" />
-        </menu>
-    </item>
+        android:title="Prefer biking routes" />
 
     <item android:id="@+id/action_feedback" android:title="@string/action_feedback"
         app:showAsAction="never" />
@@ -49,4 +21,34 @@
         android:icon="@drawable/abc_ic_search_api_mtrl_alpha"
         android:title=""
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/layers"
+        android:icon="@drawable/ic_layers_white_24dp"
+        android:title=""
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/iria_bike_path_cb"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="@string/action_iria_layers" />
+            <item
+                android:id="@+id/iria_bike_path_mathches"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="@string/action_iria_matches_layer"/>
+            <item
+                android:id="@+id/iria_telOFun_cb"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="@string/action_iria_telOFun"/>
+            <item
+                android:id="@+id/iria_telOFun_matches"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="@string/action_iria_telOFun_matches"/>
+        </menu>
+    </item>
 </menu>
+
+

@@ -124,9 +124,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathUphillAverageTextView;
 
     MenuItem menuSearch;
+    MenuItem bikePathPrefered;
+    MenuItem avoidUphills;
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
+    private boolean isAvoidUphillsChecked = true;
+    private boolean isPreferBikePathChecked = true;
 
     private boolean isSlidingPanelEnabled = false;
 
@@ -345,6 +349,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         menuSearch = menu.findItem(R.id.action_search);
         menuSearch.setVisible(false);
 
+        bikePathPrefered = menu.findItem(R.id.bike_paths);
+        bikePathPrefered.setChecked(true);
+        avoidUphills = menu.findItem(R.id.elevations);
+        avoidUphills.setChecked(true);
+
         Drawable drawable = menuSearch.getIcon();
         if (drawable != null) {
 //            drawable.mutate();
@@ -360,69 +369,29 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch(item.getItemId()){
-            case R.id.action_settings:
-                return true;
             case R.id.elevations:
                 if (!item.isChecked()){
-                    if (!IriaData.isDataReceived){
-                        Toast.makeText(
-                                CentralActivity.this,
-                                "Failed to get Tel-Aviv Municipality Data",
-                                Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
                     item.setChecked(true);
-                    isShowCloseTelOFunStationsChecked = true;
-                    allRoutes.showTelOFunSourceMatchesOnMap();
-                    allRoutes.showTelOFunDestinationMatchesOnMap();
+                    isAvoidUphillsChecked = true;
                 }
 
                 else{
                     item.setChecked(false);
-                    isShowCloseTelOFunStationsChecked = false;
-                    if (!IriaData.isDataReceived){
-                        return true;
-                    }
-                    allRoutes.hideTelOFunSourceMatchesOnMap();
-                    allRoutes.hideTelOFunDestinationMatchesOnMap();
-                    isShowCloseTelOFunStationsChecked = false;
+                    isAvoidUphillsChecked = false;
                 }
                 return true;
 
-            case R.id.paths:
+            case R.id.bike_paths:
                 if (!item.isChecked()){
-                    if (!IriaData.isDataReceived){
-                        Toast.makeText(
-                                CentralActivity.this,
-                                "Failed to get Tel-Aviv Municipality Data",
-                                Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
                     item.setChecked(true);
-                    isShowBikeRouteMatchesChecked = true;
-                    showBikePathMatchesOnMap();
+                    isPreferBikePathChecked = true;
                 }
 
                 else{
                     item.setChecked(false);
-                    isShowBikeRouteMatchesChecked = false;
-                    if (!IriaData.isDataReceived){
-                        return true;
-                    }
-                    removeBikePathMatchesFromMap();
+                    isPreferBikePathChecked = false;
                 }
                 return true;
-
-
-
-
-
-
-
-
-
-
-
 
             case R.id.iria_bike_path_cb:
                 if (!item.isChecked()){
