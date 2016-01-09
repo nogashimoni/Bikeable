@@ -129,12 +129,12 @@ public class AllRoutes {
     }
 
     public void showUphillSections(GoogleMap mMap) {
-        if (!isUphillSectionsAdded){
-            return;
-        }
+//        if (!isUphillSectionsAdded){
+//            return;
+//        }
         for (BikeableRoute bikeableRoute : bikeableRoutes) {
             bikeableRoute.colorizeUphillSections.addUphillSectionsToMap(mMap);
-            bikeableRoute.showBikePathOnMap();
+            bikeableRoute.colorizeUphillSections.showUphillSectionsToMap();
         }
         isUphillSectionsAdded = true;
     }
