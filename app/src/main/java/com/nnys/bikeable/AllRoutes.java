@@ -33,10 +33,10 @@ public class AllRoutes {
         selectedRouteIndex  = -1;
     }
 
-    public void updateBikeableRoutesAndMap(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
+    public void updateBikeableRoutesAndMap(DirectionsRoute[] directionsRouteArr, GoogleMap mMap, UserPreferences userPreferences) {
         removeCurrentRoutes();
         addNewRoutes(directionsRouteArr, mMap);
-        bestRouteIndex = calculateBestRouteIndex(); // by now, all routes are already updated
+        bestRouteIndex = calculateBestRouteIndex(userPreferences); // by now, all routes are already updated
         selectAndColorRoute(bestRouteIndex);
 
     }
@@ -78,16 +78,42 @@ public class AllRoutes {
 
 
 
-    private int calculateBestRouteIndex() {
+    private int calculateBestRouteIndex(UserPreferences userPreferences) {
         // This is a naive implemintation. We need to find a better way to calculate.
-        double maxScore = -1000000; //min int
+        double maxScore = -1 * Double.MAX_VALUE; //min int
         int bestRouteIndex = 0;
+        double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
+
         for (int i=0; i<getNumRoutes(); i++) {
-            double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
             double rescaledElevationScore = calcRescaledElevationScore(bikeableRoutes.get(i), maxElevationScorePerSearch);
             double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoutes.get(i));
-            double pathFinalScore = rescaledElevationScore + rescaledBikePathScore;
+
+            double pathFinalScore = 0;
+            double elevationsContribution = 0;
+            double bikingRouteContribution = 0;
+
+            if (!userPreferences.doesUserAvoidUphills() && !userPreferences.doesUserPrefereBikingRoutes() ) {
+                // user didn't check any box, choose fastest route
+                pathFinalScore = (-1) * bikeableRoutes.get(i).duration; //higher score = easier
+                Log.i("INFO", "User didn't check any box, will choose best duration");
+
+            } else { // user checked some box
+                if (userPreferences.doesUserAvoidUphills()) {
+                    elevationsContribution = rescaledElevationScore;
+                }
+                if (userPreferences.doesUserPrefereBikingRoutes()) {
+                    bikingRouteContribution = rescaledBikePathScore;
+                }
+
+                Log.i("INFO",String.format("User checked at least one box. Biking routes " +
+                        "contribution = %f, Elevation contribution = %f ",elevationsContribution,
+                        bikingRouteContribution) );
+
+                pathFinalScore = elevationsContribution + bikingRouteContribution;
+            }
+
             Log.i("INFO", String.format("Final Score: route with index %d has final score of %f", i , pathFinalScore));
+
             if (pathFinalScore > maxScore) {
                 maxScore = pathFinalScore;
                 bestRouteIndex = i;
