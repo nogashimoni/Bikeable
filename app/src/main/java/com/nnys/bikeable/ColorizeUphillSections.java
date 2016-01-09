@@ -21,7 +21,9 @@ public class ColorizeUphillSections {
     BikeableRoute bikeableRoute;
     ElevationResult[] routeElevationArr;
     ArrayList<PolylineOptions> uphillSections;
-    static ArrayList<Polyline> uphillPolylines;
+    ArrayList<Polyline> uphillPolylines;
+    private boolean isUphillPolylinesAdded;
+    private boolean isUphillSectionsShowen;
 
     public ColorizeUphillSections(BikeableRoute bikeableRoute){
         Log.i("Info:", "Init ColorizeUphillSections");
@@ -50,7 +52,7 @@ public class ColorizeUphillSections {
         currPathPolylineOpts.color(Color.RED);
         currPathPolylineOpts.add(new LatLng(routeElevationArr[i].location.lat, routeElevationArr[i].location.lng));
         currPathPolylineOpts.add(new LatLng(routeElevationArr[i + 1].location.lat, routeElevationArr[i + 1].location.lng));
-        this.uphillSections.add(currPathPolylineOpts);
+        uphillSections.add(currPathPolylineOpts);
 
 //        if (significantUphillSection != null) {
 //            uphillSections.add(significantUphillSection);
@@ -64,33 +66,42 @@ public class ColorizeUphillSections {
         for (PolylineOptions line : uphillSections) {
             line.zIndex(10); // TODO: not hard coded
 //                line.width(5); // TODO: not hard coded
-            line.visible(true);
+            line.visible(false);
             uphillPolylines.add(mMap.addPolyline(line));
+            Log.i("Info:", "add to map");
         }
     }
 
-//    public void showUphillSectionsToMap(){
-//        if (!isBikePathPolylinesAdded){
-//            return;
-//        }
-//        for (Polyline line : uphillPolylines){
-//            line.setVisible(true);
-//        }
-//    }
+    public void showUphillSectionsToMap(){
+        if (!isUphillPolylinesAdded){
+            return;
+        }
+        for (Polyline line : uphillPolylines){
+            line.setVisible(true);
+        }
+        isUphillPolylinesAdded = true;
+    }
 
     public void removeUphillSectionsFromMap(){
         Log.i("Info:", "removeUphillSectionsFromMap");
+        if (!isUphillPolylinesAdded){
+            return;
+        }
         for (Polyline line : uphillPolylines) {
+            line.setVisible(false);
             line.remove();
         }
+        uphillPolylines.removeAll(uphillPolylines);
+        uphillSections.removeAll(uphillSections);
+        isUphillPolylinesAdded = false;
     }
 
-//    public void hideUphillSectionsFromMap(){
-//        if (!isBikePathPolylinesAdded){
-//            return;
-//        }
-//        for (Polyline line : uphillPolylines) {
-//            line.setVisible(false);
-//        }
-//    }
+    public void hideUphillSectionsFromMap(){
+        if (!isUphillPolylinesAdded){
+            return;
+        }
+        for (Polyline line : uphillPolylines) {
+            line.setVisible(false);
+        }
+    }
 }

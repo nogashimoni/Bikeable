@@ -27,6 +27,7 @@ public class AllRoutes {
     ArrayList <TelOFunStation> closestTelOFunStationsDestination;
     ArrayList <Marker> telOFunSourceMarkers;
     ArrayList <Marker> telOFunDestinationMarkers;
+    private boolean isUphillSectionsAdded;
 
     public AllRoutes() {
         bikeableRoutes = new ArrayList<>();
@@ -125,6 +126,26 @@ public class AllRoutes {
             return null;
         }
         return bikeableRoutes.get(selectedRouteIndex);
+    }
+
+    public void showUphillSections(GoogleMap mMap) {
+        if (!isUphillSectionsAdded){
+            return;
+        }
+        for (BikeableRoute bikeableRoute : bikeableRoutes) {
+            bikeableRoute.colorizeUphillSections.addUphillSectionsToMap(mMap);
+            bikeableRoute.showBikePathOnMap();
+        }
+        isUphillSectionsAdded = true;
+    }
+
+    public void removeUphillSections() {
+        if (!isUphillSectionsAdded){
+            return;
+        }
+        for (BikeableRoute bikeableRoute : bikeableRoutes) {
+            bikeableRoute.colorizeUphillSections.removeUphillSectionsFromMap();
+        }
     }
 
     public void calculateClosestTelOFunStationsData (GoogleMap mMap, DirectionsManager directionsManager) throws IOException {

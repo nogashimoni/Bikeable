@@ -125,6 +125,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
+    private boolean isShowUphillSections;
 
     private boolean isSlidingPanelEnabled = false;
 
@@ -452,6 +453,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
                     isShowCloseTelOFunStationsChecked = false;
+                }
+                return true;
+            case R.id.uphill_sections:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    isShowUphillSections = true;
+                    allRoutes.showUphillSections(mMap);
+                }
+
+                else{
+                    item.setChecked(false);
+                    isShowUphillSections = false;
+                    allRoutes.removeUphillSections();
+                    isShowUphillSections = false;
                 }
                 return true;
             case R.id.action_search:

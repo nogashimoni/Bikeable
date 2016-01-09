@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
 
     <item
+        android:id="@+id/uphill_sections"
+        android:checkable="true"
+        android:actionViewClass="android.widget.CheckBox"
+        android:title="@string/action_uphill"/>
+
+    <item
         android:id="@+id/iria_bike_path_cb"
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"
