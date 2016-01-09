@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -22,14 +24,21 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +59,8 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -57,8 +68,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.GeocodingApi;
+import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
 import com.google.maps.model.GeocodingResult;
+import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -66,6 +79,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -107,9 +121,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathUphillAverageTextView;
 
     MenuItem menuSearch;
+    MenuItem bikePathPrefered;
+    MenuItem avoidUphills;
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
+    private boolean isAvoidUphillsChecked = true;
+    private boolean isPreferBikePathChecked = true;
 
     private SearchHistoryCollector searchHistoryCollector;
     private boolean isSlidingPanelEnabled = false;
@@ -335,6 +353,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         menuSearch = menu.findItem(R.id.action_search);
         menuSearch.setVisible(false);
 
+        bikePathPrefered = menu.findItem(R.id.bike_paths);
+        bikePathPrefered.setChecked(true);
+        avoidUphills = menu.findItem(R.id.elevations);
+        avoidUphills.setChecked(true);
+
         Drawable drawable = menuSearch.getIcon();
         if (drawable != null) {
 //            drawable.mutate();
@@ -350,8 +373,30 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch(item.getItemId()){
-            case R.id.action_settings:
+            case R.id.elevations:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    isAvoidUphillsChecked = true;
+                }
+
+                else{
+                    item.setChecked(false);
+                    isAvoidUphillsChecked = false;
+                }
                 return true;
+
+            case R.id.bike_paths:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    isPreferBikePathChecked = true;
+                }
+
+                else{
+                    item.setChecked(false);
+                    isPreferBikePathChecked = false;
+                }
+                return true;
+
             case R.id.iria_bike_path_cb:
                 if (!item.isChecked()){
                     if (!IriaData.isDataReceived){
