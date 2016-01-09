@@ -28,9 +28,11 @@ import java.util.Arrays;
 public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
     // was the text just cleared?
     boolean doClear = false;
+    boolean isTouchedAgain = false;
     AutocompletePrediction prediction;
     ClearableAutoCompleteTextView currView = this;
     Context context;
+    SearchHistoryCollector searchHistoryCollector = null;
 
     // if not set otherwise, the default clear listener clears the text in the
     // text view
@@ -139,12 +141,23 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
         this.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-
                 ClearableAutoCompleteTextView et = ClearableAutoCompleteTextView.this;
 
-                if (et.getCompoundDrawables()[2] == null) {
-                    showOnlyFixedResults();
-                    return false;
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN){
+
+                    // dismiss if touched for the second time
+                    if (isTouchedAgain){
+                        et.dismissDropDown();
+                        isTouchedAgain = isTouchedAgain ^ true;
+                        return false;
+                    }
+
+                    isTouchedAgain = isTouchedAgain ^ true;
+
+                    if (et.getCompoundDrawables()[2] == null) {
+                        showOnlyFixedResults();
+                        return false;
+                    }
                 }
 
                 if (event.getAction() != MotionEvent.ACTION_UP) {
@@ -163,12 +176,18 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
     private void showOnlyFixedResults() {
         PlaceAutocompleteAdapter currAdapter = (PlaceAutocompleteAdapter) currView.getAdapter();
-        if (currAdapter.getFixedResults().size() == 0) {
-            Log.i("INFO:", "no fixed results run");
-            // no fixed results
-            return;
+//        if (currAdapter.getFixedResults().size() == 0) {
+//            Log.i("INFO:", "no fixed results run");
+//            // no fixed results
+//            return;
+//        }
+        ArrayList<AutocompletePrediction> fixedResults = new ArrayList();
+        fixedResults.addAll(currAdapter.getFixedResults());
+        if (searchHistoryCollector != null && !searchHistoryCollector.getOnlineHistory().isEmpty()){
+            fixedResults.addAll(searchHistoryCollector.getOnlineHistory());
         }
-        currAdapter.setResultsList(new ArrayList<AutocompletePrediction>(currAdapter.getFixedResults()));
+
+        currAdapter.setResultsList(fixedResults);
         currView.getHandler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -211,4 +230,7 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
             this.setText(prediction.getDescription(), false);
     }
 
+    public void setSearchHistoryCollector(SearchHistoryCollector searchHistoryCollector) {
+        this.searchHistoryCollector = searchHistoryCollector;
+    }
 }

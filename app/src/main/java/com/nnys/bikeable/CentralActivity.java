@@ -37,7 +37,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -93,13 +92,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private static final int PERMISSION_REQUEST_CODE_LOCATION = 1;
 
     protected GoogleApiClient mGoogleApiClient;
-    protected GeoApiContext context;
+    protected GeoApiContext geoApiContext;
     protected DirectionsManager directionsManager = null;
 
     private AllRoutes allRoutes;
 
-    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton,
-            startNavButton;
+    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton, startNavButton;
+    private Button historyBtn;
     private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
@@ -108,8 +107,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private ClearableAutoCompleteTextView to, from;
     private LinearLayout searchLayout;
     private LinearLayout markerOptsLayout;
-    private SlidingUpPanelLayout slidingUpLayout;
-
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -132,11 +129,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private boolean isAvoidUphillsChecked = true;
     private boolean isPreferBikePathChecked = true;
 
+    private SearchHistoryCollector searchHistoryCollector;
     private boolean isSlidingPanelEnabled = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.central_activity_layout);
 
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
         // functionality, which automatically sets up the API client to handle Activity lifecycle
@@ -150,20 +150,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        setContentView(R.layout.central_activity_layout);
+        geoApiContext = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
 
-        disableSlidingPanel();
+        searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
 
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
         to.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        to.setSearchHistoryCollector(searchHistoryCollector);
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
         PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
@@ -178,7 +178,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
                     if (mCurrentLocation == null) {
-                        Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
@@ -214,7 +214,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
 
@@ -222,9 +221,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        context = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
-
-        directionsManager = new DirectionsManager(context, mMap);
+        directionsManager = new DirectionsManager(geoApiContext, mMap);
 
         initMarkerAddOptions();
 
@@ -238,11 +235,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             @Override
             public void onClick(View v) {
 
-                if (from.getPrediction() == null || to.getPrediction() == null){
+                if (from.getPrediction() == null || to.getPrediction() == null) {
                     return;
                 }
-                if (isSearchFromCurrentLocation() && mCurrentLocation == null){
-                    Toast.makeText(getApplicationContext(),"Current Location Unavailable",Toast.LENGTH_SHORT).show();
+                if (isSearchFromCurrentLocation() && mCurrentLocation == null) {
+                    Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -256,6 +253,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 //put in the search button onClick:
                 BackgroundTask task = new BackgroundTask(CentralActivity.this);
                 task.execute();
+
+                enableSlidingPanel();
 
             }
         });
@@ -275,6 +274,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
             }
         });
+
+        disableSlidingPanel();
 
     }
 
@@ -307,13 +308,16 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void disableSlidingPanel() {
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelHeight(0);
+        slidingUpLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingUpLayout.setPanelHeight(0);
         isSlidingPanelEnabled = false;
     }
 
     private void enableSlidingPanel() {
-        slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingUpLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingUpLayout.setPanelHeight(80);
         isSlidingPanelEnabled = true;
     }
@@ -571,6 +575,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mMap.setOnMapClickListener((new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng clickLatLng) {
+                hideKeyboard();
                 Log.i("inside listener begin", "inside listener begin2");
                 markerOptsLayout.setVisibility(View.GONE);
                 if (tempMarker != null)
@@ -594,6 +599,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                @Override
                public void onMapLongClick(LatLng markerLatLng) {
+                   hideKeyboard();
+                   if (isSlidingPanelEnabled) {
+                       Log.i("INFO:", "isSlidingPanelEnabled");
+                       enableSlidingPanel();
+                   }
                    if (tempMarker != null) {
                        tempMarker.remove();
                    }
@@ -601,9 +611,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                            .position(markerLatLng));
                    tempMarker.setTitle("Temp Marker");
                    markerOptsLayout.setVisibility(View.VISIBLE);
-                   if (isSlidingPanelEnabled) {
-                       enableSlidingPanel();
-                   }
+
                }
            }
         );
@@ -829,6 +837,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
+//            disableSlidingPanel();
             ringProgressDialog.setTitle("Calculating routes");
             ringProgressDialog.setMessage("Please wait...");
             ringProgressDialog.setIndeterminate(true);
@@ -842,7 +851,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPostExecute(Void result) {
 
             // put here the search code
-            disableSlidingPanel();
 
             directionsManager.getDirections();
 
@@ -877,9 +885,13 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
+
+            directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             updateInfoTable();
-            enableSlidingPanel();
             hideSearchView();
+//            enableSlidingPanel();
+
+
             if (isSearchFromCurrentLocation()) {
                 startNavButton.setVisibility(View.VISIBLE);
             }
@@ -892,7 +904,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -916,7 +928,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 String secondaryText;
                 String placeId = null;
                 try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
                             .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
                     primaryText = results[0].formattedAddress;
                     secondaryText = "";
@@ -943,7 +955,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 String secondaryText;
                 String placeId = null;
                 try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(context)
+                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
                             .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
                     primaryText = results[0].formattedAddress;
                     secondaryText = "";
@@ -991,6 +1003,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void hideKeyboard(){
         // hide keyboard on search
         InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
+        if (CentralActivity.this.getCurrentFocus() != null) {
+            in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
+        }
     }
 }
