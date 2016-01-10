@@ -165,12 +165,12 @@ public class AllRoutes {
         isUphillSectionsAdded = true;
     }
 
-    public void removeUphillSections() {
+    public void hideUphillSections() {
         if (!isUphillSectionsAdded){
             return;
         }
         for (BikeableRoute bikeableRoute : bikeableRoutes) {
-            bikeableRoute.colorizeUphillSections.removeUphillSectionsFromMap();
+            bikeableRoute.colorizeUphillSections.hideUphillSectionsFromMap();
         }
     }
 

@@ -503,8 +503,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 else{
                     item.setChecked(false);
-                    isShowUphillSections = false;
-                    allRoutes.removeUphillSections();
+                    allRoutes.hideUphillSections();
                     isShowUphillSections = false;
                 }
                 return true;
@@ -904,11 +903,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
-            if (isShowUphillSections){
+            if ( isShowUphillSections ) {
+                Log.i("Info:", "isShowUphillSections");
                 allRoutes.showUphillSections(mMap);
             }
-
-            directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             updateInfoTable();
             hideSearchView();
 //            enableSlidingPanel();
