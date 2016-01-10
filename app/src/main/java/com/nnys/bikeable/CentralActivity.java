@@ -904,6 +904,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
+            if (isShowUphillSections){
+                allRoutes.showUphillSections(mMap);
+            }
 
             directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             updateInfoTable();

@@ -2,18 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:appContext=".MainActivity">
 
-    <item
-        android:id="@+id/uphill_sections"
-        android:checkable="true"
-        android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_uphill"/>
-
-    <item
-        android:id="@+id/iria_bike_path_cb"
-        android:checkable="true"
-        android:actionViewClass="android.widget.CheckBox"
-        android:title="@string/action_iria_layers"/>
-
     <item android:id="@+id/elevations"
         android:checkable="true"
         android:actionViewClass="android.widget.CheckBox"
@@ -39,6 +27,11 @@
         app:showAsAction="always">
         <menu>
             <item
+                android:id="@+id/uphill_sections"
+                android:checkable="true"
+                android:actionViewClass="android.widget.CheckBox"
+                android:title="@string/action_uphill"/>
+            <item
                 android:id="@+id/iria_bike_path_cb"
                 android:checkable="true"
                 android:actionViewClass="android.widget.CheckBox"
@@ -61,5 +54,4 @@
         </menu>
     </item>
 </menu>
-
 
