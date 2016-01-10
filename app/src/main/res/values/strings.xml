@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">Bikeable</string>
     <string name="action_settings">Settings</string>
-    <string name="action_iria_layers">Show Tel Aviv Bike Paths</string>
-    <string name="action_iria_telOFun">Show Tel-O-Fun stations</string>
-    <string name="action_iria_telOFun_matches">Show matches with Tel-O-Fun</string>
+    <string name="action_iria_layers">Tel Aviv bike paths</string>
+    <string name="action_iria_telOFun">Tel-O-Fun stations</string>
+    <string name="action_iria_telOFun_matches">Tel-o-fun near start/end point</string>
     <string name="from_text">Choose origin... (type to search)</string>
-    <string name="action_iria_matches_layer">Show matches with Bike Paths</string>
+    <string name="action_iria_matches_layer">Overlapping bike paths</string>
     <string name="to_text">Choose destination... (type to search)</string>
     <string name="wait_curr_location">Please wait for navigation to start</string>
     <string name="nav_back_button">Back to Search results</string>

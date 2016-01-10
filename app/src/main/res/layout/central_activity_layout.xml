@@ -124,7 +124,7 @@
                     android:id="@+id/start_nav_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="16dp"
+                    android:layout_margin="5dp"
                     android:clickable="true"
                     android:visibility="invisible"
                     app:backgroundTint="@color/colorPrimary"
@@ -222,7 +222,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Distance: "/>
+                    android:text="Distance: "
+                    android:layout_marginLeft="@dimen/fromto_margin"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -248,7 +249,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="uphill degree (Avg): "/>
+                    android:text="Uphill degree (avg.): "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -264,7 +265,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Bike path: "/>
+                    android:text="Bike path: "
+                    android:layout_marginLeft="@dimen/fromto_margin"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

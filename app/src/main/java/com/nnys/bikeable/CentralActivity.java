@@ -8,8 +8,6 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -24,21 +22,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,8 +50,6 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -68,10 +57,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.GeoApiContext;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.maps.GeocodingApi;
-import com.google.maps.PlacesApi;
 import com.google.maps.model.ElevationResult;
 import com.google.maps.model.GeocodingResult;
-import com.google.maps.model.PlaceDetails;
 import com.jjoe64.graphview.GraphView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -79,7 +66,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -105,6 +91,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private GoogleMap mMap;
     private Marker tempMarker;
     private ClearableAutoCompleteTextView to, from;
+    private PlaceAutocompleteAdapter fromAdapter;
     private LinearLayout searchLayout;
     private LinearLayout markerOptsLayout;
 
@@ -114,6 +101,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private Location mCurrentLocation = null;
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
+    private boolean isCurrentLocationAlreadyUpdated;
+    private CustomAutoCompletePrediction currentLocationPrediction;
 
     TextView pathDurationTextView;
     TextView pathPercTextView;
@@ -161,6 +150,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
         userPreferences = new UserPreferences();
 
+        currentLocationPrediction = new CustomAutoCompletePrediction(
+                getResources().getString(R.string.curr_location_primary_text),
+                getResources().getString(R.string.curr_location_secondary_text));
+
         from = (ClearableAutoCompleteTextView) findViewById(R.id.from);
         from.setImgClearButtonColor(ContextCompat.getColor(this, R.color.colorPrimary));
         to = (ClearableAutoCompleteTextView) findViewById(R.id.to);
@@ -168,10 +161,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         to.setSearchHistoryCollector(searchHistoryCollector);
         from.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
-        PlaceAutocompleteAdapter fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
-        fromAdapter.addFixedResult(new CustomAutoCompletePrediction(
-                getResources().getString(R.string.curr_location_primary_text),
-                getResources().getString(R.string.curr_location_secondary_text)));
+        fromAdapter  = (PlaceAutocompleteAdapter)from.getAdapter();
+        fromAdapter.addFixedResult(currentLocationPrediction);
         to.setAdapter(new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_GREATER_TEL_AVIV,
                 null));
         from.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -261,12 +252,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
         });
 
-        startNavButton.setOnClickListener(new View.OnClickListener(){
+        startNavButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 ArrayList<LatLng> selectedRouteLatLngs = MapUtils.getLstGmsLatLngFromModel(
-                                        allRoutes.getSelectedRoute().getRouteLatLngs());
+                        allRoutes.getSelectedRoute().getRouteLatLngs());
                 Log.i("INFO:", String.format("route before starting activity!!! %d", selectedRouteLatLngs.size()));
 
                 if (selectedRouteLatLngs != null) {
@@ -278,7 +269,19 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         });
 
         disableSlidingPanel();
+    }
 
+    private void setCurrentLocationAsDefault() {
+        if (mCurrentLocation == null) {
+            Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (from.getPrediction() != null){
+            return;
+        }
+        from.setPrediction(currentLocationPrediction, false);
+        from.setText(currentLocationPrediction.getFullText(null), false);
+        directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
     }
 
     private boolean isSearchFromCurrentLocation() {
@@ -336,7 +339,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
         pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
-        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()));
+        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree())+"°");
     }
 
     private void clearInfoTable() {
@@ -584,9 +587,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     tempMarker.remove();
 
                 if (!allRoutes.bikeableRoutes.isEmpty()) {
-                    MapUtils.selectClickedRoute(allRoutes, clickLatLng);
+                    boolean isRouteClicked = MapUtils.selectClickedRoute(allRoutes, clickLatLng);
 
-                    if (allRoutes.getSelectedRouteIndex() >= 0) {
+                    if (isRouteClicked && allRoutes.getSelectedRouteIndex() >= 0) {
                         graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getSelectedRouteIndex());
                         updateInfoTable();
                     }
@@ -699,6 +702,11 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         Log.i("INFO", String.format("Current loction lat: %f", mCurrentLocation.getLatitude()));
         Log.i("INFO", String.format("Current location lang %f", mCurrentLocation.getLongitude()));
         updateUI();
+        if (!isCurrentLocationAlreadyUpdated) {
+            setCurrentLocationAsDefault();
+        }
+        isCurrentLocationAlreadyUpdated = true;
+
     }
 
     protected void startLocationUpdates() {

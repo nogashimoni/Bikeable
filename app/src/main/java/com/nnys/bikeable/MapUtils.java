@@ -41,15 +41,17 @@ public class MapUtils {
         return result;
     }
 
-    public static void selectClickedRoute (AllRoutes allRoutes, com.google.android.gms.maps.model.LatLng clickLatLng){
+    public static boolean selectClickedRoute (AllRoutes allRoutes, com.google.android.gms.maps.model.LatLng clickLatLng){
+        // return true iff a path was selected
         for (int i = 0; i < allRoutes.getNumRoutes(); i++){
             // TODO: change 100 to constant value
             BikeableRoute route = allRoutes.getAllRoutes().get(i);
             if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 100)){
                 allRoutes.selectAndColorRoute(i);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public static ArrayList<SKCoordinate> getSKLstLatLngFromGMS(List<com.google.android.gms.maps.model.LatLng> fromLst){
