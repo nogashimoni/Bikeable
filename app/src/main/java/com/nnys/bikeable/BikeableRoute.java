@@ -214,6 +214,8 @@ public class BikeableRoute {
 
 
     public double getAverageUphillDegree() {
+        Log.d("DEBUG",String.format("Worst uphill degree: %f", worstDegree));
+        Log.d("DEBUG",String.format("Algorithm score: %f", pathElevationScore));
         return averageUphillDegree;
     }
 

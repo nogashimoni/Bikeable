@@ -7,9 +7,7 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 
 import java.util.List;
 
-/**
- * Created by Sharon on 02/01/2016.
- */
+
 public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     String primaryText;
@@ -54,7 +52,7 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     @Override
     public String getPlaceId() {
-        return null;
+        return placeId;
     }
 
     @Override
@@ -70,5 +68,9 @@ public class CustomAutoCompletePrediction implements AutocompletePrediction {
     @Override
     public boolean isDataValid() {
         return false;
+    }
+
+    public void setSecondaryText(String secondaryText) {
+        this.secondaryText = secondaryText;
     }
 }

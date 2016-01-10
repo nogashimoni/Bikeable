@@ -8,10 +8,15 @@ android {
         applicationId "com.nnys.bikeable"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 8
+        versionName "1.7"
         multiDexEnabled true
     }
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -19,6 +24,7 @@ android {
         }
     }
 }
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -32,5 +38,5 @@ dependencies {
     compile 'com.jjoe64:graphview:4.0.1'
     compile 'com.sothree.slidinguppanel:library:3.2.0'
     compile 'com.android.support:multidex:1.0.1'
-
+    compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
 }
