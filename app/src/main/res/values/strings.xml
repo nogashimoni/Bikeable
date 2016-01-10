@@ -18,6 +18,6 @@
     <string name="feedback_email">nnys.group@gmail.com</string>
     <string name="curr_location_primary_text">Current Location</string>
     <string name="curr_location_secondary_text">Your Current Location</string>
-    <string name="action_uphill">Show Significant Uphills</string>
+    <string name="action_uphill">Significant Uphills</string>
     <string name="history_val_sep">.@.@</string>
 </resources>
