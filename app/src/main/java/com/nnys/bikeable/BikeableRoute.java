@@ -3,12 +3,8 @@ package com.nnys.bikeable;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.ElevationResult;
@@ -56,6 +52,7 @@ public class BikeableRoute {
     boolean isBikePathShown;
     ArrayList <PolylineOptions> bikePathInRoute;
     ArrayList <Polyline> bikePathPolyLineInRoute;
+    ColorizeUphillSections colorizeUphillSections;
 
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
@@ -76,6 +73,9 @@ public class BikeableRoute {
 
         routePolylineOptions = createRoutesPolyOpts();
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
+        colorizeUphillSections = new ColorizeUphillSections(this);
+        colorizeUphillSections.addUphillSectionsToMap(mMap);
+//        colorizeUphillSections.showUphillSectionsToMap();
         if (IriaData.isDataReceived) {
             BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
                     directionsRoute);
@@ -229,5 +229,13 @@ public class BikeableRoute {
 
     public double getPathElevationScore() {
         return pathElevationScore;
+    }
+
+    public double[] getDegreesArray(){
+        return pathElevationScoreCalculator.getDegreesArray();
+    }
+
+    public ElevationResult[] getRouteElevationArr() {
+        return routeElevationArr;
     }
 }

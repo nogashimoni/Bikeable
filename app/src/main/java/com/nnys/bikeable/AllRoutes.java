@@ -27,6 +27,7 @@ public class AllRoutes {
     ArrayList <TelOFunStation> closestTelOFunStationsDestination;
     ArrayList <Marker> telOFunSourceMarkers;
     ArrayList <Marker> telOFunDestinationMarkers;
+    private boolean isUphillSectionsAdded;
 
     public AllRoutes() {
         bikeableRoutes = new ArrayList<>();
@@ -43,7 +44,8 @@ public class AllRoutes {
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
         for (DirectionsRoute directionsRoute: directionsRouteArr){
-            bikeableRoutes.add(new BikeableRoute(directionsRoute, mMap));
+            BikeableRoute currBikeableRoute = new BikeableRoute(directionsRoute, mMap);
+            bikeableRoutes.add(currBikeableRoute);
         }
     }
 
@@ -58,6 +60,7 @@ public class AllRoutes {
         for (BikeableRoute bikeableRoute : bikeableRoutes){
             bikeableRoute.routePolyline.remove();
             bikeableRoute.removeBikePathFromMap();
+            bikeableRoute.colorizeUphillSections.removeUphillSectionsFromMap();
         }
     }
 
@@ -149,6 +152,26 @@ public class AllRoutes {
             return null;
         }
         return bikeableRoutes.get(selectedRouteIndex);
+    }
+
+    public void showUphillSections(GoogleMap mMap) {
+//        if (!isUphillSectionsAdded){
+//            return;
+//        }
+        for (BikeableRoute bikeableRoute : bikeableRoutes) {
+            bikeableRoute.colorizeUphillSections.addUphillSectionsToMap(mMap);
+            bikeableRoute.colorizeUphillSections.showUphillSectionsToMap();
+        }
+        isUphillSectionsAdded = true;
+    }
+
+    public void hideUphillSections() {
+        if (!isUphillSectionsAdded){
+            return;
+        }
+        for (BikeableRoute bikeableRoute : bikeableRoutes) {
+            bikeableRoute.colorizeUphillSections.hideUphillSectionsFromMap();
+        }
     }
 
     public void calculateClosestTelOFunStationsData (GoogleMap mMap, DirectionsManager directionsManager) throws IOException {

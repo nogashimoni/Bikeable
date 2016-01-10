@@ -123,4 +123,8 @@ public class PathElevationScoreCalculator {
         return max;
     }
 
+    public double[] getDegreesArray() {
+        return degreesArray;
+    }
+
 }

@@ -115,6 +115,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private boolean isShowBikeRouteMatchesChecked = false;
     private boolean isShowCloseTelOFunStationsChecked = false;
+    private boolean isShowUphillSections;
     private boolean isAvoidUphillsChecked = true;
     private boolean isPreferBikePathChecked = true;
 
@@ -494,6 +495,19 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
                     isShowCloseTelOFunStationsChecked = false;
+                }
+                return true;
+            case R.id.uphill_sections:
+                if (!item.isChecked()){
+                    item.setChecked(true);
+                    isShowUphillSections = true;
+                    allRoutes.showUphillSections(mMap);
+                }
+
+                else{
+                    item.setChecked(false);
+                    allRoutes.hideUphillSections();
+                    isShowUphillSections = false;
                 }
                 return true;
             case R.id.action_search:
@@ -897,8 +911,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
-
-            directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
+            if ( isShowUphillSections ) {
+                Log.i("Info:", "isShowUphillSections");
+                allRoutes.showUphillSections(mMap);
+            }
             updateInfoTable();
             hideSearchView();
 //            enableSlidingPanel();
