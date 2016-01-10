@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -110,17 +111,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathUphillAverageTextView;
 
     MenuItem menuSearch;
-    MenuItem bikePathPrefered;
-    MenuItem avoidUphills;
+    MenuItem cbBikePathPrefered, cbAvoidUphills;
+    MenuItem cbAllBikePath, cbOverlapBikePath, cbUphillsSections, cbAllTelOFun, cbNearestTelOFun;
 
-    private boolean isShowBikeRouteMatchesChecked = false;
-    private boolean isShowCloseTelOFunStationsChecked = false;
-    private boolean isShowUphillSections;
-    private boolean isAvoidUphillsChecked = true;
-    private boolean isPreferBikePathChecked = true;
+
+//    private boolean isShowBikeRouteMatchesChecked = false;
+//    private boolean isShowCloseTelOFunStationsChecked = false;
+//    private boolean isShowUphillSections;
+//    private boolean isAvoidUphillsChecked = true;
+//    private boolean isPreferBikePathChecked = true;
 
     private SearchHistoryCollector searchHistoryCollector;
+    private SharedPreferences sharedPreferences;
     private UserPreferences userPreferences;
+    private LayerPreferences layerPreferences;
     private boolean isSlidingPanelEnabled = false;
 
 
@@ -149,7 +153,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
 
         searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
-        userPreferences = new UserPreferences();
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        userPreferences = new UserPreferences(sharedPreferences);
+        layerPreferences = new LayerPreferences(sharedPreferences);
+
+        userPreferences.loadUserPreferences();
+        layerPreferences.loadLayerPreferences();
 
         currentLocationPrediction = new CustomAutoCompletePrediction(
                 getResources().getString(R.string.curr_location_primary_text),
@@ -340,7 +349,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
         pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
-        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree())+"°");
+        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
     }
 
     private void clearInfoTable() {
@@ -359,10 +368,22 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         menuSearch = menu.findItem(R.id.action_search);
         menuSearch.setVisible(false);
 
-        bikePathPrefered = menu.findItem(R.id.bike_paths);
-        bikePathPrefered.setChecked(true);
-        avoidUphills = menu.findItem(R.id.elevations);
-        avoidUphills.setChecked(true);
+        cbBikePathPrefered = menu.findItem(R.id.bike_paths);
+        cbAvoidUphills = menu.findItem(R.id.elevations);
+        cbBikePathPrefered.setChecked(userPreferences.doesUserPrefereBikingRoutes());
+        cbAvoidUphills.setChecked(userPreferences.doesUserAvoidUphills());
+
+        cbUphillsSections = menu.findItem(R.id.uphill_sections);
+        cbAllBikePath = menu.findItem(R.id.iria_bike_path_cb);
+        cbOverlapBikePath = menu.findItem(R.id.iria_bike_path_mathches);
+        cbAllTelOFun = menu.findItem(R.id.iria_telOFun_cb);
+        cbNearestTelOFun = menu.findItem(R.id.iria_telOFun_matches);
+
+        cbUphillsSections.setChecked(layerPreferences.isShowUphills());
+        cbAllBikePath.setChecked(layerPreferences.isShowAllBikePaths());
+        cbOverlapBikePath.setChecked(layerPreferences.isShowOverlapBikePaths());
+        cbAllTelOFun.setChecked(layerPreferences.isShowAllTelOFun());
+        cbNearestTelOFun.setChecked(layerPreferences.isShowNearTelOFun());
 
         Drawable drawable = menuSearch.getIcon();
         if (drawable != null) {
@@ -382,25 +403,27 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             case R.id.elevations:
                 if (!item.isChecked()){
                     item.setChecked(true);
-                    isAvoidUphillsChecked = true;
+                    userPreferences.setUserAvoidsUphills(true);
                 }
 
                 else{
                     item.setChecked(false);
-                    isAvoidUphillsChecked = false;
+                    userPreferences.setUserAvoidsUphills(false);
                 }
+                userPreferences.saveUserPreferences();
                 return true;
 
             case R.id.bike_paths:
                 if (!item.isChecked()){
                     item.setChecked(true);
-                    isPreferBikePathChecked = true;
+                    userPreferences.setUserPreferesBikingRoutes(true);
                 }
 
                 else{
                     item.setChecked(false);
-                    isPreferBikePathChecked = false;
+                    userPreferences.setUserPreferesBikingRoutes(false);
                 }
+                userPreferences.saveUserPreferences();
                 return true;
 
             case R.id.iria_bike_path_cb:
@@ -415,14 +438,17 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     item.setChecked(true);
                     IriaData.addBikePathToMap(mMap);
                     IriaData.showBikePathOnMap();
+                    layerPreferences.setShowAllBikePaths(true);
                 }
                 else{
-                    item.setChecked(false);
                     if (!IriaData.isDataReceived){
                         return true;
                     }
+                    item.setChecked(false);
+                    layerPreferences.setShowAllBikePaths(false);
                     IriaData.removeBikePathFromMap();
                 }
+                layerPreferences.saveLayerPreferences();
                 return true;
 
             case R.id.iria_bike_path_mathches:
@@ -435,18 +461,21 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         return true;
                     }
                     item.setChecked(true);
-                    isShowBikeRouteMatchesChecked = true;
+                    layerPreferences.setShowOverlapBikePaths(true);
                     showBikePathMatchesOnMap();
-                }
-
-                else{
-                    item.setChecked(false);
-                    isShowBikeRouteMatchesChecked = false;
+                } else {
                     if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
                         return true;
                     }
+                    item.setChecked(false);
+                    layerPreferences.setShowOverlapBikePaths(false);
                     removeBikePathMatchesFromMap();
                 }
+                layerPreferences.saveLayerPreferences();
                 return true;
 
             case R.id.iria_telOFun_cb:
@@ -459,17 +488,23 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         return true;
                     }
                     item.setChecked(true);
+                    layerPreferences.setShowAllTelOFun(true);
                     IriaData.addTelOFunToMap(mMap);
                     IriaData.showTelOFunOnMap();
                 }
                 else{
-                    item.setChecked(false);
                     if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
                         return true;
                     }
-
+                    item.setChecked(false);
+                    layerPreferences.setShowAllTelOFun(false);
                     IriaData.removeTelOFunFromMap();
                 }
+                layerPreferences.saveLayerPreferences();
                 return true;
             case R.id.iria_telOFun_matches:
                 if (!item.isChecked()){
@@ -481,35 +516,41 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         return true;
                     }
                     item.setChecked(true);
-                    isShowCloseTelOFunStationsChecked = true;
+                    layerPreferences.setShowNearTelOFun(true);
                     allRoutes.showTelOFunSourceMatchesOnMap();
                     allRoutes.showTelOFunDestinationMatchesOnMap();
                 }
 
                 else{
-                    item.setChecked(false);
-                    isShowCloseTelOFunStationsChecked = false;
                     if (!IriaData.isDataReceived){
+                        Toast.makeText(
+                                CentralActivity.this,
+                                "Failed to get Tel-Aviv Municipality Data",
+                                Toast.LENGTH_SHORT).show();
                         return true;
                     }
+                    item.setChecked(false);
+                    layerPreferences.setShowNearTelOFun(false);
                     allRoutes.hideTelOFunSourceMatchesOnMap();
                     allRoutes.hideTelOFunDestinationMatchesOnMap();
-                    isShowCloseTelOFunStationsChecked = false;
                 }
+                layerPreferences.saveLayerPreferences();
                 return true;
             case R.id.uphill_sections:
                 if (!item.isChecked()){
                     item.setChecked(true);
-                    isShowUphillSections = true;
+                    layerPreferences.setShowUphills(true);
                     allRoutes.showUphillSections(mMap);
                 }
 
                 else{
                     item.setChecked(false);
+                    layerPreferences.setShowUphills(false);
                     allRoutes.hideUphillSections();
-                    isShowUphillSections = false;
                 }
+                layerPreferences.saveLayerPreferences();
                 return true;
+
             case R.id.action_search:
                 showSearchView();
                 return true;
@@ -588,6 +629,19 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //                        .position(placeToFocusOn)
 //        );
 //
+
+        if (layerPreferences != null){
+            Log.i("INFO:", "layerPreferences not null");
+            if (layerPreferences.isShowAllBikePaths()){
+                IriaData.addBikePathToMap(mMap);
+                IriaData.showBikePathOnMap();
+            }
+            if (layerPreferences.isShowAllTelOFun()){
+                IriaData.addTelOFunToMap(mMap);
+                IriaData.showTelOFunOnMap();
+            }
+        }
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(placeToFocusOn));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
 
@@ -877,9 +931,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             // put here the search code
 
             directionsManager.getDirections();
-
-            userPreferences.update(isAvoidUphillsChecked, isPreferBikePathChecked);
-
+            directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap, userPreferences);
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                     .getInteger(R.integer.bound_padding)));
@@ -904,14 +956,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             GraphToMapConnector graphToMapConnector = new GraphToMapConnector(graphDrawer, mMap);
             graphToMapConnector.connect();
 
-            if ( isShowBikeRouteMatchesChecked ) {
+            if ( layerPreferences.isShowOverlapBikePaths()){
                 showBikePathMatchesOnMap();
             }
-            if (isShowCloseTelOFunStationsChecked){
+            if (layerPreferences.isShowNearTelOFun()){
                 allRoutes.showTelOFunDestinationMatchesOnMap();
                 allRoutes.showTelOFunSourceMatchesOnMap();
             }
-            if ( isShowUphillSections ) {
+            if (layerPreferences.isShowUphills()) {
                 Log.i("Info:", "isShowUphillSections");
                 allRoutes.showUphillSections(mMap);
             }
