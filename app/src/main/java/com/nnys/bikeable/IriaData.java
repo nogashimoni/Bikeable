@@ -45,12 +45,14 @@ public class IriaData {
 
     public static Boolean isDataReceived;
 
-    // TODO: can we initialize when app starts?
+
     public static void getIriaData() throws IOException, XmlPullParserException {
         isBikePathShown = false;
         bikePathsPolylines = new ArrayList<>();
-        URL bikePathLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
-        URL telOfanLayerUrl = new URL ("http://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+        telOFunStationsDict = new HashMap<>();
+        bikePathPolylinesOpts = new ArrayList<>();
+        URL bikePathLayerUrl = new URL ("https://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+        URL telOfanLayerUrl = new URL ("https://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
         String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
         bikePathPolylinesOpts = IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
         // TODO: Add the line with a different z and width

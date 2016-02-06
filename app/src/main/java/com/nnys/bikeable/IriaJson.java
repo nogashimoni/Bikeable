@@ -15,7 +15,6 @@ public class IriaJson {
 
     public static ArrayList<PolylineOptions> getPolylinesFromJsonStr(String jsonStr){
         Gson gson = new Gson();
-        System.out.println(gson.fromJson(jsonStr, IriaBikeData.class));
         IriaBikeData o = gson.fromJson(jsonStr, IriaBikeData.class);
         ArrayList<PolylineOptions> bikePathPolylineOpts = getAllPathsPolylines(o.getFeatures());
         return bikePathPolylineOpts;
