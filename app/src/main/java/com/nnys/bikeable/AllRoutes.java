@@ -176,7 +176,6 @@ public class AllRoutes {
 
     public void calculateClosestTelOFunStationsData (GoogleMap mMap, DirectionsManager directionsManager) throws IOException {
         chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
-        IriaData.updateTelOFunBikesAvailability();
     }
 
     public void chooseTelOFunMatchesToSourceAndDestination (GoogleMap mMap, DirectionsManager directionsManager){

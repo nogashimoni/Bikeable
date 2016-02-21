@@ -34,6 +34,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.regions.Region;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -67,6 +69,13 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+////////////////////dynamodb imports//////////
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.*;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.amazonaws.services.dynamodbv2.model.*;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -127,6 +136,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private LayerPreferences layerPreferences;
     private boolean isSlidingPanelEnabled = false;
 
+    private DynamoDBMapper mapper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +157,20 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 .build();
 
         geoApiContext = new GeoApiContext().setApiKey(getString(R.string.api_key_server));
+
+        // Initialize the Amazon Cognito credentials provider
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                getApplicationContext(),
+                "eu-west-1:75f8b90a-9b52-485b-86c4-bc517b8ad22b", // Identity Pool ID
+                Regions.EU_WEST_1 // Region
+        );
+        AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.EU_WEST_1)
+                .createClient(
+                        AmazonDynamoDBClient.class,
+                        credentialsProvider,
+                        new ClientConfiguration()
+                );
+        mapper = new DynamoDBMapper(ddbClient);
 
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
@@ -679,7 +704,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public boolean onMarkerClick(Marker marker) {
                 if (marker.getTitle().equals("TelOFun")) {
                     try {
-                        IriaData.updateTelOFunBikesAvailability();
+                        IriaData.updateTelOFunBikesAvailability(marker);
+                        //IriaData.updateTelOFunBikesAvailabilityWithDynamoDB(marker, mapper);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
