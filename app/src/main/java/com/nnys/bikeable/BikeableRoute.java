@@ -55,10 +55,10 @@ public class BikeableRoute {
     ColorizeUphillSections colorizeUphillSections;
 
     /* BikeableRoute constructor */
-    public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap) {
+    public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap, long distance) {
         this.directionsRoute = directionsRoute;
 
-        distance = calcRouteDistance();
+        distance = distance;
         duration = calculateEstimatedBikingDuration();
         durationString = updateDurationString();
         distanceString = updateDistanceString();
