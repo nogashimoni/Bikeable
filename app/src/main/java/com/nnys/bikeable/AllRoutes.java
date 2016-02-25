@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import android.graphics.Color;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -46,7 +47,7 @@ public class AllRoutes {
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
         for (DirectionsRoute directionsRoute: directionsRouteArr){
             long distance = calcRouteDistance(directionsRoute);
-            if (distance == 0){
+            if (distance <= 20){
                 continue;
             }
             BikeableRoute currBikeableRoute = new BikeableRoute(directionsRoute, mMap, distance);

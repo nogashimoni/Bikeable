@@ -58,7 +58,7 @@ public class BikeableRoute {
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap, long distance) {
         this.directionsRoute = directionsRoute;
 
-        distance = distance;
+        this.distance = distance;
         duration = calculateEstimatedBikingDuration();
         durationString = updateDurationString();
         distanceString = updateDistanceString();
