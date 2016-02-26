@@ -14,6 +14,7 @@ public class StationFromTable {
     private String name;
     private Integer bikesAvailable;
     private Integer standsAvailable;
+    private String timeStamp;
 
     @DynamoDBHashKey(attributeName = "StationID")
     public Integer getStationID() {
@@ -49,5 +50,14 @@ public class StationFromTable {
 
     public void setStandsAvailable(Integer standsAvailable) {
         this.standsAvailable = standsAvailable;
+    }
+
+    @DynamoDBAttribute(attributeName = "TimeStamp")
+    public String getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
     }
 }

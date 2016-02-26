@@ -704,13 +704,18 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public boolean onMarkerClick(Marker marker) {
                 if (marker.getTitle().equals("TelOFun")) {
                     try {
-                        IriaData.updateTelOFunBikesAvailability(marker);
-                        //IriaData.updateTelOFunBikesAvailabilityWithDynamoDB(marker, mapper);
+                        //IriaData.updateTelOFunBikesAvailability(marker);
+                        Log.i("Info", "before calling to update");
+                        IriaData.updateTelOFunBikesAvailabilityWithDynamoDB(marker, mapper);
+                        marker.showInfoWindow();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "TelOFun data Unavailable", Toast.LENGTH_SHORT).show();
                     }
                 }
-                marker.showInfoWindow();
+                else {
+                    marker.showInfoWindow();
+                }
                 return true;
             }
         });
