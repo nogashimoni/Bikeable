@@ -2,30 +2,49 @@ package com.nnys.bikeable;
 
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Marker;
 
 
 public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
 
+    Context context;
     private View popup = null;
-    private LayoutInflater inflater = null;
+    private MapWrapperLayout mapWrapperLayout = null;
     TextView tvTitle;
     TextView tvBike;
     TextView tvStands;
+    Button infoButton1;
 
-    MarkersInfoWindowAdapter(LayoutInflater inflater) {
+    MarkersInfoWindowAdapter(LayoutInflater inflater, MapWrapperLayout mapWrapperLayout, final Context context) {
 
-        this.inflater = inflater;
+        this.mapWrapperLayout = mapWrapperLayout;
+        this.context = context;
 
         popup = inflater.inflate(R.layout.info_window_layout, null);
 
+        infoButton1 = (Button)popup.findViewById(R.id.info_button1);;
         tvTitle= (TextView) popup.findViewById(R.id.title);;
         tvBike =  (TextView) popup.findViewById(R.id.bike_data);
         tvStands =  (TextView) popup.findViewById(R.id.stands_data);
+
+        infoButton1.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Toast.makeText(context, "Button 1 clicked", Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -39,6 +58,8 @@ public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
         //if (popup == null) {
             //popup = inflater.inflate(R.layout.info_window_layout, null);
         //}
+        mapWrapperLayout.setMarkerWithInfoWindow(marker, popup);
+
 
         if (marker.getTitle().equals("TelOFun")) {
 

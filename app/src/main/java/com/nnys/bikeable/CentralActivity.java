@@ -220,6 +220,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
 
+
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -286,7 +287,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (from.getPrediction() != null){
+        if (from.getPrediction() != null && !isSearchFromCurrentLocation()){
             return;
         }
         from.setPrediction(currentLocationPrediction, false);
@@ -595,6 +596,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // MapWrapperLayout initialization
+        final MapWrapperLayout mapWrapperLayout = (MapWrapperLayout)findViewById(R.id.map_relative_layout);
+        // 39 - default marker height
+        // 20 - offset between the default InfoWindow bottom edge and it's content bottom edge
+        mapWrapperLayout.init(mMap, getPixelsFromDp(this, 39 + 20));
+
         if (directionsManager != null && directionsManager.getMap() == null) {
             directionsManager.setMap(mMap);
         }
@@ -651,7 +658,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         ));
 
-        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater()));
+        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater(), mapWrapperLayout, this));
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
@@ -1071,5 +1078,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         if (CentralActivity.this.getCurrentFocus() != null) {
             in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
         }
+    }
+
+    public static int getPixelsFromDp(Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int)(dp * scale + 0.5f);
     }
 }
