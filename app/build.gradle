@@ -6,10 +6,10 @@ android {
 
     defaultConfig {
         applicationId "com.nnys.bikeable"
-        minSdkVersion 19
+        minSdkVersion 18
         targetSdkVersion 23
-        versionCode 8
-        versionName "1.7"
+        versionCode 13
+        versionName "1.12"
         multiDexEnabled true
     }
 
@@ -19,7 +19,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -38,5 +38,4 @@ dependencies {
     compile 'com.jjoe64:graphview:4.0.1'
     compile 'com.sothree.slidinguppanel:library:3.2.0'
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
 }

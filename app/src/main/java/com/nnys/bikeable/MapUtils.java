@@ -46,7 +46,7 @@ public class MapUtils {
         for (int i = 0; i < allRoutes.getNumRoutes(); i++){
             // TODO: change 100 to constant value
             BikeableRoute route = allRoutes.getAllRoutes().get(i);
-            if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 100)){
+            if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 40)){
                 allRoutes.selectAndColorRoute(i);
                 return true;
             }
