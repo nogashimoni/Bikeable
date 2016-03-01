@@ -98,8 +98,11 @@ public class AllRoutes {
 
     private int calculateBestRouteIndex(UserPreferences userPreferences) {
         // This is a naive implemintation. We need to find a better way to calculate.
+        if (bikeableRoutes.size() == 0){
+            return -1;
+        }
         double maxScore = -1 * Double.MAX_VALUE; //min int
-        int bestRouteIndex = -1;
+        int bestRouteIndex = 0;
         double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
 
         for (int i=0; i<getNumRoutes(); i++) {
