@@ -104,6 +104,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
     private boolean isCurrentLocationAlreadyUpdated;
+    private boolean mDoAskToUseLocation = true;
     private CustomAutoCompletePrediction currentLocationPrediction;
 
     TextView pathDurationTextView;
@@ -674,7 +675,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 updateMarkerButtonClick(false);
                 return false;
-            }});
+            }
+        });
 
 
         mMap.setInfoWindowAdapter(markersInfoWindowAdapter);
@@ -730,8 +732,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //        } else {
 //            Log.i("INFO", "current position is NULL");
 //        }
-        boolean mRequestingLocationUpdates = true;
-        if (mRequestingLocationUpdates) {
+
             createLocationRequest();
 
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -757,7 +758,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             startLocationUpdates();
-        }
+
     }
 
     @Override
@@ -801,46 +802,50 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        /* ask to turn on location //TODO: make it appear when needed
+        if (mDoAskToUseLocation) {
+        /* ask to turn on location
             CREDIT: http://stackoverflow.com/questions/29801368/how-to-show-enable-location-dialog-like-google-maps
          */
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                    .addLocationRequest(mLocationRequest);
 
-        builder.setAlwaysShow(true);
+            builder.setAlwaysShow(true);
 
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+            PendingResult<LocationSettingsResult> result =
+                    LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
 
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                final LocationSettingsStates state = result.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can initialize location
-                        // requests here.
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied. But could be fixed by showing the user
-                        // a dialog.
-                        try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(
-                                    CentralActivity.this, 1000);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way to fix the
-                        // settings so we won't show the dialog.
-                        break;
+            result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+                @Override
+                public void onResult(LocationSettingsResult result) {
+                    final Status status = result.getStatus();
+                    final LocationSettingsStates state = result.getLocationSettingsStates();
+                    switch (status.getStatusCode()) {
+                        case LocationSettingsStatusCodes.SUCCESS:
+                            // All location settings are satisfied. The client can initialize location
+                            // requests here.
+                            break;
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the user
+                            // a dialog.
+                            try {
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                status.startResolutionForResult(
+                                        CentralActivity.this, 1000);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix the
+                            // settings so we won't show the dialog.
+                            break;
+                    }
                 }
-            }
-        });
+            });
+
+            mDoAskToUseLocation = false;
+        }
     }
 
     public void updateUI() {
