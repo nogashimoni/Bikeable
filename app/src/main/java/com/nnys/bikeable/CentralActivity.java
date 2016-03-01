@@ -922,7 +922,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         ProgressDialog ringProgressDialog;
 
         public BackgroundTask(CentralActivity activity) {
-            ringProgressDialog = new ProgressDialog(activity);
+            ringProgressDialog = new ProgressDialog(activity);//TODO: For Noa.
             this.activity = activity;
         }
 
@@ -962,6 +962,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 ElevationResult[] results = bikeableRoute.elevationQuerier
                         .getElevationSamples(bikeableRoute.numOfElevationSamples);
                 graphDrawer.addSeries(results, i);
+            }
+            if (allRoutes.bikeableRoutes.size() == 0){
+                Toast.makeText(getApplicationContext(), "Origin and destination too close.", Toast.LENGTH_SHORT).show();
             }
 
             graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
