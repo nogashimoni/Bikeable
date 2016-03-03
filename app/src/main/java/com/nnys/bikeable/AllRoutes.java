@@ -2,6 +2,7 @@ package com.nnys.bikeable;
 
 import android.graphics.Color;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -9,6 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
 
 import java.io.IOException;
@@ -44,10 +46,23 @@ public class AllRoutes {
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
         for (DirectionsRoute directionsRoute: directionsRouteArr){
-            BikeableRoute currBikeableRoute = new BikeableRoute(directionsRoute, mMap);
+            long distance = calcRouteDistance(directionsRoute);
+            if (distance <= 20){
+                continue;
+            }
+            BikeableRoute currBikeableRoute = new BikeableRoute(directionsRoute, mMap, distance);
             bikeableRoutes.add(currBikeableRoute);
         }
     }
+
+    private long calcRouteDistance(DirectionsRoute directionsRoute) {
+        long distance = 0;
+        for (DirectionsLeg leg : directionsRoute.legs) {
+            distance += leg.distance.inMeters;
+        }
+        return distance;
+    }
+
 
     public void removeCurrentRoutes() {
         selectedRouteIndex = -1;
@@ -83,6 +98,9 @@ public class AllRoutes {
 
     private int calculateBestRouteIndex(UserPreferences userPreferences) {
         // This is a naive implemintation. We need to find a better way to calculate.
+        if (bikeableRoutes.size() == 0){
+            return -1;
+        }
         double maxScore = -1 * Double.MAX_VALUE; //min int
         int bestRouteIndex = 0;
         double maxElevationScorePerSearch = getMaxElevationScorePerSearch();

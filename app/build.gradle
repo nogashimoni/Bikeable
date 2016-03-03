@@ -6,10 +6,10 @@ android {
 
     defaultConfig {
         applicationId "com.nnys.bikeable"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 23
-        versionCode 8
-        versionName "1.7"
+        versionCode 13
+        versionName "1.12"
         multiDexEnabled true
     }
 
@@ -19,7 +19,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

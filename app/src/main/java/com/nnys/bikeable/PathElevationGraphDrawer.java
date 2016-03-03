@@ -100,7 +100,9 @@ public class PathElevationGraphDrawer extends AppCompatActivity {
             graph.addSeries(currSeries);
             graph.invalidate();
         }
-
+        if (pathsSeries.size() == 0){
+            return;
+        }
         currSeries = pathsSeries.get(index);
         currSeries.setColor(Color.rgb(48, 139, 159));
         graph.addSeries(currSeries);

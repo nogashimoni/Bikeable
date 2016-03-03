@@ -23,6 +23,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -100,10 +101,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
     private GoogleMap mMap;
     private Marker tempMarker;
+    private Marker currInfoMarker;
     private ClearableAutoCompleteTextView to, from;
     private PlaceAutocompleteAdapter fromAdapter;
     private LinearLayout searchLayout;
-    private LinearLayout markerOptsLayout;
 
     private PathElevationGraphDrawer graphDrawer;
     private GraphView graph;
@@ -112,6 +113,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private String mLastUpdateTime;
     private LocationRequest mLocationRequest;
     private boolean isCurrentLocationAlreadyUpdated;
+    private boolean mDoAskToUseLocation = true;
     private CustomAutoCompletePrediction currentLocationPrediction;
 
     TextView pathDurationTextView;
@@ -213,7 +215,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
                 }
-                markerOptsLayout.setVisibility(View.GONE);
                 updateMapToNewMArkerState();
             }
         });
@@ -224,7 +225,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 to.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (tempMarker != null)
                     tempMarker.remove();
-                markerOptsLayout.setVisibility(View.GONE);
                 directionsManager.setNewMarkerByPlacePrediction(false, to.getPrediction());
                 updateMapToNewMArkerState();
             }
@@ -245,13 +245,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         allRoutes = new AllRoutes();
         graph = (GraphView) findViewById(R.id.altitude_graph);
 
+
         final MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         directionsManager = new DirectionsManager(geoApiContext, mMap);
-
-        initMarkerAddOptions();
 
         searchLayout = (LinearLayout) findViewById(R.id.search_layout);
         searchBtn = (ImageButton) findViewById(R.id.res_button);
@@ -311,7 +310,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (from.getPrediction() != null){
+        if (from.getPrediction() != null && !isSearchFromCurrentLocation()){
             return;
         }
         from.setPrediction(currentLocationPrediction, false);
@@ -620,6 +619,12 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // MapWrapperLayout initialization
+        final MapWrapperLayout mapWrapperLayout = (MapWrapperLayout)findViewById(R.id.map_relative_layout);
+        // 39 - default marker height
+        // 20 - offset between the default InfoWindow bottom edge and it's content bottom edge
+        mapWrapperLayout.init(mMap, getPixelsFromDp(this, 39 + 20));
+
         if (directionsManager != null && directionsManager.getMap() == null) {
             directionsManager.setMap(mMap);
         }
@@ -660,7 +665,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onMapClick(LatLng clickLatLng) {
                 hideKeyboard();
                 Log.i("inside listener begin", "inside listener begin2");
-                markerOptsLayout.setVisibility(View.GONE);
                 if (tempMarker != null)
                     tempMarker.remove();
 
@@ -676,7 +680,31 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         ));
 
-        mMap.setInfoWindowAdapter(new MarkersInfoWindowAdapter(getLayoutInflater()));
+        MarkersInfoWindowAdapter markersInfoWindowAdapter = new MarkersInfoWindowAdapter(getLayoutInflater(), mapWrapperLayout);
+
+        markersInfoWindowAdapter.getInfoOrigBtn().setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
+                }
+                updateMarkerButtonClick(true);
+                return false;
+        }});
+
+        markersInfoWindowAdapter.getInfoDstBtn().setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() != MotionEvent.ACTION_DOWN) {
+                    return false;
+                }
+                updateMarkerButtonClick(false);
+                return false;
+            }
+        });
+
+
+        mMap.setInfoWindowAdapter(markersInfoWindowAdapter);
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
 
@@ -692,8 +720,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                    }
                    tempMarker = mMap.addMarker(new MarkerOptions()
                            .position(markerLatLng));
+                   currInfoMarker = tempMarker;
                    tempMarker.setTitle("Temp Marker");
-                   markerOptsLayout.setVisibility(View.VISIBLE);
+                   tempMarker.showInfoWindow();
 
                }
            }
@@ -702,6 +731,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                currInfoMarker = marker;
                 if (marker.getTitle().equals("TelOFun")) {
                     try {
                         //IriaData.updateTelOFunBikesAvailability(marker);
@@ -733,8 +763,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //        } else {
 //            Log.i("INFO", "current position is NULL");
 //        }
-        boolean mRequestingLocationUpdates = true;
-        if (mRequestingLocationUpdates) {
+
             createLocationRequest();
 
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -760,7 +789,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
 
             startLocationUpdates();
-        }
+
     }
 
     @Override
@@ -804,46 +833,50 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        /* ask to turn on location //TODO: make it appear when needed
+        if (mDoAskToUseLocation) {
+        /* ask to turn on location
             CREDIT: http://stackoverflow.com/questions/29801368/how-to-show-enable-location-dialog-like-google-maps
          */
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                    .addLocationRequest(mLocationRequest);
 
-        builder.setAlwaysShow(true);
+            builder.setAlwaysShow(true);
 
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+            PendingResult<LocationSettingsResult> result =
+                    LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
 
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                final LocationSettingsStates state = result.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can initialize location
-                        // requests here.
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied. But could be fixed by showing the user
-                        // a dialog.
-                        try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(
-                                    CentralActivity.this, 1000);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way to fix the
-                        // settings so we won't show the dialog.
-                        break;
+            result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+                @Override
+                public void onResult(LocationSettingsResult result) {
+                    final Status status = result.getStatus();
+                    final LocationSettingsStates state = result.getLocationSettingsStates();
+                    switch (status.getStatusCode()) {
+                        case LocationSettingsStatusCodes.SUCCESS:
+                            // All location settings are satisfied. The client can initialize location
+                            // requests here.
+                            break;
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the user
+                            // a dialog.
+                            try {
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                status.startResolutionForResult(
+                                        CentralActivity.this, 1000);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix the
+                            // settings so we won't show the dialog.
+                            break;
+                    }
                 }
-            }
-        });
+            });
+
+            mDoAskToUseLocation = false;
+        }
     }
 
     public void updateUI() {
@@ -925,7 +958,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         ProgressDialog ringProgressDialog;
 
         public BackgroundTask(CentralActivity activity) {
-            ringProgressDialog = new ProgressDialog(activity);
+            ringProgressDialog = new ProgressDialog(activity);//TODO: For Noa.
             this.activity = activity;
         }
 
@@ -965,6 +998,9 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 ElevationResult[] results = bikeableRoute.elevationQuerier
                         .getElevationSamples(bikeableRoute.numOfElevationSamples);
                 graphDrawer.addSeries(results, i);
+            }
+            if (allRoutes.bikeableRoutes.size() == 0){
+                Toast.makeText(getApplicationContext(), "Origin and destination too close.", Toast.LENGTH_SHORT).show();
             }
 
             graphDrawer.setSelectedSeriesAndColorIt(allRoutes.getBestRouteIndex());
@@ -1010,81 +1046,47 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     }
 
-    private void initMarkerAddOptions() {
+    private void updateMarkerButtonClick(boolean isFrom){
+        String primaryText;
+        String secondaryText;
+        String placeId = null;
 
-        markerOptsLayout =  (LinearLayout) findViewById(R.id.marker_opts);
-        Button markerOriginBtn = (Button) findViewById(R.id.marker_origin);
-        Button markerDestBtn = (Button) findViewById(R.id.marker_dest);
-        Button markerCancelBtn = (Button) findViewById(R.id.marker_cancel);
-
-        markerOriginBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String primaryText;
-                String secondaryText;
-                String placeId = null;
-                try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
-                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
-                    primaryText = results[0].formattedAddress;
-                    secondaryText = "";
-                    placeId = results[0].placeId;
-                } catch (Exception e) {
-                    primaryText = "Custom Origin";
-                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
-                            .latitude, tempMarker.getPosition().longitude);
-                    e.printStackTrace();
-                }
-
-                CustomAutoCompletePrediction newPrediction =
-                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
-                from.setPrediction(newPrediction, true);
-                directionsManager.setNewMarkerByCustomPrediction(true, tempMarker.getPosition(), newPrediction);
-                updateMapToNewMArkerState();
+        if (currInfoMarker.getTitle().equals("TelOFun")){
+            int stationId = Integer.parseInt(currInfoMarker.getSnippet());
+            String stationName = IriaData.getTelOfanStationsDict().get(stationId).getStationName();
+            primaryText = String.format("TelOFun (%s): %s", currInfoMarker.getSnippet(), stationName);
+            secondaryText = "";
+        }
+        else {
+            try {
+                GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
+                        .latlng(MapUtils.getModelLatLngFromGms(currInfoMarker.getPosition())).await();
+                primaryText = results[0].formattedAddress;
+                secondaryText = "";
+                placeId = results[0].placeId;
+            } catch (Exception e) {
+                primaryText = "Custom Origin";
+                secondaryText = String.format("(%f ,%f)", currInfoMarker.getPosition()
+                        .latitude, currInfoMarker.getPosition().longitude);
+                e.printStackTrace();
             }
-        });
-
-        markerDestBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String primaryText;
-                String secondaryText;
-                String placeId = null;
-                try {
-                    GeocodingResult[] results = GeocodingApi.newRequest(geoApiContext)
-                            .latlng(MapUtils.getModelLatLngFromGms(tempMarker.getPosition())).await();
-                    primaryText = results[0].formattedAddress;
-                    secondaryText = "";
-                    placeId = results[0].placeId;
-                } catch (Exception e) {
-                    primaryText = "Custom Origin";
-                    secondaryText = String.format("(%f ,%f)", tempMarker.getPosition()
-                            .latitude, tempMarker.getPosition().longitude);
-                    e.printStackTrace();
-                }
-
-                CustomAutoCompletePrediction newPrediction =
-                        new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
-                to.setPrediction(newPrediction, true);
-                directionsManager.setNewMarkerByCustomPrediction(false, tempMarker.getPosition(), newPrediction);
-                updateMapToNewMArkerState();
-            }
-        });
-
-        markerCancelBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                markerOptsLayout.setVisibility(View.GONE);
-                tempMarker.remove();
-            }
-        });
+        }
+        CustomAutoCompletePrediction newPrediction =
+                new CustomAutoCompletePrediction(primaryText, secondaryText, placeId);
+        if (isFrom){
+            from.setPrediction(newPrediction, true);
+        }
+        else{
+            to.setPrediction(newPrediction, true);
+        }
+        directionsManager.setNewMarkerByCustomPrediction(isFrom, currInfoMarker.getPosition(), newPrediction);
+        updateMapToNewMArkerState();
     }
 
     private void updateMapToNewMArkerState() {
-        Log.i("Info:","updateMapToNewMArkerState");
+        Log.i("Info:", "updateMapToNewMArkerState");
         startNavButton.setVisibility(View.GONE);
         searchLayout.setVisibility(View.VISIBLE);
-        markerOptsLayout.setVisibility(View.GONE);
 
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();
@@ -1102,5 +1104,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         if (CentralActivity.this.getCurrentFocus() != null) {
             in.hideSoftInputFromWindow(CentralActivity.this.getCurrentFocus().getWindowToken(), 0);
         }
+    }
+
+    public static int getPixelsFromDp(Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int)(dp * scale + 0.5f);
     }
 }
