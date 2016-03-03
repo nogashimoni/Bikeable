@@ -24,6 +24,7 @@ public class DirectionsManager {
     private DirectionsRoute[] calculatedRoutes;
     private LatLngBounds.Builder directionBoundsBuilder;
     private LatLngBounds directionBounds;
+
     private com.google.android.gms.maps.model.LatLng fromLatLngCurr, toLatLngCurr, fromLatLngNew, toLatLngNew;
     private String fromTitleCurr, toTitleCurr, fromTitleNew, toTitleNew;
 
@@ -209,6 +210,18 @@ public class DirectionsManager {
         }
     }
 
+    public void setFromCurrLocation(LatLng currLatLng, CustomAutoCompletePrediction prediction){
+        if (this.fromMarkerNew != null){
+            this.fromMarkerNew.remove();
+        }
+        if (this.fromMarkerCurr != null){
+            this.fromMarkerCurr.remove();
+        }
+        this.fromLatLngNew = currLatLng;
+        this.fromTitleNew = prediction.getDescription();
+        predictionFrom = prediction;
+    }
+
     public void setNewMarkerByCustomPrediction(boolean isFrom, LatLng markerLatLng, CustomAutoCompletePrediction prediction) {
         // for markers selected on map and for current location
         Marker newMarker = mMap.addMarker(new MarkerOptions().position(markerLatLng));
@@ -238,7 +251,6 @@ public class DirectionsManager {
             this.toTitleNew = prediction.getDescription();
             predictionTo = prediction;
         }
-
     }
 
     public void clearNewMarker(boolean isFrom) {
@@ -250,5 +262,9 @@ public class DirectionsManager {
             toMarkerNew.remove();
             toMarkerNew = null;
         }
+    }
+
+    public void setFromLatLngNew(LatLng fromLatLngCurr) {
+        this.fromLatLngNew = fromLatLngCurr;
     }
 }

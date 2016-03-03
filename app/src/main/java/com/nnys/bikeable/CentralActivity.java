@@ -211,7 +211,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                         Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
+                    directionsManager.setFromCurrLocation(MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
                 }
@@ -265,9 +265,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 if (from.getPrediction() == null || to.getPrediction() == null) {
                     return;
                 }
-                if (isSearchFromCurrentLocation() && mCurrentLocation == null) {
-                    Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
-                    return;
+                if (isSearchFromCurrentLocation()){
+                    if (mCurrentLocation == null) {
+                        Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    else {
+                        directionsManager.setFromLatLngNew(MapUtils.getGMSFromLocation(mCurrentLocation));
+                    }
                 }
 
                 startNavButton.setVisibility(View.GONE);
@@ -315,7 +320,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
         from.setPrediction(currentLocationPrediction, false);
         from.setText(currentLocationPrediction.getFullText(null), false);
-        directionsManager.setNewMarkerByCustomPrediction(true, MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
+        directionsManager.setFromCurrLocation(MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
     }
 
     private boolean isSearchFromCurrentLocation() {
@@ -978,7 +983,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         protected void onPostExecute(Void result) {
 
             // put here the search code
-
             directionsManager.getDirections();
             directionsManager.addCurrentSearchTargetToHistory(searchHistoryCollector);
             allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap, userPreferences);
