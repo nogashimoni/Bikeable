@@ -32,8 +32,7 @@ public class BikePathCalculator {
     private ArrayList <PolylineOptions> totalInRoutePaths;
 
     private double northest, southest, eastest, westest;
-    private double marginToAdd = 0.001;
-    private ArrayList <PolylineOptions> relevantIriaBikePath;
+    private ArrayList<PolylineOptions> relevantIriaBikePath;
 
     public BikePathCalculator (PolylineOptions currentRoutePolylineOpt,
                                ArrayList <PolylineOptions> iriaPaths, DirectionsRoute currDirectionRoute){
@@ -142,6 +141,7 @@ public class BikePathCalculator {
 
     public void updateRelevantBikePathsToRoutes (){
         ArrayList<LatLng> routePoints = (ArrayList)routePolylineOpt.getPoints();
+        double marginToAdd = 0.001;
         northest = routePoints.get(0).latitude;
         southest = routePoints.get(0).latitude;
         westest = routePoints.get(0).longitude;
