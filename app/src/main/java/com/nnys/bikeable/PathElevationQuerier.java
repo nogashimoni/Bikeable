@@ -29,6 +29,10 @@ public class PathElevationQuerier {
         if ( result > max_elevation_samples) {
             return max_elevation_samples;
         }
+        if (result < 2) {
+            return 2;
+        }
+
         return result;
     }
 
@@ -43,8 +47,6 @@ public class PathElevationQuerier {
     public ElevationResult[] getElevationSamples(int numOfSamples) {
 
         ElevationResult[] elevations = null;
-//        GeoApiContext appContext = new GeoApiContext().setApiKey("AIzaSyB5S5oZp1kPJnVgU4Gr5D4Og3RhDWdwPBM");
-//        GeoApiContext appContext = new GeoApiContext().setApiKey("AIzaSyBq4x4t8-j30Vbo5jrax_jIMkkMTlZdp1k");
         GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBCRcbSVolZ34CkIlUfwtcAld4uYXitR50");
 
         try {
