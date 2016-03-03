@@ -2,7 +2,9 @@ package com.nnys.bikeable;
 
 import android.graphics.Color;
 import android.location.Location;
+import android.util.Log;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -16,6 +18,8 @@ import com.google.maps.model.DirectionsRoute;
 
 
 import java.util.ArrayList;
+
+import javax.security.auth.login.LoginException;
 
 /**
  * Created by Yishay on 12/10/2015.
@@ -62,7 +66,7 @@ public class BikePathCalculator {
 
 
 
-    public void calcOverlapByRoute (){
+    public void calcOverlapByRoute2 (){
         boolean isInBikePath;
         ArrayList<LatLng> points = (ArrayList) routePolylineOpt.getPoints();
         PolylineOptions currPolyLineOpt = new PolylineOptions();
@@ -92,7 +96,46 @@ public class BikePathCalculator {
         if (currPolyLineOpt.getPoints().size() > 3){
             totalInRoutePaths.add(currPolyLineOpt);
         }
+    }
 
+    public void calcOverlapByRoute (){
+        boolean isInBikePath;
+        int lastMatchedPath = 0;
+        ArrayList<LatLng> points = (ArrayList) routePolylineOpt.getPoints();
+        PolylineOptions currPolyLineOpt = new PolylineOptions();
+        currPolyLineOpt.width(5);
+        currPolyLineOpt.color(Color.MAGENTA);
+        for (LatLng point : points) {
+            isInBikePath = false;
+            if (checkPointWithPath(point, iriaPathsList.get(lastMatchedPath))){
+                isInBikePath = true;
+            }
+
+            if (!isInBikePath) {
+                for (int i = 0; i < iriaPathsList.size(); i++) {
+                    if (checkPointWithPath(point, iriaPathsList.get(i))) {
+                        isInBikePath = true;
+                        lastMatchedPath = i;
+                        break;
+                    }
+                }
+            }
+            if(isInBikePath){
+                currPolyLineOpt.add(point);
+            }
+            else{
+                if (currPolyLineOpt.getPoints().size() > 3){
+                    totalInRoutePaths.add(currPolyLineOpt);
+                }
+                currPolyLineOpt = new PolylineOptions();
+                currPolyLineOpt.width(5);
+                currPolyLineOpt.color(Color.MAGENTA);
+
+            }
+        }
+        if (currPolyLineOpt.getPoints().size() > 3){
+            totalInRoutePaths.add(currPolyLineOpt);
+        }
     }
 
     public boolean checkPointWithPath (LatLng point, PolylineOptions line){

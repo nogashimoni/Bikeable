@@ -1,5 +1,9 @@
 package com.nnys.bikeable;
 
+import android.util.Log;
+import android.widget.Toast;
+
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -17,8 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
+import java.lang.Math;
 
 // add to main activity
 // StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -155,7 +164,42 @@ public class IriaData {
         isBikePathShown = false;
     }
 
-    public static void updateTelOFunBikesAvailability() throws IOException {
+    public static void updateTelOFunBikesAvailabilityWithDynamoDB(Marker marker, DynamoDBMapper mapper) throws IOException {
+
+        SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+        outputFmt.setTimeZone(TimeZone.getTimeZone("utc"));
+        String currUtcTimeStr = outputFmt.format(new Date());
+
+        try {
+            int stationId = Integer.parseInt(marker.getSnippet());
+            StationFromTable selectedStation = mapper.load(StationFromTable.class, stationId);
+
+            if (selectedStation != null) {
+                String updateTimeStr =  selectedStation.getTimeStamp();
+                Date updateTime = outputFmt.parse(updateTimeStr);
+                Date currUtcTime = outputFmt.parse(currUtcTimeStr);
+                long seconds = (updateTime.getTime()-currUtcTime.getTime())/1000;
+                if (Math.abs(seconds) < 360 ) {
+                    telOFunStationsDict.get(stationId).setNumOfStands(selectedStation.getStandsAvailable() +
+                            selectedStation.getBikesAvailable());
+                    telOFunStationsDict.get(stationId).setNumOfStandsAvailable(selectedStation.getStandsAvailable());
+                    telOFunStationsDict.get(stationId).setNumOfBikesAvailable(selectedStation.getBikesAvailable());
+                    telOFunStationsDict.get(stationId).setStationName(selectedStation.getName());
+                    return;
+                }
+            }
+        } catch (Exception e){
+            updateTelOFunBikesAvailability(marker);
+            return;
+        }
+        updateTelOFunBikesAvailability(marker);
+
+    }
+
+    public static void updateTelOFunBikesAvailability(Marker marker) throws IOException {
+        Log.i("Info", "inside old update");
+        int currStationId = Integer.parseInt(marker.getSnippet());
+        boolean stationFound = false;
         URL telOFunStationsURL = new URL("https://www.tel-o-fun.co.il/en/TelOFunLocations.aspx");
         String urlResponse = UrlManager.getUrlResponse(telOFunStationsURL);
         int indexOfSectionStart = urlResponse.indexOf("setMarker") + "setMarker".length();
@@ -163,14 +207,20 @@ public class IriaData {
         String relevantSection = urlResponse.substring(indexOfSectionStart, indexOfSectionEnd);
         String[] stationsData = relevantSection.split("setMarker");
         for (String stationStr : stationsData) {
-            updateStationData(stationStr);
+            stationFound = updateStationData(stationStr, currStationId);
+            if (stationFound){
+                break;
+            }
         }
     }
 
-    public static void updateStationData (String stationData){
+    public static Boolean updateStationData (String stationData, int currStationId){
         String[] stationTwoPartArray = stationData.split("(?<=[0-9],')");
         String[] StationNumbersArray = stationTwoPartArray[0].split(",");
         int stationId = Integer.parseInt(StationNumbersArray[2]);
+        if (stationId != currStationId){
+            return false;
+        }
         String[] stationStringsArray = stationTwoPartArray[1].split("',[ ']");
         int numOfStands = Integer.parseInt(makeJustDigitsStr(stationStringsArray[2]));
         int numOfFreeStandsInStation = Integer.parseInt(makeJustDigitsStr(stationStringsArray[3]));
@@ -181,6 +231,7 @@ public class IriaData {
             telOFunStationsDict.get(stationId).setNumOfBikesAvailable(numOfStands - numOfFreeStandsInStation);
             telOFunStationsDict.get(stationId).setStationName(stationName);
         }
+        return true;
     }
 
     public static String makeJustDigitsStr (String str){

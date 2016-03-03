@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.nnys.bikeable"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 13
         versionName "1.12"
@@ -38,4 +38,10 @@ dependencies {
     compile 'com.jjoe64:graphview:4.0.1'
     compile 'com.sothree.slidinguppanel:library:3.2.0'
     compile 'com.android.support:multidex:1.0.1'
+    compile 'com.squareup.okhttp3:okhttp:3.0.0-RC1'
+    compile 'com.amazonaws:aws-android-sdk-core:2.+'
+    compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.+'
+    compile 'com.amazonaws:aws-android-sdk-ddb:2.+'
+    compile 'com.amazonaws:aws-android-sdk-ddb-mapper:2.+'
 }
