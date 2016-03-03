@@ -41,7 +41,6 @@ public class AllRoutes {
         addNewRoutes(directionsRouteArr, mMap);
         bestRouteIndex = calculateBestRouteIndex(userPreferences); // by now, all routes are already updated
         selectAndColorRoute(bestRouteIndex);
-
     }
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {

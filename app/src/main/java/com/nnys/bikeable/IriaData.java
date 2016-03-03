@@ -54,19 +54,32 @@ public class IriaData {
 
     public static Boolean isDataReceived;
 
+    private static String bikePathLayerURLStr;
+    private static String telOFunLayerURLStr;
+    private static String telOFunSiteURLStr;
 
-    public static void getIriaData() throws IOException, XmlPullParserException {
+
+    public static void getIriaData(ConstantsFromTable bikePathLayerURLItem, ConstantsFromTable telOFunLayerURLItem,
+                                   ConstantsFromTable telOFunSiteURLItem) throws IOException, XmlPullParserException {
         isBikePathShown = false;
         bikePathsPolylines = new ArrayList<>();
         telOFunStationsDict = new HashMap<>();
         bikePathPolylinesOpts = new ArrayList<>();
-        URL bikePathLayerUrl = new URL ("https://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=577&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
-        URL telOfanLayerUrl = new URL ("https://gisn.tel-aviv.gov.il/wsgis/service.asmx/GetLayer?layerCode=835&layerWhere=&xmin=&ymin=&xmax=&ymax=&projection=wgs84");
+        updateURLsFromDB(bikePathLayerURLItem.getStringValue(), telOFunLayerURLItem.getStringValue(),
+                telOFunSiteURLItem.getStringValue());
+        URL bikePathLayerUrl = new URL (bikePathLayerURLStr);
+        URL telOfanLayerUrl = new URL (telOFunLayerURLStr);
         String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
         bikePathPolylinesOpts = IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
         // TODO: Add the line with a different z and width
         String telOfanJsonWGS84 = getBikeLayerJsonStr(telOfanLayerUrl);
         telOFunStationsDict = IriaJson.getStationsFromJsonStr(telOfanJsonWGS84);
+    }
+
+    public static void updateURLsFromDB (String bikePathLayerURLFromDB, String telOFunLayerURLFromDB, String telOFunSiteURLFromDB){
+        bikePathLayerURLStr = bikePathLayerURLFromDB;
+        telOFunLayerURLStr = telOFunLayerURLFromDB;
+        telOFunSiteURLStr = telOFunSiteURLFromDB;
     }
 
     public static String getBikeLayerJsonStr(URL url) throws IOException, XmlPullParserException {
@@ -200,7 +213,7 @@ public class IriaData {
         Log.i("Info", "inside old update");
         int currStationId = Integer.parseInt(marker.getSnippet());
         boolean stationFound = false;
-        URL telOFunStationsURL = new URL("https://www.tel-o-fun.co.il/en/TelOFunLocations.aspx");
+        URL telOFunStationsURL = new URL(telOFunSiteURLStr);
         String urlResponse = UrlManager.getUrlResponse(telOFunStationsURL);
         int indexOfSectionStart = urlResponse.indexOf("setMarker") + "setMarker".length();
         int indexOfSectionEnd = urlResponse.indexOf("</script>", indexOfSectionStart);

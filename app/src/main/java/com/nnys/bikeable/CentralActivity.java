@@ -690,7 +690,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 updateMarkerButtonClick(true);
                 return false;
-        }});
+            }
+        });
 
         markersInfoWindowAdapter.getInfoDstBtn().setOnTouchListener(new View.OnTouchListener() {
             @Override
