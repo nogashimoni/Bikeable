@@ -47,10 +47,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             IriaData.getIriaData();
             IriaData.isDataReceived = true;
-        } catch (IOException e) {
-            IriaData.isDataReceived = false;
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
+        } catch (Exception e) { // There was a problem getting the data from the Municipality site
             IriaData.isDataReceived = false;
             e.printStackTrace();
         }
