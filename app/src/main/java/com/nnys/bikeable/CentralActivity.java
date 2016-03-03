@@ -1086,7 +1086,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void updateMapToNewMArkerState() {
         Log.i("Info:", "updateMapToNewMArkerState");
         startNavButton.setVisibility(View.GONE);
-        searchLayout.setVisibility(View.VISIBLE);
+        showSearchView();
 
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();

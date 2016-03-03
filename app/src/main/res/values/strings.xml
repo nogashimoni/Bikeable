@@ -4,9 +4,9 @@
     <string name="action_iria_layers">Tel Aviv bike paths</string>
     <string name="action_iria_telOFun">Tel-O-Fun stations</string>
     <string name="action_iria_telOFun_matches">Tel-o-fun near start/end point</string>
-    <string name="from_text">Choose origin... (type to search)</string>
+    <string name="from_text">Choose starting point</string>
     <string name="action_iria_matches_layer">Overlapping bike paths</string>
-    <string name="to_text">Choose destination... (type to search)</string>
+    <string name="to_text">Choose destination</string>
     <string name="wait_curr_location">Please wait for navigation to start</string>
     <string name="nav_back_button">Back to Search results</string>
     <string name="exit_central_title">Exit Bikeable</string>
