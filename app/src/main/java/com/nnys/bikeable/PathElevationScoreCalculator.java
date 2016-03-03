@@ -108,6 +108,10 @@ public class PathElevationScoreCalculator {
             }
         }
 
+        if (num == 0) {
+            return 0;
+        }
+
         result = sum/num;
 
         return result;
