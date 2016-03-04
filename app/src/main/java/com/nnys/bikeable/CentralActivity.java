@@ -1037,7 +1037,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
