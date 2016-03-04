@@ -54,6 +54,8 @@ public class BikeableRoute {
     ArrayList <Polyline> bikePathPolyLineInRoute;
     ColorizeUphillSections colorizeUphillSections;
 
+    double algorithmScore;
+
     /* BikeableRoute constructor */
     public BikeableRoute(DirectionsRoute directionsRoute, GoogleMap mMap, long distance) {
         this.directionsRoute = directionsRoute;
@@ -83,6 +85,8 @@ public class BikeableRoute {
             bikePathInRoute = pathCalculator.getBikePaths();
             addBikePathToMap(mMap);
         }
+
+        algorithmScore = 0;
     }
 
     public void addBikePathToMap(GoogleMap mMap) {
@@ -95,6 +99,15 @@ public class BikeableRoute {
         }
         isBikePathPolylinesAdded = true;
     }
+
+    public double getAlgorithmScore() {
+        return this.algorithmScore;
+    }
+
+    public void setAlgorithmScore(double algorithmScore) {
+        this.algorithmScore = algorithmScore;
+    }
+
 
     public void showBikePathOnMap() {
         if (!isBikePathPolylinesAdded){
