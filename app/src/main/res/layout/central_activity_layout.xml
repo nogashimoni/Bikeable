@@ -164,6 +164,7 @@
         android:background="@android:color/white">
 
         <TextView
+            android:id="@+id/scroll_up_text_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center|top"
@@ -188,11 +189,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Duration: "/>
+                    android:text="Ranking: "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/path_duration"/>
+                    android:id="@+id/path_rank"/>
             </LinearLayout>
 
             <LinearLayout
@@ -231,11 +232,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:text="Uphill degree (avg.): "/>
+                    android:text="Duration: "/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/path_difficulty"/>
+                    android:id="@+id/path_duration"/>
             </LinearLayout>
 
             <LinearLayout

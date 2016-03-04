@@ -15,6 +15,8 @@ import com.google.maps.model.DirectionsRoute;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 public class AllRoutes {
@@ -106,8 +108,9 @@ public class AllRoutes {
         double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
 
         for (int i=0; i<getNumRoutes(); i++) {
-            double rescaledElevationScore = calcRescaledElevationScore(bikeableRoutes.get(i), maxElevationScorePerSearch);
-            double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoutes.get(i));
+            BikeableRoute bikeableRoute = bikeableRoutes.get(i);
+            double rescaledElevationScore = calcRescaledElevationScore(bikeableRoute, maxElevationScorePerSearch);
+            double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoute);
 
             double pathFinalScore = 0;
             double elevationsContribution = 0;
@@ -115,7 +118,7 @@ public class AllRoutes {
 
             if (!userPreferences.doesUserAvoidUphills() && !userPreferences.doesUserPrefereBikingRoutes() ) {
                 // user didn't check any box, choose fastest route
-                pathFinalScore = (-1) * bikeableRoutes.get(i).duration; //higher score = easier
+                pathFinalScore = (-1) * bikeableRoute.duration; //higher score = easier
                 Log.i("INFO", "User didn't check any box, will choose best duration");
 
             } else { // user checked some box
@@ -132,6 +135,8 @@ public class AllRoutes {
 
                 pathFinalScore = elevationsContribution + bikingRouteContribution;
             }
+
+            bikeableRoute.setAlgorithmScore(pathFinalScore);
 
             Log.i("INFO", String.format("Final Score: route with index %d has final score of %f", i , pathFinalScore));
 
@@ -299,6 +304,39 @@ public class AllRoutes {
 
     public int getSelectedRouteIndex() {
         return selectedRouteIndex;
+    }
+
+    public int getSelectedRouteRank() {
+        ArrayList<HashMap<Integer, Double>> algorithmScores = new ArrayList<HashMap<Integer, Double>>();
+        for (int i=0; i<getNumRoutes(); i++) {
+            BikeableRoute bikeableRoute= getAllRoutes().get(i);
+            HashMap<Integer, Double> indexScorePair = new HashMap<Integer, Double>();
+            indexScorePair.put(i, bikeableRoute.getAlgorithmScore());
+            algorithmScores.add(indexScorePair);
+        }
+
+        Collections.sort(algorithmScores, new Comparator<HashMap<Integer, Double>>() {
+            @Override
+            public int compare(HashMap<Integer, Double> lhs, HashMap<Integer, Double> rhs) {
+                double result =  -1 * (lhs.values().toArray(new Double[1])[0] - lhs.values().toArray(new Double[1])[0]);
+                if (result == 0) {
+                    //TODO handle 0, in case one of them is best route it's important to be consistent
+                }
+                return (int)result;
+            }
+        });
+
+        int ranking = 0;
+
+        for (int i=0; i<algorithmScores.size(); i++) {
+            if ((int) algorithmScores.get(i).keySet().toArray(new Integer[1])[0] == selectedRouteIndex) {
+                ranking = i+1;
+            }
+        }
+        if (ranking==0) {
+            System.out.println("Error!! ranking can not be 0");
+        }
+        return ranking;
     }
 
     public void setSelectedRouteIndex(int selectedRouteIndex) {
