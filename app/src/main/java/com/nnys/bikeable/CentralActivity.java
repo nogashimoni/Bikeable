@@ -689,7 +689,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 updateMarkerButtonClick(true);
                 return false;
-        }});
+            }
+        });
 
         markersInfoWindowAdapter.getInfoDstBtn().setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -1085,7 +1086,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void updateMapToNewMArkerState() {
         Log.i("Info:", "updateMapToNewMArkerState");
         startNavButton.setVisibility(View.GONE);
-        searchLayout.setVisibility(View.VISIBLE);
+        showSearchView();
 
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();
