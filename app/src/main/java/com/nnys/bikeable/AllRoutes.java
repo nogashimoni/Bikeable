@@ -82,6 +82,7 @@ public class AllRoutes {
     }
 
     protected void selectAndColorRoute (int routeInd){
+        Log.i("INFO", String.format("selected route: %d, score: %f", routeInd, getAllRoutes().get(routeInd).getAlgorithmScore()));
         this.setSelectedRouteIndex(routeInd);
 
         for (int i = 0; i < getNumRoutes(); i++){
@@ -94,6 +95,7 @@ public class AllRoutes {
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
+
     }
 
 
@@ -307,35 +309,42 @@ public class AllRoutes {
     }
 
     public int getSelectedRouteRank() {
-        ArrayList<HashMap<Integer, Double>> algorithmScores = new ArrayList<HashMap<Integer, Double>>();
+        ArrayList<ArrayList<Object>> algorithmScores = new ArrayList<>();
         for (int i=0; i<getNumRoutes(); i++) {
             BikeableRoute bikeableRoute= getAllRoutes().get(i);
-            HashMap<Integer, Double> indexScorePair = new HashMap<Integer, Double>();
-            indexScorePair.put(i, bikeableRoute.getAlgorithmScore());
+            ArrayList<Object> indexScorePair = new ArrayList<>();
+            indexScorePair.add(new Integer(i));
+            indexScorePair.add(bikeableRoute.getAlgorithmScore());
             algorithmScores.add(indexScorePair);
         }
 
-        Collections.sort(algorithmScores, new Comparator<HashMap<Integer, Double>>() {
+        Collections.sort(algorithmScores, new Comparator<ArrayList<Object>>() {
             @Override
-            public int compare(HashMap<Integer, Double> lhs, HashMap<Integer, Double> rhs) {
-                double result =  -1 * (lhs.values().toArray(new Double[1])[0] - lhs.values().toArray(new Double[1])[0]);
-                if (result == 0) {
-                    //TODO handle 0, in case one of them is best route it's important to be consistent
+            public int compare(ArrayList<Object> lhs, ArrayList<Object> rhs) {
+                double result;
+                result = ((double)rhs.get(1) - (double)lhs.get(1));
+                if (result > 0) {
+                    return 1;
+                } else if (result < 0) {
+                    return -1;
                 }
-                return (int)result;
+                return 0;
             }
         });
 
         int ranking = 0;
 
         for (int i=0; i<algorithmScores.size(); i++) {
-            if ((int) algorithmScores.get(i).keySet().toArray(new Integer[1])[0] == selectedRouteIndex) {
+            if ((int) algorithmScores.get(i).get(0) == selectedRouteIndex) {
                 ranking = i+1;
+                break;
             }
         }
+
         if (ranking==0) {
             System.out.println("Error!! ranking can not be 0");
         }
+
         return ranking;
     }
 
