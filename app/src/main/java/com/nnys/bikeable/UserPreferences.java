@@ -3,10 +3,10 @@ package com.nnys.bikeable;
 
 import android.content.SharedPreferences;
 
-import com.google.android.gms.location.places.UserDataType;
-
+/**
+ * This class manages user's preferences, and saves them offline for next app launch
+ */
 public class UserPreferences {
-    // todo: make a general preferences abstarct class!!
 
     SharedPreferences sharedPreferences;
 

@@ -10,13 +10,6 @@
     sothree:umanoShadowHeight="4dp"
     sothree:umanoFadeColor="@android:color/transparent">
 
-    <!--<android.support.design.widget.CoordinatorLayout-->
-    <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-    <!--xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" android:fitsSystemWindows="true"-->
-    <!--tools:context=".CentralActivity">-->
-    <!--&lt;!&ndash;android:background="#d9d9d9"&ndash;&gt;-->
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -30,7 +23,6 @@
             android:orientation="horizontal"
             android:weightSum="1"
             android:layout_marginLeft="@dimen/fromto_margin">
-            <!--android:layout_marginRight="@dimen/fromto_margin"-->
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -121,19 +113,7 @@
                         android:layout_height="wrap_content" />
                     <!--map:uiZoomControls="true"-->
 
-                    <!--<fragment-->
-                        <!--android:id="@+id/map"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--class="com.google.android.gms.maps.MapFragment" />-->
-
                 </com.nnys.bikeable.MapWrapperLayout>
-
-                <!--<LinearLayout-->
-                <!--android:id="@+id/marker_anchor"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"></LinearLayout>-->
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/start_nav_button"
@@ -153,7 +133,6 @@
         </android.support.design.widget.CoordinatorLayout>
 
     </LinearLayout>
-    <!--</android.support.design.widget.CoordinatorLayout>-->
 
     <LinearLayout
         android:orientation="vertical"
@@ -258,10 +237,6 @@
 
         </LinearLayout>
 
-        <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content" >-->
-
         <com.jjoe64.graphview.helper.GraphViewXML
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/altitude_graph"
@@ -273,8 +248,6 @@
             app:seriesColor="#000000"
             android:background="#969686" />
         <!--app:theme="@style/AppTheme.PopupOverlay"-->
-
-        <!--</RelativeLayout>-->
 
     </LinearLayout>
 

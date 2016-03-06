@@ -1,13 +1,10 @@
 package com.nnys.bikeable;
 
-/**
- * Created by Yishay on 2/20/2016.
- */
-
-
-
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
+/**
+ * This class enables to get the TelOFun table data from dynamoDB
+ */
 @DynamoDBTable(tableName = "TelOFun")
 public class StationFromTable {
     private Integer stationID;

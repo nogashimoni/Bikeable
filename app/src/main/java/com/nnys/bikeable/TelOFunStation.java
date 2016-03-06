@@ -3,7 +3,7 @@ package com.nnys.bikeable;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
- * Created by Yishay on 1/2/2016.
+ * This class represents a telOfun station, with all the information needed.
  */
 public class TelOFunStation {
     private LatLng coordinates;

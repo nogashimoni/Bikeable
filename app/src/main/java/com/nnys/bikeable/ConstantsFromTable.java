@@ -3,7 +3,7 @@ package com.nnys.bikeable;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
 /**
- * Created by Yishay on 3/3/2016.
+ * This class enables to get the Constants table data from dynamoDB
  */
 @DynamoDBTable(tableName = "Constants")
 public class ConstantsFromTable {

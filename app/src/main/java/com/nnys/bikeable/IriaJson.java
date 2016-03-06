@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
 /**
- * Created by Sharon on 28/11/2015.
+ * These classes are responsible for getting the stations and bike path data from the Iria Json format
+ * retrieved from the API.
  */
 public class IriaJson {
 
@@ -45,38 +47,23 @@ public class IriaJson {
                 result.add(currPathPolylineOpts);
             }
         }
-        System.out.println("hurray!");
         return result;
     }
 
     public static HashMap <Integer, TelOFunStation> getAllStations(List<Feature> features){
         HashMap <Integer, TelOFunStation> result = new HashMap<>();
         for (Feature feature: features){
-            LatLng coordinates = new LatLng(Double.parseDouble(feature.getGeometry().getY()), Double.parseDouble(feature.getGeometry().getX()));
+            LatLng coordinates = new LatLng(Double.parseDouble(feature.getGeometry().getY()),
+                    Double.parseDouble(feature.getGeometry().getX()));
             int stationId = Integer.parseInt(feature.getAttributes().getStationId());
             int stationOrderId = Integer.parseInt(feature.getAttributes().getStationOid());
             TelOFunStation station = new TelOFunStation(coordinates, stationId, stationOrderId);
             result.put(stationId, station);
         }
-        System.out.println("hurray!");
         return result;
     }
 
-//    static void printAllPaths(List<Feature> features){
-//        String pathPartStr;
-//
-//        for (Feature feature: features) {
-//            List<List<List<String>>> paths = feature.getGeometry().getPaths();
-//
-//            for (List<List<String>> PathList : paths){
-//                System.out.println(String.format("%s", Arrays.toString(PathList.toArray())));
-//
-//            }
-//        }
-//    }
 }
-
-
 
 class IriaBikeData {
     private String displayFieldName;
@@ -90,7 +77,6 @@ class IriaBikeData {
         return features;
     }
 }
-
 
 class Feature {
     private Geometry geometry;

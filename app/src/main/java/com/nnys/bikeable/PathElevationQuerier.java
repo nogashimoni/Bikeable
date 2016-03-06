@@ -8,7 +8,9 @@ import com.google.maps.model.EncodedPolyline;
 
 import java.util.ArrayList;
 
-
+/**
+ * This class is responsible for getting the elevation data for each route
+ */
 public class PathElevationQuerier {
 
     ArrayList<com.google.maps.model.LatLng> path;
@@ -39,7 +41,6 @@ public class PathElevationQuerier {
     public static int getDistanceBetweenSamples(long pathDistance){
         int resultDistance;
         int numOfSamples = calcNumOfSamplesForXmetersIntervals(pathDistance, BikeableRoute.GRAPH_X_INTERVAL, BikeableRoute.MAX_GRAPH_SAMPLES);
-        // TODO: handle zero division
         resultDistance = (int)pathDistance/numOfSamples;
         return resultDistance;
     }
@@ -47,7 +48,7 @@ public class PathElevationQuerier {
     public ElevationResult[] getElevationSamples(int numOfSamples) {
 
         ElevationResult[] elevations = null;
-        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBCRcbSVolZ34CkIlUfwtcAld4uYXitR50");
+        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBq4x4t8-j30Vbo5jrax_jIMkkMTlZdp1k");
 
         try {
             elevations = ElevationApi.getByPath(context, numOfSamples, route).await();

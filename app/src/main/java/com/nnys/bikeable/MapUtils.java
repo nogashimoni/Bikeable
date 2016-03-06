@@ -44,7 +44,6 @@ public class MapUtils {
     public static boolean selectClickedRoute (AllRoutes allRoutes, com.google.android.gms.maps.model.LatLng clickLatLng){
         // return true iff a path was selected
         for (int i = 0; i < allRoutes.getNumRoutes(); i++){
-            // TODO: change 100 to constant value
             BikeableRoute route = allRoutes.getAllRoutes().get(i);
             if (PolyUtil.isLocationOnPath(clickLatLng, route.routePolylineOptions.getPoints(), true, 40)){
                 allRoutes.selectAndColorRoute(i);

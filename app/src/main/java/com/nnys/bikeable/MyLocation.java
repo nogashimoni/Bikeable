@@ -8,6 +8,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
+/**
+ * This class manages current location
+ */
 public class MyLocation {
     Timer timer1;
     LocationManager lm;

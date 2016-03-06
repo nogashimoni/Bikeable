@@ -9,7 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by Sharon on 29/11/2015.
+ * This class is used for opening http connections for specified URLs and getting response
  */
 public class UrlManager {
 

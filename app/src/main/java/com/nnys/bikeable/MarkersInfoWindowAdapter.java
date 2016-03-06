@@ -2,18 +2,17 @@ package com.nnys.bikeable;
 
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Marker;
 
-
+/**
+ * This class extends markers' default infoWindow, to enable showing custom layout
+ * in the infoWindow
+ */
 public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
 
     private View popup = null;
@@ -36,7 +35,6 @@ public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
         tvTitle= (TextView) popup.findViewById(R.id.title);;
         tvBike =  (TextView) popup.findViewById(R.id.bike_data);
         tvStands =  (TextView) popup.findViewById(R.id.stands_data);
-
     }
 
     @Override
@@ -47,11 +45,8 @@ public class MarkersInfoWindowAdapter implements InfoWindowAdapter {
     @SuppressLint("InflateParams")
     @Override
     public View getInfoContents(Marker marker) {
-        //if (popup == null) {
-            //popup = inflater.inflate(R.layout.info_window_layout, null);
-        //}
-        mapWrapperLayout.setMarkerWithInfoWindow(marker, popup);
 
+        mapWrapperLayout.setMarkerWithInfoWindow(marker, popup);
 
         if (marker.getTitle().equals("TelOFun")) {
 

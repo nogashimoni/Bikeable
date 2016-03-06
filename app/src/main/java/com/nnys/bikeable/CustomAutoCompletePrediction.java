@@ -1,13 +1,15 @@
 package com.nnys.bikeable;
 
 import android.text.style.CharacterStyle;
-import android.util.Log;
 
 import com.google.android.gms.location.places.AutocompletePrediction;
 
 import java.util.List;
 
-
+/**
+ * This class extends the autocomplete prediction so that location taken from the map could
+ * be added to the autocomplete text view.
+ */
 public class CustomAutoCompletePrediction implements AutocompletePrediction {
 
     String primaryText;

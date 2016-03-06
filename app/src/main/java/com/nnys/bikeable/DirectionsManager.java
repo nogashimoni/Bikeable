@@ -15,8 +15,10 @@ import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.TravelMode;
 
-import java.util.ArrayList;
-
+/**
+ * This class manages the directions retrieval from google maps direction API and updating the map
+ * with origin and destination markers.
+ */
 public class DirectionsManager {
 
     private GeoApiContext context;
@@ -31,11 +33,6 @@ public class DirectionsManager {
     private Marker fromMarkerCurr, fromMarkerNew, toMarkerCurr, toMarkerNew;
 
     private AutocompletePrediction predictionFrom, predictionTo;
-
-//    private AutocompletePrediction from;
-//    private AutocompletePrediction to;
-//    private PlaceDetails from_placeDetails, to_placeDetails;
-
 
     public DirectionsManager(GeoApiContext context, GoogleMap mMap){
         this.context = context;
@@ -78,19 +75,6 @@ public class DirectionsManager {
         }
     }
 
-//    protected void drawRouteMarkers(GoogleMap mMap){
-//        String fromTitle = ( from == null ? "Current Location": from.getDescription());
-//        directionMarkers = new ArrayList<>();
-//        MarkerOptions fromMarker = new MarkerOptions()
-//                .title(fromTitle)
-//                .position(fromLatLng);
-//        MarkerOptions toMarker = new MarkerOptions()
-//                .title(to.getDescription())
-//                .position(toLatLng);
-//        directionMarkers.add(mMap.addMarker(fromMarker));
-//        directionMarkers.add(mMap.addMarker(toMarker));
-//    }
-
     protected void drawRouteMarkers(){
         if (fromMarkerCurr != null){
             fromMarkerCurr.remove();
@@ -131,14 +115,6 @@ public class DirectionsManager {
 
     public LatLng getToLatLngCurr(){
         return toLatLngCurr;
-    }
-
-    public Marker getFromMarkerCurr() {
-        return fromMarkerCurr;
-    }
-
-    public Marker getToMarkerCurr() {
-        return toMarkerCurr;
     }
 
     public void setToMarkerNew(Marker toMarkerNew) {

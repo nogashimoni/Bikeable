@@ -18,7 +18,6 @@ package com.nnys.bikeable;
 
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
@@ -44,7 +43,6 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-//import com.example.android.common.logger.Log;
 
 /**
  * Adapter that handles Autocomplete requests from the Places Geo Data API.

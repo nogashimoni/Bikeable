@@ -2,27 +2,18 @@ package com.nnys.bikeable;
 
 import android.graphics.Color;
 import android.location.Location;
-import android.util.Log;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Polyline;
+
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsRoute;
-//import com.google.maps.android.geometry;
-
-
 
 import java.util.ArrayList;
 
-import javax.security.auth.login.LoginException;
-
 /**
- * Created by Yishay on 12/10/2015.
+ * This class is in charge of calculating the percentage of bike paths in a route.
  */
 public class BikePathCalculator {
 
@@ -53,8 +44,6 @@ public class BikePathCalculator {
         return bikePathPercentage;
 
     }
-
-
 
     public float calcBikePathPercentage (long routeDistance, float bikePathDistance){
         return bikePathDistance/(float)routeDistance;
@@ -137,7 +126,6 @@ public class BikePathCalculator {
     public ArrayList<PolylineOptions> getBikePaths (){
         return totalInRoutePaths;
     }
-
 
     public void updateRelevantBikePathsToRoutes (){
         ArrayList<LatLng> routePoints = (ArrayList)routePolylineOpt.getPoints();

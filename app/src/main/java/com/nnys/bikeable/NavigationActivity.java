@@ -65,8 +65,9 @@ import java.util.List;
 import java.util.Locale;
 
 
-//TODO: add IriaData to this map. shouldn't be hard to implement
-/*
+/**
+ * This activity is responsible for the online turn-by-turn navigation, using the Skobbler
+ * library.
  * CREDIT: This code was base on the MapActivity.java code from skobbler demo app, avialable at:
  * http://developer.skobbler.com/support#download
  */
@@ -563,7 +564,6 @@ public class NavigationActivity extends AppCompatActivity implements SKPrepareMa
 
     @Override
     public void onReRoutingStarted() {
-        //TODO: understand what should be done here
 //        textToSpeechEngine.speak("Off route, stopping navigation!", TextToSpeech.QUEUE_ADD, null);
 //        Toast.makeText(NavigationActivity.this, "Off route, stopping navigation!",
 //                Toast.LENGTH_SHORT).show();

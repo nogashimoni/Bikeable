@@ -1,12 +1,10 @@
 package com.nnys.bikeable;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -19,9 +17,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,14 +25,8 @@ import java.util.HashMap;
 import java.util.TimeZone;
 import java.lang.Math;
 
-// add to main activity
-// StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-// StrictMode.setThreadPolicy(policy);
-// add to manifest?
-// <uses-permission android:name="android.permission.INTERNET"/>
-
 /**
- * Created by Yishay on 11/27/2015.
+ * This class is responsible for getting the data from the municipality API.
  */
 public class IriaData {
 
@@ -71,7 +61,6 @@ public class IriaData {
         URL telOfanLayerUrl = new URL (telOFunLayerURLStr);
         String bikeJsonWGS84 = getBikeLayerJsonStr(bikePathLayerUrl);
         bikePathPolylinesOpts = IriaJson.getPolylinesFromJsonStr(bikeJsonWGS84);
-        // TODO: Add the line with a different z and width
         String telOfanJsonWGS84 = getBikeLayerJsonStr(telOfanLayerUrl);
         telOFunStationsDict = IriaJson.getStationsFromJsonStr(telOfanJsonWGS84);
     }
@@ -251,18 +240,6 @@ public class IriaData {
         String str1 = str.replaceAll(" ", "");
         String str2 = str1.replaceAll("'", "");
         return str2;
-    }
-
-    public static boolean isBikePathShown(){
-        return isBikePathShown;
-    }
-
-    public static Boolean isTelOFunShown() {
-        return isTelOFunShown;
-    }
-
-    public static ArrayList<Polyline> getBikePathsPolylines(){
-        return bikePathsPolylines;
     }
 
     public static ArrayList<PolylineOptions> getBikePathsTLVPolyLineOpt (){

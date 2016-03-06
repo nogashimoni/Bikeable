@@ -1,6 +1,5 @@
 package com.nnys.bikeable;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 
@@ -13,9 +12,10 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.text.NumberFormat;
-import java.util.ArrayList;
 
+/**
+ * This class is responsible for creating the pathElavation graph fron the elevation data
+ */
 public class PathElevationGraphDrawer extends AppCompatActivity {
     GraphView graph;
     List<ElevationResult[]> allElevationResults;

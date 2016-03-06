@@ -3,7 +3,6 @@ import android.content.Context;
 import com.google.maps.model.LatLng;
 import static java.lang.Thread.sleep;
 import android.location.Location;
-import android.util.Log;
 
 public class CurrentLocationQuerier {
 

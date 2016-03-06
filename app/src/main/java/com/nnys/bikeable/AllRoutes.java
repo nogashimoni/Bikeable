@@ -2,11 +2,9 @@ package com.nnys.bikeable;
 
 import android.graphics.Color;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -20,6 +18,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+/**
+ * This class manages the routes recieved by the search, and is responsible for finding the
+ * best route.
+ */
 public class AllRoutes {
 
     ArrayList<BikeableRoute> bikeableRoutes;
@@ -98,10 +100,8 @@ public class AllRoutes {
 
     }
 
-
-
+    // scoring algorithm - finding the best route according to route ascent and bikepath percentage
     private int calculateBestRouteIndex(UserPreferences userPreferences) {
-        // This is a naive implemintation. We need to find a better way to calculate.
         if (bikeableRoutes.size() == 0){
             return -1;
         }
@@ -180,9 +180,6 @@ public class AllRoutes {
     }
 
     public void showUphillSections(GoogleMap mMap) {
-//        if (!isUphillSectionsAdded){
-//            return;
-//        }
         for (BikeableRoute bikeableRoute : bikeableRoutes) {
             bikeableRoute.colorizeUphillSections.addUphillSectionsToMap(mMap);
             bikeableRoute.colorizeUphillSections.showUphillSectionsToMap();
@@ -350,9 +347,5 @@ public class AllRoutes {
 
     public void setSelectedRouteIndex(int selectedRouteIndex) {
         this.selectedRouteIndex = selectedRouteIndex;
-    }
-
-    public BikeableRoute getRouteByIndex(int index){
-        return bikeableRoutes.get(index);
     }
 }

@@ -6,31 +6,23 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
+// dynamoDB imports
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.maps.model.ElevationResult;
 
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
-
+/**
+ * This activity is the main activity that launches on app startup.
+ * It is responsible for getting the data from the Iria before the app launches.
+ */
 public class MainActivity extends AppCompatActivity {
     private DynamoDBMapper mapper;
 
@@ -55,18 +47,11 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        // run data retrieval from Iria, and then run centralActivity
         BackgroundTask task = new BackgroundTask(MainActivity.this);
         task.execute();
 
-//        button.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-
-
-
     }
-
-
 
     // put as a private class inside the activity class
     private class BackgroundTask extends AsyncTask<Void, Void, Void> {

@@ -29,7 +29,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -71,13 +70,17 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-////////////////////dynamodb imports//////////
+// dynamoDB imports
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
-
+/**
+ * The CentralActivity enables search for routes, and viewing the routes results on the map, as
+ * well as other valuable information for each route. It also enables viewing different layers
+ * on the map.
+ */
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
     private static final LatLngBounds BOUNDS_GREATER_TEL_AVIV = new LatLngBounds(
@@ -93,8 +96,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     private AllRoutes allRoutes;
 
-    private FloatingActionButton clearBtn, showGraphBtn, bikePathButton, singleBikePathButton, startNavButton;
-    private Button historyBtn;
+    private FloatingActionButton startNavButton;
     private ImageButton searchBtn;
 
     private ArrayList<com.google.maps.model.LatLng> points = new ArrayList<>();
@@ -123,13 +125,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     MenuItem menuSearch;
     MenuItem cbBikePathPrefered, cbAvoidUphills;
     MenuItem cbAllBikePath, cbOverlapBikePath, cbUphillsSections, cbAllTelOFun, cbNearestTelOFun;
-
-
-//    private boolean isShowBikeRouteMatchesChecked = false;
-//    private boolean isShowCloseTelOFunStationsChecked = false;
-//    private boolean isShowUphillSections;
-//    private boolean isAvoidUphillsChecked = true;
-//    private boolean isPreferBikePathChecked = true;
 
     private SearchHistoryCollector searchHistoryCollector;
     private SharedPreferences sharedPreferences;
@@ -281,10 +276,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
                 // hide keyboard on search
                 hideKeyboard();
-//                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//                in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                //put in the search button onClick:
+                // put in the search button onClick:
                 BackgroundTask task = new BackgroundTask(CentralActivity.this);
                 task.execute();
 
@@ -393,7 +386,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         else if (userPreferences.doesUserPrefereBikingRoutes()){
             rankBy.append("(Bike paths)");
         }
-        rankingTextView.setText(String.format(" %s: %d", rankBy.toString(), allRoutes.getSelectedRouteRank() )); //(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
+        rankingTextView.setText(String.format(" %s: %d", rankBy.toString(), allRoutes.getSelectedRouteRank() ));
     }
 
     private void clearInfoTable() {
@@ -431,7 +424,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         Drawable drawable = menuSearch.getIcon();
         if (drawable != null) {
-//            drawable.mutate();
             drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY );
         }
 
@@ -628,7 +620,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
-        // TODO(Developer): Check error code and notify the user of error state and resolution.
+        // Developer: Check error code and notify the user of error state and resolution.
         Toast.makeText(this,
                 "Could not connect to Google API Client: Error " + connectionResult.getErrorCode(),
                 Toast.LENGTH_SHORT).show();
@@ -659,11 +651,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             Log.i("INFO:", "set focus on current location");
             placeToFocusOn = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         }
-//        mMap.addMarker(new MarkerOptions()
-//                        .title("current location (or tau)")
-//                        .position(placeToFocusOn)
-//        );
-//
 
         if (layerPreferences != null){
             Log.i("INFO:", "layerPreferences not null");
@@ -755,7 +742,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 currInfoMarker = marker;
                 if (marker.getTitle().equals("TelOFun")) {
                     try {
-                        //IriaData.updateTelOFunBikesAvailability(marker);
                         Log.i("Info", "before calling to update");
                         IriaData.updateTelOFunBikesAvailabilityWithDynamoDB(marker, mapper);
                         marker.showInfoWindow();
@@ -775,15 +761,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
     @Override
     public void onConnected(Bundle connectionHint) {
-//        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-//                mGoogleApiClient);
-//        //mLastLocation.getAltitude();
-//        if (mLastLocation != null) {
-//            Log.i("INFO", String.format("Current loction lat: %f",mLastLocation.getLatitude()));
-//            Log.i("INFO", String.format("Current location lang %f",mLastLocation.getLongitude()));
-//        } else {
-//            Log.i("INFO", "current position is NULL");
-//        }
 
             createLocationRequest();
 
@@ -855,6 +832,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         if (mDoAskToUseLocation) {
+
         /* ask to turn on location
             CREDIT: http://stackoverflow.com/questions/29801368/how-to-show-enable-location-dialog-like-google-maps
          */
@@ -900,15 +878,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
-    public void updateUI() {
-
-
-    }
+    public void updateUI() { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     protected void onStop() {
         mGoogleApiClient.disconnect();
@@ -926,13 +899,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 //        moveTaskToBack(true);
         showAlertDialog();
     }
-
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
-//    }
-
 
     void showAlertDialog(){
 
@@ -985,7 +951,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
 
         @Override
         protected void onPreExecute() {
-//            disableSlidingPanel();
             ringProgressDialog.setTitle("Calculating routes");
             ringProgressDialog.setMessage("Please wait...");
             ringProgressDialog.setIndeterminate(true);
@@ -1004,7 +969,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             allRoutes.updateBikeableRoutesAndMap(directionsManager.getCalculatedRoutes(), mMap, userPreferences);
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(directionsManager.getDirectionBounds(), getResources()
                     .getInteger(R.integer.bound_padding)));
-            //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
             try {
                 allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
             } catch (IOException e) {
@@ -1041,8 +1005,6 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             }
             updateInfoTable();
             hideSearchView();
-//            enableSlidingPanel();
-
 
             if (isSearchFromCurrentLocation()) {
                 startNavButton.setVisibility(View.VISIBLE);

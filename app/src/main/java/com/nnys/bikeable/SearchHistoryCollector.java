@@ -15,11 +15,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
-
+/**
+ * A class that is responsible for collecting the search history data for the autocomplete results
+ * and to load them from history when app launches.
+ */
 public class SearchHistoryCollector {
 
     private final int MAX_HISTORY_RECORDS = 10;

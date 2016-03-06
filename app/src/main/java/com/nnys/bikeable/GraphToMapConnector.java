@@ -20,12 +20,14 @@ import com.jjoe64.graphview.series.Series;
 
 import java.util.Iterator;
 
-
+/**
+ * This map is responsible for showing where the region clicked on the elevation graph is located
+ * on the map.
+ */
 public class GraphToMapConnector {
 
     PathElevationGraphDrawer graphDrawer;
     GoogleMap googleMap;
-    AllRoutes allRoutes;
 
     public GraphToMapConnector(PathElevationGraphDrawer graphDrawer, GoogleMap googleMap) {
         this.graphDrawer = graphDrawer;
@@ -58,7 +60,7 @@ public class GraphToMapConnector {
             }
 
             int tappedDatePointIndex = 0;
-            Iterator<DataPoint> iter = series.getValues(0, 100000); //TODO max int
+            Iterator<DataPoint> iter = series.getValues(0, 100000);
             int dataPointIndex = 0;
             while ( iter.hasNext() ) {
                 if ( dataPoint.equals(iter.next())) {

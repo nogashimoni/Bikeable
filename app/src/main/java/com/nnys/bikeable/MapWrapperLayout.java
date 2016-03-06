@@ -10,6 +10,11 @@ import android.widget.RelativeLayout;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
+/**
+ * This class wraps the google map fragment, to enable clicking on the infoWindow buttons
+ * CREDIT:
+ * http://stackoverflow.com/questions/14123243/google-maps-android-api-v2-interactive-infowindow-like-in-original-android-go/15040761#15040761
+ */
 public class MapWrapperLayout extends RelativeLayout {
     /**
      * Reference to a GoogleMap object

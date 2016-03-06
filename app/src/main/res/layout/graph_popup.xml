@@ -14,5 +14,4 @@
         app:theme="@style/AppTheme.PopupOverlay"
         android:background="#969686" />
 
-
 </RelativeLayout>

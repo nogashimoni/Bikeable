@@ -7,7 +7,6 @@ import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,9 +15,11 @@ import android.widget.AutoCompleteTextView;
 import com.google.android.gms.location.places.AutocompletePrediction;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
+ * This class manages the autocomplete text view, and enables clearing the text view in one click
+ *
+ * CREDIT:
  * sub class of {@link android.widget.AutoCompleteTextView} that includes a clear (dismiss / close) button with
  * a OnClearListener to handle the event of clicking the button
  * based on code from https://gist.github.com/mderazon/6700044
@@ -116,18 +117,6 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
                 }
             }
         });
-//        this.setOnKeyListener(new View.OnKeyListener() {
-//            @Override
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                ClearableAutoCompleteTextView view = (ClearableAutoCompleteTextView)v;
-//                if (view.getText().length() == 0) {
-//                    view.onClearListener.onClear();
-//                } else {
-//                    view.showClearButton();
-//                }
-//                return false;
-//            }
-//        });
 
         this.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -176,11 +165,6 @@ public class ClearableAutoCompleteTextView extends AutoCompleteTextView {
 
     private void showOnlyFixedResults() {
         PlaceAutocompleteAdapter currAdapter = (PlaceAutocompleteAdapter) currView.getAdapter();
-//        if (currAdapter.getFixedResults().size() == 0) {
-//            Log.i("INFO:", "no fixed results run");
-//            // no fixed results
-//            return;
-//        }
         ArrayList<AutocompletePrediction> fixedResults = new ArrayList();
         fixedResults.addAll(currAdapter.getFixedResults());
         if (searchHistoryCollector != null && !searchHistoryCollector.getOnlineHistory().isEmpty()){

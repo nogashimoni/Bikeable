@@ -2,7 +2,4 @@
 <resources>
     <integer name="bound_padding">200</integer>
     <integer name="auto_complete_thresh">2</integer>
-    <!--<integer name="GRAPH_X_INTERVAL">20</integer>-->
-    <!--<integer name="MAX_GRAPH_SAMPLES">400</integer>-->
-
 </resources>

@@ -12,7 +12,6 @@ import com.google.maps.model.ElevationResult;
 import java.util.ArrayList;
 
 /**
- * Created by nleibovich on 01/01/2016.
  * This class creates a list of sections in a BikeableRoute, that have a significant uphill slope.
  */
 public class ColorizeUphillSections {
@@ -47,25 +46,17 @@ public class ColorizeUphillSections {
 
     private void addUphillSectionToSections(int i, ArrayList<PolylineOptions> uphillSections) {
         Log.i("Info:", "addUphillSectionToSections");
-        //ArrayList<PolylineOptions> significantUphillSection = new ArrayList<>();
         PolylineOptions currPathPolylineOpts = new PolylineOptions();
         currPathPolylineOpts.color(Color.RED);
         currPathPolylineOpts.add(new LatLng(routeElevationArr[i].location.lat, routeElevationArr[i].location.lng));
         currPathPolylineOpts.add(new LatLng(routeElevationArr[i + 1].location.lat, routeElevationArr[i + 1].location.lng));
         uphillSections.add(currPathPolylineOpts);
-
-//        if (significantUphillSection != null) {
-//            uphillSections.add(significantUphillSection);
-//        }
-//        return uphillSections;
     }
 
     public void addUphillSectionsToMap(GoogleMap mMap) {
         Log.i("Info:", "addUphillSectionsToMap");
         uphillPolylines = new ArrayList<>();
         for (PolylineOptions line : uphillSections) {
-//            line.zIndex(10); // TODO: not hard coded
-//                line.width(5); // TODO: not hard coded
             line.visible(false);
             uphillPolylines.add(mMap.addPolyline(line));
         }
@@ -73,11 +64,7 @@ public class ColorizeUphillSections {
 
     public void showUphillSectionsToMap(){
         Log.i("Info:", "showUphillSectionsToMap");
-//        if (!isUphillPolylinesAdded){
-//            return;
-//        }
         for (Polyline line : uphillPolylines){
-//            Log.i("info", "inside show function for");
             line.setVisible(true);
             line.setZIndex(10);
         }

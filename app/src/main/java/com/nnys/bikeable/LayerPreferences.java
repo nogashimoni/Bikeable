@@ -3,10 +3,9 @@ package com.nnys.bikeable;
 import android.content.SharedPreferences;
 
 /**
- * Created by Sharon on 10/01/2016.
+ * This class manages the selected layers, and saves them offline for next app launch
  */
 public class LayerPreferences {
-    // todo: make a general preferences abstarct class!!
 
     SharedPreferences sharedPreferences;
 

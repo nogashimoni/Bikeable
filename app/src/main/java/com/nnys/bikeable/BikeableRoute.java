@@ -14,9 +14,11 @@ import com.google.maps.model.LatLng;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class manages each route that is saved on allRoutes bikeableRoutes list.
+ */
 public class BikeableRoute {
 
-    // TODO move to constants file
     public final static int GRAPH_X_INTERVAL = 20;
     public final static int MAX_GRAPH_SAMPLES = 400;
     public final static int WALKING_SPEED = 5;
@@ -77,7 +79,6 @@ public class BikeableRoute {
         routePolyline = mMap.addPolyline(routePolylineOptions); // draws the polyline on map
         colorizeUphillSections = new ColorizeUphillSections(this);
         colorizeUphillSections.addUphillSectionsToMap(mMap);
-//        colorizeUphillSections.showUphillSectionsToMap();
         if (IriaData.isDataReceived) {
             BikePathCalculator pathCalculator = new BikePathCalculator(routePolylineOptions, IriaData.getBikePathsTLVPolyLineOpt(),
                     directionsRoute);
