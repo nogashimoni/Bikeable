@@ -52,7 +52,7 @@ public class IriaData {
     private static ArrayList<PolylineOptions> bikePathPolylinesOpts;
     private static HashMap <Integer, TelOFunStation> telOFunStationsDict;
 
-    public static Boolean isDataReceived;
+    public static boolean isDataReceived;
 
     private static String bikePathLayerURLStr;
     private static String telOFunLayerURLStr;
