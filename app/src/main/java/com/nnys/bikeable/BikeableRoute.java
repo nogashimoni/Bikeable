@@ -201,7 +201,7 @@ public class BikeableRoute {
 
     private String updateDistanceString() {
         if (distance < 1000){
-            distanceString = String.format("%d meters", distance);
+            distanceString = String.format("%d m", distance);
         }
         else{
             distanceString = String.format("%.2f km", (double) distance/1000);

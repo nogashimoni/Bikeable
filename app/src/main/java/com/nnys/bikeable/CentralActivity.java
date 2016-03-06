@@ -370,9 +370,22 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         clearInfoTable();
 
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
-        pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
+        pathPercTextView.setText(String.format("%d", (int) ((currentRoute.getBikePathPercentage() * 100) + 0.5)) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
-        rankingTextView.setText(String.format("%d",allRoutes.getSelectedRouteRank() )); //(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
+        StringBuilder rankBy = new StringBuilder("");
+        if (userPreferences.doesUserAvoidUphills()){
+            rankBy.append("(Uphills");
+            if (userPreferences.doesUserPrefereBikingRoutes()){
+                rankBy.append(" + Bike paths)");
+            }
+            else {
+                rankBy.append(")");
+            }
+        }
+        else if (userPreferences.doesUserPrefereBikingRoutes()){
+            rankBy.append("(Bike paths)");
+        }
+        rankingTextView.setText(String.format(" %s: %d", rankBy.toString(), allRoutes.getSelectedRouteRank() )); //(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
     }
 
     private void clearInfoTable() {
