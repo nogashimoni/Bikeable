@@ -76,7 +76,6 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.model.*;
 
 
 public class CentralActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -119,7 +118,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     TextView pathDurationTextView;
     TextView pathPercTextView;
     TextView pathDistanceTextView;
-    TextView pathUphillAverageTextView;
+    TextView rankingTextView;
 
     MenuItem menuSearch;
     MenuItem cbBikePathPrefered, cbAvoidUphills;
@@ -177,7 +176,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathDurationTextView = (TextView)findViewById(R.id.path_duration);
         pathPercTextView = (TextView)findViewById(R.id.bike_path_perc);
         pathDistanceTextView = (TextView)findViewById(R.id.path_distance);
-        pathUphillAverageTextView = (TextView)findViewById(R.id.path_difficulty);
+        rankingTextView = (TextView)findViewById(R.id.path_rank);
 
         searchHistoryCollector = new SearchHistoryCollector(CentralActivity.this, geoApiContext);
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -378,14 +377,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         pathDurationTextView.setText(String.format("%s", currentRoute.getDurationString()));
         pathPercTextView.setText(String.format("%.1f", currentRoute.getBikePathPercentage() * 100) + "%");
         pathDistanceTextView.setText(String.format("%s", currentRoute.getDistanceString()));
-        pathUphillAverageTextView.setText(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
+        rankingTextView.setText(String.format("%d",allRoutes.getSelectedRouteRank() )); //(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
     }
 
     private void clearInfoTable() {
         pathDurationTextView.setText("");
         pathPercTextView.setText("");
         pathDistanceTextView.setText("");
-        pathUphillAverageTextView.setText("");
+        rankingTextView.setText("");
     }
 
 
@@ -695,7 +694,8 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                 }
                 updateMarkerButtonClick(true);
                 return false;
-        }});
+            }
+        });
 
         markersInfoWindowAdapter.getInfoDstBtn().setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -1040,7 +1040,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1090,7 +1090,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void updateMapToNewMArkerState() {
         Log.i("Info:", "updateMapToNewMArkerState");
         startNavButton.setVisibility(View.GONE);
-        searchLayout.setVisibility(View.VISIBLE);
+        showSearchView();
 
         allRoutes.removeCurrentRoutes();
         disableSlidingPanel();

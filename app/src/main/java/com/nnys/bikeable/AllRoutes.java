@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -15,6 +16,8 @@ import com.google.maps.model.DirectionsRoute;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 public class AllRoutes {
@@ -41,7 +44,6 @@ public class AllRoutes {
         addNewRoutes(directionsRouteArr, mMap);
         bestRouteIndex = calculateBestRouteIndex(userPreferences); // by now, all routes are already updated
         selectAndColorRoute(bestRouteIndex);
-
     }
 
     private void addNewRoutes(DirectionsRoute[] directionsRouteArr, GoogleMap mMap) {
@@ -80,6 +82,7 @@ public class AllRoutes {
     }
 
     protected void selectAndColorRoute (int routeInd){
+        Log.i("INFO", String.format("selected route: %d, score: %f", routeInd, getAllRoutes().get(routeInd).getAlgorithmScore()));
         this.setSelectedRouteIndex(routeInd);
 
         for (int i = 0; i < getNumRoutes(); i++){
@@ -92,6 +95,7 @@ public class AllRoutes {
                 bikeableRoutes.get(i).routePolyline.setZIndex(0);
             }
         }
+
     }
 
 
@@ -106,8 +110,9 @@ public class AllRoutes {
         double maxElevationScorePerSearch = getMaxElevationScorePerSearch();
 
         for (int i=0; i<getNumRoutes(); i++) {
-            double rescaledElevationScore = calcRescaledElevationScore(bikeableRoutes.get(i), maxElevationScorePerSearch);
-            double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoutes.get(i));
+            BikeableRoute bikeableRoute = bikeableRoutes.get(i);
+            double rescaledElevationScore = calcRescaledElevationScore(bikeableRoute, maxElevationScorePerSearch);
+            double rescaledBikePathScore = calcRescaledBikePathsScore(bikeableRoute);
 
             double pathFinalScore = 0;
             double elevationsContribution = 0;
@@ -115,7 +120,7 @@ public class AllRoutes {
 
             if (!userPreferences.doesUserAvoidUphills() && !userPreferences.doesUserPrefereBikingRoutes() ) {
                 // user didn't check any box, choose fastest route
-                pathFinalScore = (-1) * bikeableRoutes.get(i).duration; //higher score = easier
+                pathFinalScore = (-1) * bikeableRoute.duration; //higher score = easier
                 Log.i("INFO", "User didn't check any box, will choose best duration");
 
             } else { // user checked some box
@@ -132,6 +137,8 @@ public class AllRoutes {
 
                 pathFinalScore = elevationsContribution + bikingRouteContribution;
             }
+
+            bikeableRoute.setAlgorithmScore(pathFinalScore);
 
             Log.i("INFO", String.format("Final Score: route with index %d has final score of %f", i , pathFinalScore));
 
@@ -299,6 +306,46 @@ public class AllRoutes {
 
     public int getSelectedRouteIndex() {
         return selectedRouteIndex;
+    }
+
+    public int getSelectedRouteRank() {
+        ArrayList<ArrayList<Object>> algorithmScores = new ArrayList<>();
+        for (int i=0; i<getNumRoutes(); i++) {
+            BikeableRoute bikeableRoute= getAllRoutes().get(i);
+            ArrayList<Object> indexScorePair = new ArrayList<>();
+            indexScorePair.add(new Integer(i));
+            indexScorePair.add(bikeableRoute.getAlgorithmScore());
+            algorithmScores.add(indexScorePair);
+        }
+
+        Collections.sort(algorithmScores, new Comparator<ArrayList<Object>>() {
+            @Override
+            public int compare(ArrayList<Object> lhs, ArrayList<Object> rhs) {
+                double result;
+                result = ((double)rhs.get(1) - (double)lhs.get(1));
+                if (result > 0) {
+                    return 1;
+                } else if (result < 0) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
+
+        int ranking = 0;
+
+        for (int i=0; i<algorithmScores.size(); i++) {
+            if ((int) algorithmScores.get(i).get(0) == selectedRouteIndex) {
+                ranking = i+1;
+                break;
+            }
+        }
+
+        if (ranking==0) {
+            System.out.println("Error!! ranking can not be 0");
+        }
+
+        return ranking;
     }
 
     public void setSelectedRouteIndex(int selectedRouteIndex) {

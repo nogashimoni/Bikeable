@@ -267,4 +267,6 @@ public class DirectionsManager {
     public void setFromLatLngNew(LatLng fromLatLngCurr) {
         this.fromLatLngNew = fromLatLngCurr;
     }
+
+
 }
