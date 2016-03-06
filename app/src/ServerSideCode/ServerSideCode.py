@@ -39,6 +39,7 @@ def parse_telofun_data(telofun_data):
     return listOfStationsData
 
 
+
 def loadStationsToTable (listOfStations):
 
     dynamodb = boto3.resource('dynamodb', endpoint_url=DB_URL)
