@@ -77,13 +77,13 @@ public class BikePathCalculator {
         currPolyLineOpt.color(Color.MAGENTA);
         for (LatLng point : points) {
             isInBikePath = false;
-            if (checkPointWithPath(point, relevantIriaBikePath.get(lastMatchedPath))){
+            if (relevantIriaBikePath.size() > 0 && checkPointWithPath(point, relevantIriaBikePath.get(lastMatchedPath))){
                 isInBikePath = true;
             }
 
             if (!isInBikePath) {
                 for (int i = 0; i < relevantIriaBikePath.size(); i++) {
-                    if (checkPointWithPath(point, relevantIriaBikePath.get(i))) {
+                    if (relevantIriaBikePath.size() > 0 && checkPointWithPath(point, relevantIriaBikePath.get(i))) {
                         isInBikePath = true;
                         lastMatchedPath = i;
                         break;
