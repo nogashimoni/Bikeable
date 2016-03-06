@@ -206,11 +206,14 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 from.setPrediction((AutocompletePrediction) parent.getItemAtPosition(position), false);
                 if (isSearchFromCurrentLocation()) {
-                    if (mCurrentLocation == null) {
-                        Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
-                        return;
+                    LatLng currentLocationLatLng = null;
+                    if (mCurrentLocation != null) {
+                        currentLocationLatLng = MapUtils.getGMSFromLocation(mCurrentLocation);
                     }
-                    directionsManager.setFromCurrLocation(MapUtils.getGMSFromLocation(mCurrentLocation), (CustomAutoCompletePrediction) from.getPrediction());
+                    else {
+                        Toast.makeText(getApplicationContext(), "Current Location Unavailable", Toast.LENGTH_SHORT).show();
+                    }
+                    directionsManager.setFromCurrLocation(currentLocationLatLng, (CustomAutoCompletePrediction) from.getPrediction());
                 } else {
                     directionsManager.setNewMarkerByPlacePrediction(true, from.getPrediction());
                 }
