@@ -1010,7 +1010,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
             //allRoutes.chooseTelOFunMatchesToSourceAndDestination (mMap, directionsManager);
             try {
                 allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
