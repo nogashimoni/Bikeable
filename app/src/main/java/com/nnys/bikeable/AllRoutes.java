@@ -84,7 +84,7 @@ public class AllRoutes {
     }
 
     protected void selectAndColorRoute (int routeInd){
-        Log.i("INFO", String.format("selected route: %d, score: %f", routeInd, getAllRoutes().get(routeInd).getAlgorithmScore()));
+        // Log.i("INFO", String.format("selected route: %d, score: %f", routeInd, getAllRoutes().get(routeInd).getAlgorithmScore()));
         this.setSelectedRouteIndex(routeInd);
 
         for (int i = 0; i < getNumRoutes(); i++){
