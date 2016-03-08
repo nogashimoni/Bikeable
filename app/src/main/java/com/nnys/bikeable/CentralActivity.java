@@ -357,7 +357,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
     private void enableSlidingPanel() {
         SlidingUpPanelLayout slidingUpLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
         slidingUpLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        slidingUpLayout.setPanelHeight(80);
+        slidingUpLayout.setPanelHeight(78);
         isSlidingPanelEnabled = true;
     }
 
@@ -386,7 +386,10 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
         else if (userPreferences.doesUserPrefereBikingRoutes()){
             rankBy.append("(Bike paths)");
         }
-        rankingTextView.setText(String.format(" %s: %d", rankBy.toString(), allRoutes.getSelectedRouteRank() ));
+        else{
+            rankBy.append("(Fastest)");
+        }
+        rankingTextView.setText(String.format(" %s: %d", rankBy.toString(), allRoutes.getSelectedRouteRank() )); //(String.format("%.2f", currentRoute.getAverageUphillDegree()) + "°");
     }
 
     private void clearInfoTable() {
@@ -971,7 +974,7 @@ public class CentralActivity extends AppCompatActivity implements GoogleApiClien
                     .getInteger(R.integer.bound_padding)));
             try {
                 allRoutes.calculateClosestTelOFunStationsData(mMap, directionsManager);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

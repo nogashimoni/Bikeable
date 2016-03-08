@@ -49,12 +49,17 @@ public class IriaData {
     private static String telOFunSiteURLStr;
 
 
-    public static void getIriaData(ConstantsFromTable bikePathLayerURLItem, ConstantsFromTable telOFunLayerURLItem,
-                                   ConstantsFromTable telOFunSiteURLItem) throws IOException, XmlPullParserException {
+    public static void initIriaData(){
+        isDataReceived = false;
         isBikePathShown = false;
         bikePathsPolylines = new ArrayList<>();
+        telOFunMarkers = new ArrayList<>();
         telOFunStationsDict = new HashMap<>();
         bikePathPolylinesOpts = new ArrayList<>();
+    }
+
+    public static void getIriaData(ConstantsFromTable bikePathLayerURLItem, ConstantsFromTable telOFunLayerURLItem,
+                                   ConstantsFromTable telOFunSiteURLItem) throws IOException, XmlPullParserException {
         updateURLsFromDB(bikePathLayerURLItem.getStringValue(), telOFunLayerURLItem.getStringValue(),
                 telOFunSiteURLItem.getStringValue());
         URL bikePathLayerUrl = new URL (bikePathLayerURLStr);
@@ -97,7 +102,6 @@ public class IriaData {
     public static void addTelOFunToMap (GoogleMap mMap) {
         if (isTelOFunMarkersAdded)
             return;
-        telOFunMarkers = new ArrayList<>();
         for (TelOFunStation station : telOFunStationsDict.values()) {
             telOFunMarkers.add(
                     mMap.addMarker(new MarkerOptions()
